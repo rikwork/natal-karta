@@ -1,0 +1,8 @@
+en:
+  cities:
+    search:
+      success: "Cities found successfully"
+      error: "Error searching cities"
+      query_required: "Query parameter is required"
+  errors:
+    geonames_api: "GeoNames API error"

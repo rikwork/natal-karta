@@ -1,0 +1,372 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, Alert, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { User, NatalChart } from './src/types';
+import ApiService from './src/services/api';
+import ErrorBoundary from './src/components/ErrorBoundary';
+import errorReporter from './src/services/errorReporter';
+import AdService from './src/services/AdService';
+
+// Типы для ErrorUtils
+declare const ErrorUtils: {
+  getGlobalHandler(): ((error: Error, isFatal: boolean) => void) | undefined;
+  setGlobalHandler(handler: (error: Error, isFatal: boolean) => void): void;
+};
+import OnboardingScreen from './src/screens/OnboardingScreen';
+import LoadingScreen from './src/screens/LoadingScreen';
+import ResultScreen from './src/screens/ResultScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import CreateChartScreen from './src/screens/CreateChartScreen';
+import ChartsScreen from './src/screens/ChartsScreen';
+import ChartDetailScreen from './src/screens/ChartDetailScreen';
+import { theme } from './src/theme';
+
+// Простая навигация без React Navigation для начала
+import { auth, signInAnonymously } from './src/config/firebase';
+
+const App: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [currentScreen, setCurrentScreen] = useState<string>('Onboarding');
+  const [selectedChart, setSelectedChart] = useState<NatalChart | null>(null);
+  const [onboardingData, setOnboardingData] = useState<any>(null);
+  const [chartResult, setChartResult] = useState<any>(null);
+
+  useEffect(() => {
+    // Глобальный обработчик ошибок для React Native
+    const handleError = (error: Error) => {
+      console.log('Глобальная ошибка поймана:', error);
+      errorReporter.reportError(error, 'Global Error Handler');
+    };
+
+    // Обработчик необработанных промисов
+    const handleUnhandledRejection = (event: any) => {
+      const error = new Error(event.reason || 'Unhandled Promise Rejection');
+      console.log('Необработанный промис пойман:', error);
+      errorReporter.reportError(error, 'Unhandled Promise Rejection');
+    };
+
+    // Добавляем обработчики
+    const originalConsoleError = console.error;
+    console.error = (...args) => {
+      originalConsoleError(...args);
+      if (typeof document !== 'undefined') {
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'color: white; background: red; font-size: 20px; z-index: 9999; position: fixed; top: 0; left: 0; padding: 10px; width: 100%;';
+        errorDiv.innerHTML = '<h2>Uncaught Error Caught:</h2><pre>' + args.map(a => (a instanceof Error ? a.stack || a.message : String(a))).join(' ') + '</pre>';
+        document.body.appendChild(errorDiv);
+      }
+      if (args[0] instanceof Error) {
+        console.log('Console error пойман:', args[0]);
+        errorReporter.reportError(args[0], 'Console Error');
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.onerror = function (message, source, lineno, colno, error) {
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'color: white; background: red; font-size: 20px; z-index: 9999; position: fixed; bottom: 0; left: 0; padding: 10px; width: 100%;';
+        errorDiv.innerHTML = '<h2>window.onerror:</h2><pre>' + message + ' ' + (error?.stack || '') + '</pre>';
+        document.body.appendChild(errorDiv);
+      };
+    }
+
+    // Обработчик для необработанных промисов (только для веб-платформы)
+    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    }
+
+    // Для React Native используем ErrorUtils
+    if (typeof ErrorUtils !== 'undefined') {
+      const originalHandler = ErrorUtils.getGlobalHandler();
+      ErrorUtils.setGlobalHandler((error: Error, isFatal: boolean | undefined) => {
+        console.log('React Native глобальная ошибка:', error, 'isFatal:', isFatal);
+        errorReporter.reportError(error, `React Native Global Handler (isFatal: ${isFatal || false})`);
+        if (originalHandler) {
+          originalHandler(error, isFatal || false);
+        }
+      });
+    }
+
+    // Инициализация Yandex Ads (через AdService для кросс-платформенности)
+    AdService.initialize().then(() => {
+      console.log('Ads initialized');
+    });
+
+    initializeApp();
+
+    // Очистка при размонтировании
+    return () => {
+      if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
+        window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      }
+    };
+  }, []);
+
+  const initializeApp = async () => {
+    try {
+      // Проверяем, есть ли сохраненный пользователь и завершен ли онбординг
+      const savedUser = await AsyncStorage.getItem('user');
+      const hasCompletedOnboarding = await AsyncStorage.getItem('onboarding_completed');
+
+      if (savedUser && hasCompletedOnboarding) {
+        const userData = JSON.parse(savedUser);
+        setUser(userData);
+        setCurrentScreen('Home');
+      } else {
+        // Показываем онбординг
+        setCurrentScreen('Onboarding');
+        setUser(null);
+      }
+    } catch (error) {
+      setCurrentScreen('Onboarding');
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createNewUser = async (): Promise<User> => {
+    try {
+      const userCredential = await signInAnonymously(auth);
+      const uid = userCredential.user.uid;
+
+      const response = await ApiService.createUser({
+        name: 'Пользователь',
+        email: `${uid}@anonymous.local`,
+        subscription_type: 'free',
+      });
+
+      const userData = response.data;
+      if (!userData) {
+        throw new Error('User data is null');
+      }
+
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      return userData;
+    } catch (error) {
+      console.log('Error creating/authenticating user:', error);
+      // Возвращаем временного пользователя
+      return {
+        id: 1,
+        name: 'Пользователь',
+        email: 'user@example.com',
+        subscription_type: 'free',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+    }
+  };
+
+  const handleWatchAd = useCallback(() => {
+    AdService.showRewardedAd(
+      () => {
+        // onSuccess - Временно даем доступ к премиум функциям
+        if (user) {
+          const updatedUser = { ...user, subscription_type: 'premium' as const };
+          setUser(updatedUser);
+          AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+      },
+      () => {
+        // onFailedOrDismissed
+        Alert.alert('Остановка', 'Показ прерван. Чтобы открыть прогноз полностью, посмотрите видео до конца.');
+      }
+    );
+  }, [user]);
+
+  const handleNavigateToCharts = useCallback(() => {
+    setCurrentScreen('Charts');
+  }, []);
+
+  const handleNavigateToCreateChart = useCallback(() => {
+    setCurrentScreen('CreateChart');
+  }, []);
+
+  const handleNavigateToChartDetail = useCallback((chart: NatalChart) => {
+    setSelectedChart(chart);
+    setCurrentScreen('ChartDetail');
+  }, []);
+
+  const handleChartCreated = useCallback(() => {
+    setCurrentScreen('Charts');
+  }, []);
+
+  const handleBack = useCallback(() => {
+    setCurrentScreen('Home');
+    setSelectedChart(null);
+  }, []);
+
+  const handleOnboardingComplete = useCallback(async (data: any) => {
+    setOnboardingData(data);
+
+    // Создаем пользователя сразу после онбординга
+    try {
+      const newUser = await createNewUser();
+      setUser(newUser);
+      await AsyncStorage.setItem('user', JSON.stringify(newUser));
+    } catch (error) {
+      console.log('Ошибка создания пользователя:', error);
+    }
+
+    setCurrentScreen('Loading');
+  }, [createNewUser]);
+
+  const handleLoadingComplete = useCallback(async () => {
+    // Генерируем реальную натальную карту во время анимации
+    if (user && onboardingData) {
+      try {
+        // Создаем натальную карту с данными из онбординга
+        const chartData = {
+          name: `${user.name} - Натальная карта`,
+          birth_date: onboardingData.birthDate,
+          birth_time: onboardingData.birthTime,
+          birth_place: onboardingData.birthPlace,
+          latitude: onboardingData.latitude,
+          longitude: onboardingData.longitude
+        };
+
+        const response = await ApiService.createNatalChart(user.id, chartData);
+
+        if (response.data) {
+          // Генерируем данные карты
+          const generateResponse = await ApiService.generateNatalChart(user.id, response.data.id);
+
+          const result = {
+            chart: response.data,
+            chart_data: generateResponse.data?.chart_data || 'Данные карты сгенерированы',
+            sun: 'Скорпион', // Временные данные
+            moon: 'Весы',
+            ascendant: 'Близнецы'
+          };
+
+          setChartResult(result);
+        } else {
+          // Fallback на заглушку
+          setChartResult({
+            sun: 'Скорпион',
+            moon: 'Весы',
+            ascendant: 'Близнецы'
+          });
+        }
+      } catch (error) {
+        // Fallback на заглушку
+        setChartResult({
+          sun: 'Скорпион',
+          moon: 'Весы',
+          ascendant: 'Близнецы'
+        });
+      }
+    } else {
+      // Fallback на заглушку
+      setChartResult({
+        sun: 'Скорпион',
+        moon: 'Весы',
+        ascendant: 'Близнецы'
+      });
+    }
+
+    setCurrentScreen('Result');
+  }, [user, onboardingData]);
+
+  const handleResultContinue = useCallback(async () => {
+    // Пользователь уже создан, просто сохраняем флаг завершения онбординга
+    try {
+      await AsyncStorage.setItem('onboarding_completed', 'true');
+      setCurrentScreen('Home');
+    } catch (error) {
+      console.log('Ошибка сохранения флага онбординга:', error);
+      setCurrentScreen('Home');
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Загрузка...</Text>
+      </View>
+    );
+  }
+
+
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case 'Onboarding':
+        return (
+          <OnboardingScreen
+            onComplete={handleOnboardingComplete}
+          />
+        );
+      case 'Loading':
+        return (
+          <LoadingScreen
+            onComplete={handleLoadingComplete}
+          />
+        );
+      case 'Result':
+        return chartResult ? (
+          <ResultScreen
+            result={chartResult}
+            onContinue={handleResultContinue}
+          />
+        ) : null;
+      case 'CreateChart':
+        return user ? (
+          <CreateChartScreen
+            userId={user.id}
+            onChartCreated={handleChartCreated}
+            onBack={handleBack}
+          />
+        ) : null;
+      case 'Charts':
+        return user ? (
+          <ChartsScreen
+            userId={user.id}
+            onChartPress={handleNavigateToChartDetail}
+            onBack={handleBack}
+          />
+        ) : null;
+      case 'ChartDetail':
+        return selectedChart && user ? (
+          <ChartDetailScreen
+            chart={selectedChart}
+            userId={user.id}
+            onBack={handleBack}
+            onWatchAd={handleWatchAd}
+            hasSubscription={user.subscription_type === 'premium'}
+          />
+        ) : null;
+      default:
+        return user ? (
+          <HomeScreen
+            user={user}
+            onNavigateToCharts={handleNavigateToCharts}
+            onNavigateToCreateChart={handleNavigateToCreateChart}
+            onWatchAd={handleWatchAd}
+          />
+        ) : null;
+    }
+  };
+
+  return (
+    <ErrorBoundary>
+      {renderScreen()}
+    </ErrorBoundary>
+  );
+};
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background.dark,
+  },
+  loadingText: {
+    fontSize: theme.fontSize.lg,
+    color: theme.colors.text.primary,
+    fontWeight: theme.fontWeight.medium,
+  },
+});
+
+export default App;

@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  level: MyString
+  message: MyText
+  component: MyString
+  timestamp: 2025-10-18 08:48:10
+  user_id: 1
+  device_info: MyText
+  stack: MyText
+  additional_data: MyText
+
+two:
+  level: MyString
+  message: MyText
+  component: MyString
+  timestamp: 2025-10-18 08:48:10
+  user_id: 1
+  device_info: MyText
+  stack: MyText
+  additional_data: MyText

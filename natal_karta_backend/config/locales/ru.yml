@@ -1,0 +1,8 @@
+ru:
+  cities:
+    search:
+      success: "Города найдены успешно"
+      error: "Ошибка поиска городов"
+      query_required: "Параметр запроса обязателен"
+  errors:
+    geonames_api: "Ошибка API GeoNames"

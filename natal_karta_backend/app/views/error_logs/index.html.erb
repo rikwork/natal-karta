@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Error Logs Dashboard</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #eee; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+    .stat-card { background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #007bff; }
+    .stat-number { font-size: 24px; font-weight: bold; color: #007bff; }
+    .stat-label { color: #666; font-size: 14px; }
+    .error-item { background: #fff; border: 1px solid #ddd; margin-bottom: 10px; border-radius: 6px; overflow: hidden; }
+    .error-header { background: #f8f9fa; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
+    .error-level { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    .level-error { background: #f8d7da; color: #721c24; }
+    .level-warning { background: #fff3cd; color: #856404; }
+    .level-info { background: #d1ecf1; color: #0c5460; }
+    .level-debug { background: #d4edda; color: #155724; }
+    .error-content { padding: 15px; }
+    .error-message { font-weight: bold; margin-bottom: 8px; }
+    .error-details { font-size: 12px; color: #666; }
+    .error-stack { background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 11px; margin-top: 10px; white-space: pre-wrap; }
+    .filter-bar { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+    .filter-select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+    .refresh-btn { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+    .refresh-btn:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚨 Error Logs Dashboard</h1>
+      <button class="refresh-btn" onclick="location.reload()">🔄 Refresh</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number"><%= @error_logs.count %></div>
+        <div class="stat-label">Total Errors</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @error_logs.where(level: 'error').count %></div>
+        <div class="stat-label">Critical Errors</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @error_logs.where(level: 'warning').count %></div>
+        <div class="stat-label">Warnings</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @error_logs.where('created_at > ?', 24.hours.ago).count %></div>
+        <div class="stat-label">Last 24h</div>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <select class="filter-select" onchange="filterByLevel(this.value)">
+        <option value="">All Levels</option>
+        <option value="error">Errors</option>
+        <option value="warning">Warnings</option>
+        <option value="info">Info</option>
+        <option value="debug">Debug</option>
+      </select>
+      <select class="filter-select" onchange="filterByComponent(this.value)">
+        <option value="">All Components</option>
+        <% @error_logs.distinct.pluck(:component).each do |component| %>
+          <option value="<%= component %>"><%= component %></option>
+        <% end %>
+      </select>
+    </div>
+
+    <div id="error-list">
+      <% @error_logs.each do |error_log| %>
+        <div class="error-item" data-level="<%= error_log.level %>" data-component="<%= error_log.component %>">
+          <div class="error-header">
+            <div>
+              <span class="error-level level-<%= error_log.level %>"><%= error_log.level.upcase %></span>
+              <strong><%= error_log.component %></strong>
+            </div>
+            <div style="font-size: 12px; color: #666;">
+              <%= error_log.created_at.strftime('%Y-%m-%d %H:%M:%S') %>
+            </div>
+          </div>
+          <div class="error-content">
+            <div class="error-message"><%= error_log.message %></div>
+            <div class="error-details">
+              User ID: <%= error_log.user_id || 'N/A' %> | 
+              Device: <%= error_log.device_info || 'N/A' %>
+            </div>
+            <% if error_log.stack.present? %>
+              <div class="error-stack"><%= error_log.stack %></div>
+            <% end %>
+            <% if error_log.additional_data.present? %>
+              <div class="error-details">
+                <strong>Additional Data:</strong> <%= error_log.additional_data %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <script>
+    function filterByLevel(level) {
+      const items = document.querySelectorAll('.error-item');
+      items.forEach(item => {
+        if (!level || item.dataset.level === level) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    function filterByComponent(component) {
+      const items = document.querySelectorAll('.error-item');
+      items.forEach(item => {
+        if (!component || item.dataset.component === component) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
