@@ -4,7 +4,7 @@ class Api::V1::CitiesController < ApplicationController
   def search
     query = params[:q]
     language = params[:language] || I18n.locale.to_s
-    max_rows = params[:max_rows] || 10
+    max_rows = params[:max_rows] || 5
 
     if query.blank?
       render json: {
@@ -14,7 +14,7 @@ class Api::V1::CitiesController < ApplicationController
       return
     end
 
-    cities = PhotonGeocodingService.search_cities(query, language, max_rows.to_i)
+    cities = DadataGeocodingService.search_cities(query, language, max_rows.to_i)
 
     render json: {
       data: cities,

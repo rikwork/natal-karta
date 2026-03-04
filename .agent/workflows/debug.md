@@ -4,6 +4,9 @@ description: Debugging command. Activates DEBUG mode for systematic problem inve
 
 # /debug - Systematic Problem Investigation
 
+
+critical: Изменения необходимо делать в новой ветке!
+
 $ARGUMENTS
 
 ---
