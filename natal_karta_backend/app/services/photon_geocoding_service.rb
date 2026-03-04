@@ -3,132 +3,97 @@ require "uri"
 require "json"
 
 class PhotonGeocodingService
-  PHOTON_BASE_URL = "https://photon.komoot.io"
-  USER_AGENT = "NatalKartaApp/1.0"
-
-  def self.search_cities(query, language = "ru", max_rows = 5)
+  DADATA_URL = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address"
+  
+  def self.search_cities(query, language = "ru", max_rows = 10)
     new(query, language, max_rows).search_cities
   end
 
-  def initialize(query, language = "ru", max_rows = 5)
+  def initialize(query, language = "ru", max_rows = 10)
     @query = query
     @language = language
     @max_rows = max_rows
+    @api_token = "24c41d33b25a8e062137db1d5a5318bb1c8ccccd"
   end
 
   def search_cities
-    Rails.logger.info "Searching cities for query: '#{@query}' (length: #{@query.to_s.strip.length})"
     return [] if @query.to_s.strip.length < 2
 
-    begin
-      query = @query.to_s.strip
-      Rails.logger.info "Calling photon_search with query: '#{query}'"
-      results = photon_search(query)
-      Rails.logger.info "Photon search returned #{results.length} results"
-      formatted = format_results(results)
-      Rails.logger.info "Formatted results: #{formatted.length} cities"
-      formatted
-    rescue => e
-      Rails.logger.error "Photon API error: #{e.message}"
-      []
+    cache_key = "dadata_search_#{@query.downcase.strip}_#{@max_rows}"
+    
+    Rails.cache.fetch(cache_key, expires_in: 24.hours) do
+      perform_dadata_request
     end
+  rescue => e
+    Rails.logger.error "DaData Service Error: #{e.message}"
+    []
   end
 
   private
 
-  def photon_search(query)
-    Rails.logger.info "Calling Photon API directly (no caching)"
-    perform_photon_request(query)
-  end
-
-  def perform_photon_request(query)
-    uri = URI.parse("#{PHOTON_BASE_URL}/api")
-    
-    params = {
-      "q" => query,
-      "limit" => [@max_rows.to_i, 20].max
-    }
-    
-    # Photon поддерживает только en, de, fr - используем en для международных запросов
-    params["lang"] = "en" if @language == "en"
-    
-    uri.query = URI.encode_www_form(params)
-    Rails.logger.info "Photon request: #{uri}"
-    
+  def perform_dadata_request
+    uri = URI.parse(DADATA_URL)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    http.read_timeout = 3  # Photon очень быстрый
-    http.open_timeout = 2  # Photon очень быстрый
-    
-    request = Net::HTTP::Get.new(uri)
-    request['User-Agent'] = USER_AGENT
-    request['Accept'] = 'application/json'
-    
+    http.read_timeout = 5
+
+    request = Net::HTTP::Post.new(uri.path)
+    request["Content-Type"] = "application/json"
+    request["Accept"] = "application/json"
+    request["Authorization"] = "Token #{@api_token}"
+
+    body = {
+      query: @query,
+      from_bound: { value: "city" },
+      to_bound: { value: "settlement" },
+      count: @max_rows
+    }
+
+    request.body = body.to_json
     response = http.request(request)
-    Rails.logger.info "Photon response: #{response.code} #{response.message}"
 
     if response.is_a?(Net::HTTPSuccess)
-      data = JSON.parse(response.body)
-      features = data["features"] || []
-      Rails.logger.info "Photon features count: #{features.length}"
-      features
+      parse_results(JSON.parse(response.body))
     else
-      Rails.logger.error "Photon HTTP error: #{response.code} #{response.message}"
+      Rails.logger.error "DaData API Error: #{response.code} - #{response.body}"
       []
     end
-  rescue Net::TimeoutError => e
-    Rails.logger.error "Photon timeout: #{e.message}"
-    []
-  rescue StandardError => e
-    Rails.logger.error "Photon request error: #{e.message}"
-    []
   end
 
-  def format_results(features)
-    Rails.logger.info "Formatting #{features.length} features"
-    return [] unless features.is_a?(Array)
+  def parse_results(data)
+    suggestions = data["suggestions"] || []
+    
+    suggestions.map do |s|
+      d = s["data"]
+      next if d["city"].blank? && d["settlement"].blank?
 
-    results = features.map do |feature|
-      properties = feature["properties"] || {}
-      coordinates = feature["geometry"]&.dig("coordinates") || [0, 0]
+      # Координаты в DaData могут быть строками или числами
+      lat = d["geo_lat"].to_f
+      lon = d["geo_lon"].to_f
+      
+      # Если координат нет, такой город нам не подходит для натальной карты
+      next if lat == 0.0 || lon == 0.0
+
+      name = d["city"] || d["settlement"]
       
       {
-        name: properties["name"],
-        country: properties["country"],
-        country_code: properties["countrycode"]&.downcase,
-        latitude: coordinates[1].to_f,
-        longitude: coordinates[0].to_f,
-        population: 0, # Photon не предоставляет данные о населении
-        admin_name1: properties["state"],
-        admin_name2: properties["county"],
-        display_name: build_display_name(properties),
-        importance: calculate_importance(properties)
+        name: name,
+        country: d["country"] || "Россия",
+        country_code: d["country_iso_code"]&.downcase || "ru",
+        latitude: lat,
+        longitude: lon,
+        admin_name1: d["region_with_type"],
+        admin_name2: d["area_with_type"],
+        display_name: s["value"],
+        importance: calculate_importance(d)
       }
-    end.sort_by { |city| -city[:importance] }
-    
-    Rails.logger.info "Formatted #{results.length} results"
-    results
+    end.compact
   end
 
-  def build_display_name(properties)
-    parts = []
-    parts << properties["name"] if properties["name"]
-    parts << properties["state"] if properties["state"]
-    parts << properties["country"] if properties["country"]
-    parts.join(", ")
-  end
-
-  def calculate_importance(properties)
-    # Приоритет: city > town > village
-    case properties["osm_value"]
-    when "city"
-      1.0
-    when "town"
-      0.7
-    when "village"
-      0.4
-    else
-      0.1
-    end
+  def calculate_importance(data)
+    # DaData не дает importance напрямую, симулируем по типу населенного пункта
+    return 1.0 if data["city_type_full"] == "город"
+    return 0.7 if data["settlement_type_full"] == "поселок" || data["settlement_type_full"] == "село"
+    0.5
   end
 end
