@@ -1,0 +1,59 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'natal_karta_backend/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'natal_karta_backend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    # Настройки директории по умолчанию, так как наш бэкенд в подпапке
+    defaults:
+      run:
+        working-directory: natal_karta_backend
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: natal_karta_backend_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.3.4
+        bundler-cache: true # Автоматически кэширует гемы для ускорения сборок
+        working-directory: natal_karta_backend
+
+    - name: Set up Database
+      env:
+        RAILS_ENV: test
+        DATABASE_URL: postgres://postgres:password@localhost:5432/natal_karta_backend_test
+      run: |
+        bundle install
+        bundle exec rails db:setup
+
+    - name: Run tests
+      env:
+        RAILS_ENV: test
+        DATABASE_URL: postgres://postgres:password@localhost:5432/natal_karta_backend_test
+      run: bundle exec rails test
