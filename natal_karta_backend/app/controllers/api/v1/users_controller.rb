@@ -42,6 +42,6 @@ class Api::V1::UsersController < ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:name, :email, :subscription_type, :subscription_expires_at, :firebase_uid)
+    params.require(:user).permit(:name, :email, :subscription_type, :subscription_expires_at)
   end
 end

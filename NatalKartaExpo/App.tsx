@@ -128,34 +128,29 @@ const App: React.FC = () => {
 
   const createNewUser = async (): Promise<User> => {
     try {
-      // 1. Анонимная авторизация в Firebase
       const userCredential = await signInAnonymously(auth);
       const uid = userCredential.user.uid;
-      console.log('Firebase Anonymous UID:', uid);
 
-      // 2. Создание пользователя на нашем бэкенде с привязкой к UID
       const response = await ApiService.createUser({
-        name: onboardingData?.name || 'Пользователь',
-        email: `${uid}@anonymous.local`, // Используем UID для уникального email
+        name: 'Пользователь',
+        email: `${uid}@anonymous.local`,
         subscription_type: 'free',
-        firebase_uid: uid, // Теперь бэкенд это поддерживает
-      } as any);
+      });
 
       const userData = response.data;
       if (!userData) {
-        throw new Error('User data is null from API');
+        throw new Error('User data is null');
       }
 
       await AsyncStorage.setItem('user', JSON.stringify(userData));
       return userData;
     } catch (error) {
-      console.error('Error creating/authenticating user:', error);
-      // Fallback: возвращаем временный объект, чтобы приложение не падало, 
-      // но в консоли будет видна ошибка
+      console.log('Error creating/authenticating user:', error);
+      // Возвращаем временного пользователя
       return {
-        id: Date.now(), // Временный ID
-        name: onboardingData?.name || 'Пользователь',
-        email: 'error@example.com',
+        id: 1,
+        name: 'Пользователь',
+        email: 'user@example.com',
         subscription_type: 'free',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
