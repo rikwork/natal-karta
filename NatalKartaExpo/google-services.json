@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1081661555220",
+    "project_id": "natal-karta",
+    "storage_bucket": "natal-karta.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1081661555220:android:3c549ed159c305ce1b1d01",
+        "android_client_info": {
+          "package_name": "braynix.ru"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVbcm8B9MW4v3_yyF-nI4EIJSiLlN326c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

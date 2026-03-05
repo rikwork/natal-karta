@@ -2,14 +2,14 @@ require "net/http"
 require "uri"
 require "json"
 
-class PhotonGeocodingService
+class DadataGeocodingService
   DADATA_URL = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address"
   
-  def self.search_cities(query, language = "ru", max_rows = 10)
+  def self.search_cities(query, language = "ru", max_rows = 5)
     new(query, language, max_rows).search_cities
   end
 
-  def initialize(query, language = "ru", max_rows = 10)
+  def initialize(query, language = "ru", max_rows = 5)
     @query = query
     @language = language
     @max_rows = max_rows

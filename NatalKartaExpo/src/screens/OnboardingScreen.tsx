@@ -177,9 +177,13 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
         // Язык по раскладке: латиница -> en, кириллица -> ru. Без транслита
         const primaryLang = /[A-Za-z]/.test(query) ? 'en' : 'ru';
         const response = await ApiService.searchCities(query, primaryLang);
-        const cities = response.data || [];
 
-        if (cities.length) {
+        // В ApiService response.data содержит массив городов напрямую (или null при ошибке)
+        // Но бэкенд возвращает { data: [...], message: "..." }
+        // Глядя на ApiService.request: он возвращает data (который и есть { data: ..., message: ... })
+        const cities = (response as any).data || [];
+
+        if (cities && cities.length) {
           setFilteredCities(cities);
           setShowCityList(true);
         } else {
@@ -188,6 +192,8 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
         }
       } catch (error) {
         // Ошибка уже обработана в ApiService
+        setFilteredCities([]);
+        setShowCityList(false);
       } finally {
         setIsSearchingCities(false);
       }
