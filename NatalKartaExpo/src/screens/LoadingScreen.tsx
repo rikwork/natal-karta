@@ -2,10 +2,12 @@ import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Animated,
   Dimensions,
+  Image,
+  StyleSheet,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
@@ -151,7 +153,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
             </View>
           ))}
         </Animated.View>
-        
+
         {/* Центральная точка */}
         <View style={styles.centerPoint} />
       </View>
@@ -196,15 +198,18 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   };
 
   return (
-    <LinearGradient
-      colors={['#0f0f23', '#1a1a2e', '#16213e']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <Image
+        source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBj_EyvNiJnWwHl1dT647d1neMGhn5cHPcdBqtFAaPHr5a3vZPbeQsnldExCo95wjhuFikQNLEPPNQ77lxA_H5DNylgzwV8zytGuSeNJcDdx_f-BuvafKAUoX30eogMG_oqc9kMsoPewi37YTSA8VvlJg5Os5pEDndnE3DI2SAbUqDACWl0EuLQzJh97D24G7oGQVTZe1dh3iNVIjvEzRIGKQAiOAYlYNataspz6w-xpQygLXXHhdMQE5r39xlZwfrnyLdEl6SwXTTs' }}
+        style={StyleSheet.absoluteFillObject}
+      />
+      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.6)' }]} />
+
       {renderStars()}
-      
+
       <View style={styles.content}>
         {renderWheel()}
-        
+
         <Animated.View
           style={[
             styles.textContainer,
@@ -218,7 +223,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
           <Text style={styles.subText}>Создаём вашу натальную карту...</Text>
         </Animated.View>
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -252,19 +257,20 @@ const styles = StyleSheet.create({
     marginBottom: 60,
   },
   wheel: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(255, 215, 0, 0.3)',
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#ff6b6b',
+    shadowColor: '#FFD700',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowOpacity: 0.4,
+    shadowRadius: 15,
+    elevation: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   house: {
     position: 'absolute',
@@ -274,9 +280,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   houseNumber: {
-    color: '#ff6b6b',
-    fontSize: 12,
+    color: '#FFD700',
+    fontSize: 14,
     fontWeight: 'bold',
+    fontFamily: 'serif',
   },
   houseName: {
     color: 'rgba(255,255,255,0.7)',
@@ -284,31 +291,40 @@ const styles = StyleSheet.create({
   },
   centerPoint: {
     position: 'absolute',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#ff6b6b',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#FFD700',
     top: '50%',
     left: '50%',
-    marginTop: -4,
-    marginLeft: -4,
+    marginTop: -5,
+    marginLeft: -5,
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 5,
   },
   textContainer: {
     alignItems: 'center',
   },
   loadingText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 12,
-    textShadowColor: 'rgba(255,107,107,0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    fontSize: 32,
+    fontWeight: '500',
+    fontFamily: 'serif',
+    color: '#F0E6D2',
+    marginBottom: 8,
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+    letterSpacing: 2,
   },
   subText: {
-    fontSize: 18,
-    color: 'rgba(255,255,255,0.8)',
+    fontSize: 14,
+    color: '#B0B0B0',
     textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 30,
     fontStyle: 'italic',
   },
 });
