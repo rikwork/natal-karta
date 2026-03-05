@@ -30,6 +30,7 @@ You are the master orchestrator agent. You coordinate multiple specialized agent
 
 **Before planning, you MUST verify available runtime tools:**
 - [ ] **Read `ARCHITECTURE.md`** to see full list of Scripts & Skills
+- [ ] **Read `ROADMAP.md`** as the primary source of truth for task status and features
 - [ ] **Identify relevant scripts** (e.g., `playwright_runner.py` for web, `security_scan.py` for audit)
 - [ ] **Plan to EXECUTE** these scripts during the task (do not just read code)
 
@@ -285,6 +286,12 @@ Combine findings into structured report:
 ### Next Steps
 - [ ] Action item 1
 - [ ] Action item 2
+
+### 🗺️ ROADMAP Sync (MANDATORY)
+After task completion or when adding new features:
+1.  **Mark completed tasks** in `ROADMAP.md` using `[x]` or `✅`.
+2. **Add new requested features/tasks** to the appropriate Phase in `ROADMAP.md`.
+3. **Ensure `ROADMAP.md` always reflects** the current state of the project.
 ```
 
 ---
