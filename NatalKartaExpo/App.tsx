@@ -126,7 +126,7 @@ const App: React.FC = () => {
     }
   };
 
-  const createNewUser = async (): Promise<User> => {
+  const createNewUser = async (data: any): Promise<User> => {
     try {
       // 1. Анонимная авторизация в Firebase (JS SDK совместим с Expo Go)
       const userCredential = await signInAnonymously(auth);
@@ -134,15 +134,15 @@ const App: React.FC = () => {
       console.log('Firebase Anonymous UID:', uid);
 
       // 2. Создание пользователя на нашем бэкенде с привязкой к UID
-      const response = await ApiService.createUser({
-        name: onboardingData?.name || 'Пользователь',
-        email: `${uid}@anonymous.local`, // Используем UID для уникального email
+      // Backend returns flat JSON { id, name, ... }, not { data: { ... } }
+      const userData = await ApiService.createUser({
+        name: data?.name || 'Пользователь',
+        email: `${uid}@anonymous.local`,
         subscription_type: 'free',
-        firebase_uid: uid, // Сообщаем бэкенду реальный UID из Firebase
-      } as any);
+        firebase_uid: uid,
+      } as any) as unknown as User;
 
-      const userData = response.data;
-      if (!userData) {
+      if (!userData || !(userData as any).id) {
         throw new Error('User data is null from API');
       }
 
@@ -152,8 +152,8 @@ const App: React.FC = () => {
       console.error('Error creating/authenticating user:', error);
       // Fallback: возвращаем временный объект, чтобы приложение не падало
       return {
-        id: Date.now(), // Временный ID
-        name: onboardingData?.name || 'Пользователь',
+        id: Date.now(),
+        name: data?.name || 'Пользователь',
         email: 'error@example.com',
         subscription_type: 'free',
         created_at: new Date().toISOString(),
@@ -205,8 +205,9 @@ const App: React.FC = () => {
     setOnboardingData(data);
 
     // Создаем пользователя сразу после онбординга
+    // Передаём data напрямую, чтобы не зависеть от асинхронного state update
     try {
-      const newUser = await createNewUser();
+      const newUser = await createNewUser(data);
       setUser(newUser);
       await AsyncStorage.setItem('user', JSON.stringify(newUser));
     } catch (error) {
