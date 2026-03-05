@@ -201,7 +201,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
     []
   );
 
-  // Выбор города
+  // Выбор города — без мерцания: сначала fade, потом коллапс списка
   const selectCity = (city: City) => {
     setCitySearch(`${city.name}, ${city.country}`);
     setFormData(prev => ({
@@ -210,12 +210,21 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
       latitude: city.latitude.toString(),
       longitude: city.longitude.toString(),
     }));
-    setShowCityList(false);
 
-    // Анимация после выбора города с небольшой задержкой
-    setTimeout(() => {
-      animateFade();
-    }, 100);
+    // Сначала запускаем fade-out, только ПОСЛЕ его завершения скрываем список.
+    // Это предотвращает двойной layout-shift (коллапс FlatList + fade одновременно).
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowCityList(false);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    });
   };
 
   const steps = [
