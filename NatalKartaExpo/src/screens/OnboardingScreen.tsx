@@ -733,8 +733,6 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
       />
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.6)' }]} />
 
-      {currentStep >= 2 && <ZodiacWheel spin={spin} />}
-
       {/* Кнопка "Назад" в левом верхнем углу */}
       {currentStep > 0 && (
         <TouchableOpacity
@@ -776,7 +774,26 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
           <Text style={styles.stepTitle}>{steps[currentStep].title}</Text>
           <Text style={styles.stepSubtitle}>{steps[currentStep].subtitle}</Text>
 
-          {renderStepContent()}
+          <View style={{ width: '100%' }}>
+            {currentStep >= 2 && (
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 240,
+                  marginTop: 5,
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                pointerEvents="none"
+              >
+                <ZodiacWheel spin={spin} />
+              </View>
+            )}
+            {renderStepContent()}
+          </View>
         </Animated.View>
 
         {/* Навигация */}

@@ -31,8 +31,8 @@ const ZodiacWheel: React.FC<ZodiacWheelProps> = ({ spin, opacity = 0.6 }) => {
 const styles = StyleSheet.create({
     wheelImage: {
         position: 'absolute',
-        alignSelf: 'center',
-        top: '15%', // Adjusted to be roughly centered behind the picker/content
+        opacity: 0.6,
+        zIndex: -1,
         backgroundColor: 'transparent',
     },
 });
