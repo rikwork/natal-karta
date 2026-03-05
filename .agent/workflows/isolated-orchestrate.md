@@ -40,6 +40,12 @@ Invoke agents in parallel. **MANDATORY**: Tell each agent:
 3. **Synthesis**: Combine findings into one report.
 4. **Cleanup**: Let the 7-day GC rule handle the cleanup unless you want to call `workspace_manager.py cleanup [path]` explicitly.
 
+### 🗺️ PHASE 5: ROADMAP Sync (MANDATORY)
+After task completion or when adding new features:
+1.  **Mark completed tasks** in `ROADMAP.md` using `[x]` or `✅`.
+2. **Add new requested features/tasks** to the appropriate Phase in `ROADMAP.md`.
+3. **Ensure `ROADMAP.md` always reflects** the current state of the project.
+
 ---
 
 ## Verification Protocols

@@ -181,6 +181,12 @@ python .agent/skills/lint-and-validate/scripts/lint_runner.py .
 ### Step 5: Synthesize Results
 Combine all agent outputs into unified report.
 
+### 🗺️ Step 6: ROADMAP Sync (MANDATORY)
+After task completion or when adding new features:
+1.  **Mark completed tasks** in `ROADMAP.md` using `[x]` or `✅`.
+2. **Add new requested features/tasks** to the appropriate Phase in `ROADMAP.md`.
+3. **Ensure `ROADMAP.md` always reflects** the current state of the project.
+
 ---
 
 ## Output Format
