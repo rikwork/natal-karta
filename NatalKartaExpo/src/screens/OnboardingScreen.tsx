@@ -774,19 +774,10 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
           <Text style={styles.stepTitle}>{steps[currentStep].title}</Text>
           <Text style={styles.stepSubtitle}>{steps[currentStep].subtitle}</Text>
 
-          <View style={{ width: '100%' }}>
+          <View style={{ flex: 1, width: '100%', position: 'relative' }}>
             {currentStep >= 2 && (
               <View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 240,
-                  marginTop: 5,
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
+                style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', zIndex: -1 }]}
                 pointerEvents="none"
               >
                 <ZodiacWheel spin={spin} />
