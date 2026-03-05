@@ -118,3 +118,4 @@ web-build/
 *.mobileprovision
 *.orig.*
 expo-debug.log
+.agent/workspaces/
