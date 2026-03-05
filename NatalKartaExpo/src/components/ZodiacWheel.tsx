@@ -33,7 +33,6 @@ const styles = StyleSheet.create({
         position: 'absolute',
         alignSelf: 'center',
         top: '15%', // Adjusted to be roughly centered behind the picker/content
-        zIndex: -1,
         backgroundColor: 'transparent',
     },
 });
