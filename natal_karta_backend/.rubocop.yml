@@ -40,3 +40,4 @@ Layout/LineLength:
   Max: 120
   Exclude:
     - 'db/migrate/*.rb'
+    - 'test_ruby_g4f.rb'
