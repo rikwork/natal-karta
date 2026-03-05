@@ -38,7 +38,8 @@ Invoke agents in parallel. **MANDATORY**: Tell each agent:
 1. Review changes in EACH workspace.
 2. **Merge**: Once review is done, merge changes into the feature branch.
 3. **Synthesis**: Combine findings into one report.
-4. **Cleanup**: Let the 7-day GC rule handle the cleanup unless you want to call `workspace_manager.py cleanup [path]` explicitly.
+4. **Git cleanup (MANDATORY)**: After merge, run `git status` in the root. Stage and commit ANY unstaged or untracked files that belong to the task. Do NOT leave dangling changes.
+5. **Cleanup**: Let the 7-day GC rule handle the cleanup unless you want to call `workspace_manager.py cleanup [path]` explicitly.
 
 ### 🗺️ PHASE 5: ROADMAP Sync (MANDATORY)
 The orchestrator is responsible for maintaining the state of tasks in `ROADMAP.md`:
