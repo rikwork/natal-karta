@@ -37,6 +37,8 @@ const App: React.FC = () => {
   // Глобальное состояние для колеса зодиака
   const spinValue = useRef(new Animated.Value(0)).current;
   const wheelOpacity = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
 
   const startWheelAnimation = useCallback(() => {
     spinValue.setValue(0);
@@ -72,6 +74,39 @@ const App: React.FC = () => {
     [wheelOpacity],
   );
 
+  const startPulseAnimation = useCallback(() => {
+    pulseAnim.setValue(0);
+    pulseAnimationRef.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0,
+          duration: 1500,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    pulseAnimationRef.current.start();
+  }, [pulseAnim]);
+
+  const stopPulseAnimation = useCallback(() => {
+    if (pulseAnimationRef.current) {
+      pulseAnimationRef.current.stop();
+      pulseAnimationRef.current = null;
+    }
+    Animated.timing(pulseAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, [pulseAnim]);
+
   // Управление видимостью колеса при смене экранов
   useEffect(() => {
     if (currentScreen === 'Loading' || currentScreen === 'Result') {
@@ -79,8 +114,15 @@ const App: React.FC = () => {
     } else if (currentScreen === 'Home' || currentScreen === 'Charts' || currentScreen === 'ChartDetail' || currentScreen === 'CreateChart') {
       setWheelVisible(false);
     }
+
+    // Запуск пульсации на экране загрузки
+    if (currentScreen === 'Loading') {
+      startPulseAnimation();
+    } else {
+      stopPulseAnimation();
+    }
     // Для Onboarding экран сам сообщает, когда показать колесо через onStepChange
-  }, [currentScreen, setWheelVisible]);
+  }, [currentScreen, setWheelVisible, startPulseAnimation, stopPulseAnimation]);
 
   useEffect(() => {
     // Обработчик необработанных промисов
@@ -453,7 +495,7 @@ const App: React.FC = () => {
                   },
                 ]}
               >
-                <ZodiacWheel spin={spin} opacity={1} />
+                <ZodiacWheel spin={spin} opacity={1} pulseAnim={pulseAnim} />
               </Animated.View>
             </View>
           </View>

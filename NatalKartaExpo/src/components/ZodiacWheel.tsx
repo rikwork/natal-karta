@@ -1,37 +1,75 @@
 import React from 'react';
-import { StyleSheet, Animated, useWindowDimensions, Platform } from 'react-native';
+import { StyleSheet, Animated, useWindowDimensions, View } from 'react-native';
 
 const ZODIAC_RING = require('../../assets/images/zodiac_transparent.png');
 
 interface ZodiacWheelProps {
   spin: Animated.AnimatedInterpolation<string | number>;
   opacity?: number;
+  pulseAnim?: Animated.Value;
 }
 
-const ZodiacWheel: React.FC<ZodiacWheelProps> = ({ spin, opacity = 0.6 }) => {
+const ZodiacWheel: React.FC<ZodiacWheelProps> = ({ spin, opacity = 0.6, pulseAnim }) => {
   const { width } = useWindowDimensions();
   const wheelSize = width * 1.2;
 
+  // Анимации для "Звездного импульса"
+  const pulseScale = pulseAnim ? pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.15],
+  }) : 1;
+
+  const pulseOpacity = pulseAnim ? pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.2, 0.7],
+  }) : 0;
+
   return (
-    <Animated.Image
-      source={ZODIAC_RING}
-      style={[
-        styles.wheelImage,
-        {
-          width: wheelSize,
-          height: wheelSize,
-          opacity: opacity,
-          transform: [{ rotate: spin }],
-        },
-      ]}
-    />
+    <View style={styles.container}>
+      {/* Слой свечения (Stellar Impulse) */}
+      {pulseAnim && (
+        <Animated.Image
+          source={ZODIAC_RING}
+          style={[
+            styles.wheelImage,
+            {
+              width: wheelSize,
+              height: wheelSize,
+              opacity: pulseOpacity,
+              transform: [
+                { rotate: spin },
+                { scale: pulseScale }
+              ],
+              tintColor: '#FFD700', // Золотистое свечение
+            },
+          ]}
+        />
+      )}
+
+      {/* Основное колесо */}
+      <Animated.Image
+        source={ZODIAC_RING}
+        style={[
+          styles.wheelImage,
+          {
+            width: wheelSize,
+            height: wheelSize,
+            opacity: opacity,
+            transform: [{ rotate: spin }],
+          },
+        ]}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   wheelImage: {
     position: 'absolute',
-    opacity: 0.6,
     zIndex: -1,
     backgroundColor: 'transparent',
   },
