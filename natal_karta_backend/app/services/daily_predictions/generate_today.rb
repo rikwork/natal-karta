@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DailyPredictions::GenerateToday
   def self.call(user)
     new(user).call

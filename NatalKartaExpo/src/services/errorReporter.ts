@@ -20,12 +20,12 @@ class ErrorReporter {
           level: 'error',
           device_info: 'React Native',
           additional_data: JSON.stringify({ url: 'mobile_app' }),
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
 
       console.log('Sending error to server:', errorData);
-      
+
       const response = await fetch(this.apiUrl, {
         method: 'POST',
         headers: {

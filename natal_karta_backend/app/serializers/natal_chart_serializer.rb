@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class NatalChartSerializer
   def initialize(natal_chart)
     @natal_chart = natal_chart

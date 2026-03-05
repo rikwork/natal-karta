@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class NatalCharts::Generate
   def self.call(user, natal_chart)
     new(user, natal_chart).call

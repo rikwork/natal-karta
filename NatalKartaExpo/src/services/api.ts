@@ -4,10 +4,7 @@ import errorReporter from './errorReporter';
 const API_BASE_URL = 'http://localhost:3000/api/v1';
 
 class ApiService {
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const url = `${API_BASE_URL}${endpoint}`;
 
     const config: RequestInit = {
@@ -36,7 +33,7 @@ class ApiService {
       // Возвращаем пустой ответ вместо выброса ошибки
       return {
         data: null as any,
-        error: 'Ошибка сети'
+        error: 'Ошибка сети',
       };
     }
   }
@@ -106,7 +103,7 @@ class ApiService {
     const params = new URLSearchParams({
       q: query,
       language: language,
-      max_rows: '20'
+      max_rows: '20',
     });
 
     return this.request<City[]>(`/cities/search?${params}`);

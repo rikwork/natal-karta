@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DailyPrediction < ApplicationRecord
   belongs_to :user
 

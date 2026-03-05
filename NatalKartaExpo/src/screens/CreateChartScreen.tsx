@@ -38,14 +38,14 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
   const [loading, setLoading] = useState(false);
 
   const handleInputChange = (field: keyof BirthData, value: string | number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
   const handleDateChange = (date: Date) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       birth_date: date.toISOString().split('T')[0],
     }));
@@ -53,7 +53,7 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
   };
 
   const handleTimeChange = (date: Date) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       birth_time: date.toTimeString().split(' ')[0],
     }));
@@ -79,7 +79,7 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
     try {
       // Получаем координаты места рождения
       const coords = await geocodeLocation(formData.birth_place);
-      
+
       const chartData = {
         ...formData,
         latitude: coords.latitude,
@@ -87,9 +87,7 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
       };
 
       await ApiService.createNatalChart(userId, chartData);
-      Alert.alert('Успех', 'Натальная карта создана!', [
-        { text: 'OK', onPress: onChartCreated },
-      ]);
+      Alert.alert('Успех', 'Натальная карта создана!', [{ text: 'OK', onPress: onChartCreated }]);
     } catch (error) {
       Alert.alert('Ошибка', 'Не удалось создать натальную карту');
     } finally {
@@ -120,10 +118,7 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Дата рождения *</Text>
-          <TouchableOpacity
-            style={styles.input}
-            onPress={() => setShowDatePicker(true)}
-          >
+          <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
             <Text style={[styles.inputText, !formData.birth_date && styles.placeholder]}>
               {formData.birth_date || 'Выберите дату'}
             </Text>
@@ -132,10 +127,7 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Время рождения *</Text>
-          <TouchableOpacity
-            style={styles.input}
-            onPress={() => setShowTimePicker(true)}
-          >
+          <TouchableOpacity style={styles.input} onPress={() => setShowTimePicker(true)}>
             <Text style={[styles.inputText, !formData.birth_time && styles.placeholder]}>
               {formData.birth_time || 'Выберите время'}
             </Text>

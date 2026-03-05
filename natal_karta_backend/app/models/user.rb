@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class User < ApplicationRecord
   has_many :natal_charts, dependent: :destroy
   has_many :daily_predictions, dependent: :destroy

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Users::Create
   def self.call(params)
     new(params).call

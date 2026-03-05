@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class NatalChart < ApplicationRecord
   belongs_to :user
 

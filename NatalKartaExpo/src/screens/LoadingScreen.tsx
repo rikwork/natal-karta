@@ -1,14 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  Animated,
-  Dimensions,
-  Image,
-  StyleSheet,
-} from 'react-native';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, Animated, Dimensions, Image, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -30,7 +21,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
         toValue: 1,
         duration: 8000, // Увеличили с 3000 до 8000
         useNativeDriver: true,
-      })
+      }),
     );
 
     // Анимация пульсации текста - более мягкая
@@ -46,7 +37,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
           duration: 2000, // Увеличили с 1000 до 2000
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
 
     // Анимация появления текста - более плавная
@@ -62,7 +53,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
         toValue: 1,
         duration: 12000, // Увеличили с 4000 до 12000
         useNativeDriver: true,
-      })
+      }),
     );
 
     // Анимация мерцания звезд
@@ -78,7 +69,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
           duration: 2000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
 
     // Запуск анимаций
@@ -99,14 +90,9 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
       starsTwinkleAnimation.stop();
       clearTimeout(timer);
     };
-  }, [onComplete]);
+  }, [onComplete, pulseAnim, starsAnim, starsTwinkle, textOpacity, wheelRotation]);
 
   const wheelRotationInterpolate = wheelRotation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  const starsRotationInterpolate = starsAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
@@ -130,10 +116,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
     return (
       <View style={styles.wheelContainer}>
         <Animated.View
-          style={[
-            styles.wheel,
-            { transform: [{ rotate: wheelRotationInterpolate }] }
-          ]}
+          style={[styles.wheel, { transform: [{ rotate: wheelRotationInterpolate }] }]}
         >
           {houses.map((house, index) => (
             <View
@@ -141,11 +124,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
               style={[
                 styles.house,
                 {
-                  transform: [
-                    { rotate: `${house.angle}deg` },
-                    { translateY: -70 }
-                  ]
-                }
+                  transform: [{ rotate: `${house.angle}deg` }, { translateY: -70 }],
+                },
               ]}
             >
               <Text style={styles.houseNumber}>{house.number}</Text>
@@ -188,7 +168,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
                   width: star.size,
                   height: star.size,
                   opacity: twinkleOpacity,
-                }
+                },
               ]}
             />
           );
@@ -200,7 +180,9 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   return (
     <View style={styles.container}>
       <Image
-        source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBj_EyvNiJnWwHl1dT647d1neMGhn5cHPcdBqtFAaPHr5a3vZPbeQsnldExCo95wjhuFikQNLEPPNQ77lxA_H5DNylgzwV8zytGuSeNJcDdx_f-BuvafKAUoX30eogMG_oqc9kMsoPewi37YTSA8VvlJg5Os5pEDndnE3DI2SAbUqDACWl0EuLQzJh97D24G7oGQVTZe1dh3iNVIjvEzRIGKQAiOAYlYNataspz6w-xpQygLXXHhdMQE5r39xlZwfrnyLdEl6SwXTTs' }}
+        source={{
+          uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBj_EyvNiJnWwHl1dT647d1neMGhn5cHPcdBqtFAaPHr5a3vZPbeQsnldExCo95wjhuFikQNLEPPNQ77lxA_H5DNylgzwV8zytGuSeNJcDdx_f-BuvafKAUoX30eogMG_oqc9kMsoPewi37YTSA8VvlJg5Os5pEDndnE3DI2SAbUqDACWl0EuLQzJh97D24G7oGQVTZe1dh3iNVIjvEzRIGKQAiOAYlYNataspz6w-xpQygLXXHhdMQE5r39xlZwfrnyLdEl6SwXTTs',
+        }}
         style={StyleSheet.absoluteFillObject}
       />
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.6)' }]} />
@@ -215,8 +197,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
             styles.textContainer,
             {
               opacity: textOpacity,
-              transform: [{ scale: pulseAnim }]
-            }
+              transform: [{ scale: pulseAnim }],
+            },
           ]}
         >
           <Text style={styles.loadingText}>Идёт расчёт</Text>

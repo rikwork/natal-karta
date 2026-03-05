@@ -1,15 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
-const { width } = Dimensions.get('window');
 
 interface ResultScreenProps {
   result: {
@@ -44,64 +35,58 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onContinue }) => {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnim, scaleAnim, slideAnim]);
 
   const getZodiacEmoji = (sign: string) => {
     const emojiMap: { [key: string]: string } = {
-      'Овен': '♈',
-      'Телец': '♉',
-      'Близнецы': '♊',
-      'Рак': '♋',
-      'Лев': '♌',
-      'Дева': '♍',
-      'Весы': '♎',
-      'Скорпион': '♏',
-      'Стрелец': '♐',
-      'Козерог': '♑',
-      'Водолей': '♒',
-      'Рыбы': '♓',
+      Овен: '♈',
+      Телец: '♉',
+      Близнецы: '♊',
+      Рак: '♋',
+      Лев: '♌',
+      Дева: '♍',
+      Весы: '♎',
+      Скорпион: '♏',
+      Стрелец: '♐',
+      Козерог: '♑',
+      Водолей: '♒',
+      Рыбы: '♓',
     };
     return emojiMap[sign] || '✨';
   };
 
   const getZodiacColor = (sign: string) => {
     const colorMap: { [key: string]: string } = {
-      'Овен': '#ff6b6b',
-      'Телец': '#4ecdc4',
-      'Близнецы': '#45b7d1',
-      'Рак': '#96ceb4',
-      'Лев': '#feca57',
-      'Дева': '#ff9ff3',
-      'Весы': '#54a0ff',
-      'Скорпион': '#5f27cd',
-      'Стрелец': '#00d2d3',
-      'Козерог': '#ff9f43',
-      'Водолей': '#0abde3',
-      'Рыбы': '#a55eea',
+      Овен: '#ff6b6b',
+      Телец: '#4ecdc4',
+      Близнецы: '#45b7d1',
+      Рак: '#96ceb4',
+      Лев: '#feca57',
+      Дева: '#ff9ff3',
+      Весы: '#54a0ff',
+      Скорпион: '#5f27cd',
+      Стрелец: '#00d2d3',
+      Козерог: '#ff9f43',
+      Водолей: '#0abde3',
+      Рыбы: '#a55eea',
     };
     return colorMap[sign] || '#ff6b6b';
   };
 
   return (
-    <LinearGradient
-      colors={['#1a1a2e', '#16213e', '#0f3460']}
-      style={styles.container}
-    >
+    <LinearGradient colors={['#1a1a2e', '#16213e', '#0f3460']} style={styles.container}>
       <Animated.View
         style={[
           styles.content,
           {
             opacity: fadeAnim,
-            transform: [
-              { translateY: slideAnim },
-              { scale: scaleAnim }
-            ]
-          }
+            transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+          },
         ]}
       >
         {/* Заголовок */}
         <Text style={styles.title}>Твоя натальная карта готова!</Text>
-        
+
         {/* Результат */}
         <View style={styles.resultContainer}>
           <View style={styles.resultCard}>
@@ -131,7 +116,9 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onContinue }) => {
               <View style={styles.planetRow}>
                 <Text style={styles.planetEmoji}>⬆️</Text>
                 <Text style={styles.planetText}>Асцендент в</Text>
-                <View style={[styles.signContainer, { borderColor: getZodiacColor(result.ascendant) }]}>
+                <View
+                  style={[styles.signContainer, { borderColor: getZodiacColor(result.ascendant) }]}
+                >
                   <Text style={styles.signEmoji}>{getZodiacEmoji(result.ascendant)}</Text>
                   <Text style={[styles.signText, { color: getZodiacColor(result.ascendant) }]}>
                     {result.ascendant}
@@ -144,16 +131,13 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onContinue }) => {
 
         {/* Описание */}
         <Text style={styles.description}>
-          Это основа твоей астрологической личности. 
-          Теперь ты можешь узнать больше о себе и своём будущем.
+          Это основа твоей астрологической личности. Теперь ты можешь узнать больше о себе и своём
+          будущем.
         </Text>
 
         {/* Кнопка продолжения */}
         <TouchableOpacity style={styles.continueButton} onPress={onContinue}>
-          <LinearGradient
-            colors={['#ff6b6b', '#ee5a52']}
-            style={styles.buttonGradient}
-          >
+          <LinearGradient colors={['#ff6b6b', '#ee5a52']} style={styles.buttonGradient}>
             <Text style={styles.buttonText}>Продолжить</Text>
           </LinearGradient>
         </TouchableOpacity>

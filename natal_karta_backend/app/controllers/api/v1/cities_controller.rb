@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Api::V1::CitiesController < ApplicationController
   before_action :set_locale
 

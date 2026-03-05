@@ -47,7 +47,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
   const parsedContent = useMemo(() => {
     if (!dailyPrediction || !dailyPrediction.content) return null;
-    if (typeof dailyPrediction.content === 'object') return dailyPrediction.content as DailyPredictionContent;
+    if (typeof dailyPrediction.content === 'object')
+      return dailyPrediction.content as DailyPredictionContent;
     try {
       return JSON.parse(dailyPrediction.content) as DailyPredictionContent;
     } catch (e) {
@@ -96,7 +97,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const renderDateItem = (item: any, index: number) => (
     <TouchableOpacity key={index} style={[styles.dateItem, item.active && styles.activeDateItem]}>
       <Text style={[styles.dateText, item.active && styles.activeDateText]}>{item.day}</Text>
-      <Text style={[styles.dateSubText, item.active && styles.activeDateSubText]}>{item.label}</Text>
+      <Text style={[styles.dateSubText, item.active && styles.activeDateSubText]}>
+        {item.label}
+      </Text>
       {item.active && <View style={styles.activeIndicator} />}
     </TouchableOpacity>
   );
@@ -106,7 +109,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
       <LinearGradient colors={theme.colors.gradient.main} style={StyleSheet.absoluteFill} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
         {/* Header with Celestial Image */}
         <ImageBackground
           source={require('../../assets/images/header_celestial.png')}
@@ -119,7 +121,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           />
           <View style={styles.profileHeader}>
             <View>
-              <Text style={styles.greetingText}>Good Evening, <Text style={styles.userName}>{user?.name || 'Explorer'}</Text></Text>
+              <Text style={styles.greetingText}>
+                Good Evening, <Text style={styles.userName}>{user?.name || 'Explorer'}</Text>
+              </Text>
             </View>
             <View style={styles.avatarBorder}>
               <View style={styles.avatarPlaceholder} />
@@ -129,13 +133,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
         {/* Date Strip */}
         <View style={styles.dateStrip}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateStripContent}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.dateStripContent}
+          >
             {DATES.map(renderDateItem)}
           </ScrollView>
         </View>
 
         <View style={styles.contentPadding}>
-          <Text style={styles.mainTitleSection}>YOUR DAILY <Text style={{ color: theme.colors.secondary }}>ASTROLOGY</Text> ✨</Text>
+          <Text style={styles.mainTitleSection}>
+            YOUR DAILY <Text style={{ color: theme.colors.secondary }}>ASTROLOGY</Text> ✨
+          </Text>
 
           {/* Main Cards Row */}
           <View style={styles.mainCardsRow}>
@@ -143,7 +153,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             <TouchableOpacity style={styles.horoscopeCardWrapper} onPress={generateNewPrediction}>
               <BlurView intensity={30} tint="dark" style={styles.glassCard}>
                 <View style={styles.cardHeader}>
-                  <Text style={styles.cardSmallTitle}>TODAY'S HOROSCOPE: OCT 28</Text>
+                  <Text style={styles.cardSmallTitle}>TODAY&apos;S HOROSCOPE: OCT 28</Text>
                   <Text style={styles.signTitle}>SCORPIO</Text>
                 </View>
 
@@ -151,7 +161,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
                 <View style={styles.cardFooter}>
                   <Text style={styles.cardDescription} numberOfLines={3}>
-                    {parsedContent?.recommendations?.[0] || 'Navigate changes with confidence. A creative breakthrough awaits today!'}
+                    {parsedContent?.recommendations?.[0] ||
+                      'Navigate changes with confidence. A creative breakthrough awaits today!'}
                   </Text>
                   <View style={styles.cardSmallIcons}>
                     <Text>✨ 🌙</Text>
@@ -162,7 +173,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
             {/* Tarot Card */}
             <TouchableOpacity style={styles.tarotCardWrapper}>
-              <BlurView intensity={30} tint="dark" style={[styles.glassCard, styles.tarotCardBorder]}>
+              <BlurView
+                intensity={30}
+                tint="dark"
+                style={[styles.glassCard, styles.tarotCardBorder]}
+              >
                 <View style={styles.cardHeader}>
                   <Text style={styles.cardSmallTitle}>DAILY TAROT:</Text>
                   <Text style={styles.tarotTitle}>THE STAR</Text>
@@ -178,7 +193,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
                 <View style={styles.tarotFooter}>
                   <Text style={styles.tarotStatus}>The Star (Upright)</Text>
-                  <Text style={styles.tarotDesc} numberOfLines={2}>Hope, Inspiration, Renewal. A day of healing and clarity.</Text>
+                  <Text style={styles.tarotDesc} numberOfLines={2}>
+                    Hope, Inspiration, Renewal. A day of healing and clarity.
+                  </Text>
                 </View>
               </BlurView>
             </TouchableOpacity>
@@ -187,7 +204,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           {/* Celestial Alignments */}
           <View style={styles.alignmentsSection}>
             <Text style={styles.sectionTitle}>CELESTIAL ALIGNMENTS</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.alignmentsScroll}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.alignmentsScroll}
+            >
               <BlurView intensity={20} tint="dark" style={styles.alignmentMiniCard}>
                 <Text style={styles.alignmentIcon}>☿</Text>
                 <View>
@@ -220,7 +241,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               </BlurView>
             </TouchableOpacity>
           </View>
-
         </View>
 
         <View style={{ height: 100 }} />

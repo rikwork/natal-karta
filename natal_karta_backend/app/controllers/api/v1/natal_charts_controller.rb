@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Api::V1::NatalChartsController < ApplicationController
   before_action :set_user
   before_action :set_natal_chart, only: [ :show, :update, :destroy, :generate ]

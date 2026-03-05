@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DailyPredictionSerializer
   def initialize(prediction)
     @prediction = prediction

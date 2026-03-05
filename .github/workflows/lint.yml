@@ -1,0 +1,33 @@
+name: Lint
+
+on:
+  push:
+    branches: [main, master, 'feat/*']
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: NatalKartaExpo/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd NatalKartaExpo
+          npm ci
+
+      - name: Run lint
+        run: |
+          cd NatalKartaExpo
+          npm run lint
+
+      - name: Check formatting
+        run: |
+          cd NatalKartaExpo
+          npm run format:check

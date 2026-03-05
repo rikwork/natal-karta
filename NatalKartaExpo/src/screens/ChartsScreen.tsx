@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,20 +18,12 @@ interface ChartsScreenProps {
   onBack: () => void;
 }
 
-const ChartsScreen: React.FC<ChartsScreenProps> = ({
-  userId,
-  onChartPress,
-  onBack,
-}) => {
+const ChartsScreen: React.FC<ChartsScreenProps> = ({ userId, onChartPress, onBack }) => {
   const [charts, setCharts] = useState<NatalChart[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadCharts();
-  }, [userId]);
-
-  const loadCharts = async () => {
+  const loadCharts = useCallback(async () => {
     try {
       const response = await ApiService.getNatalCharts(userId);
       if (response.data) {
@@ -45,7 +37,11 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    loadCharts();
+  }, [loadCharts]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -64,24 +60,17 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({
   };
 
   const renderChartItem = ({ item }: { item: NatalChart }) => (
-    <TouchableOpacity
-      style={styles.chartCard}
-      onPress={() => onChartPress(item)}
-    >
+    <TouchableOpacity style={styles.chartCard} onPress={() => onChartPress(item)}>
       <View style={styles.chartHeader}>
         <Text style={styles.chartName}>{item.name}</Text>
         <Text style={styles.chartDate}>
           {new Date(item.birth_date).toLocaleDateString('ru-RU')}
         </Text>
       </View>
-      
+
       <View style={styles.chartDetails}>
-        <Text style={styles.chartDetail}>
-          Время: {item.birth_time}
-        </Text>
-        <Text style={styles.chartDetail}>
-          Место: {item.birth_place}
-        </Text>
+        <Text style={styles.chartDetail}>Время: {item.birth_time}</Text>
+        <Text style={styles.chartDetail}>Место: {item.birth_place}</Text>
       </View>
 
       <View style={styles.chartActions}>
@@ -90,10 +79,7 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({
             <Text style={styles.generatedText}>Сгенерирована</Text>
           </View>
         ) : (
-          <TouchableOpacity
-            style={styles.generateButton}
-            onPress={() => handleGenerateChart(item)}
-          >
+          <TouchableOpacity style={styles.generateButton} onPress={() => handleGenerateChart(item)}>
             <Text style={styles.generateButtonText}>Сгенерировать</Text>
           </TouchableOpacity>
         )}

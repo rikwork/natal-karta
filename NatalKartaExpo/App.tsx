@@ -6,12 +6,6 @@ import ApiService from './src/services/api';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import errorReporter from './src/services/errorReporter';
 import AdService from './src/services/AdService';
-
-// Типы для ErrorUtils
-declare const ErrorUtils: {
-  getGlobalHandler(): ((error: Error, isFatal: boolean) => void) | undefined;
-  setGlobalHandler(handler: (error: Error, isFatal: boolean) => void): void;
-};
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import LoadingScreen from './src/screens/LoadingScreen';
 import ResultScreen from './src/screens/ResultScreen';
@@ -24,6 +18,12 @@ import { theme } from './src/theme';
 // Простая навигация без React Navigation для начала
 import { auth, signInAnonymously } from './src/config/firebase';
 
+// Типы для ErrorUtils
+declare const ErrorUtils: {
+  getGlobalHandler(): ((error: Error, isFatal: boolean) => void) | undefined;
+  setGlobalHandler(handler: (error: Error, isFatal: boolean) => void): void;
+};
+
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,12 +33,6 @@ const App: React.FC = () => {
   const [chartResult, setChartResult] = useState<any>(null);
 
   useEffect(() => {
-    // Глобальный обработчик ошибок для React Native
-    const handleError = (error: Error) => {
-      console.log('Глобальная ошибка поймана:', error);
-      errorReporter.reportError(error, 'Global Error Handler');
-    };
-
     // Обработчик необработанных промисов
     const handleUnhandledRejection = (event: any) => {
       const error = new Error(event.reason || 'Unhandled Promise Rejection');
@@ -52,8 +46,12 @@ const App: React.FC = () => {
       originalConsoleError(...args);
       if (typeof document !== 'undefined') {
         const errorDiv = document.createElement('div');
-        errorDiv.style.cssText = 'color: white; background: red; font-size: 20px; z-index: 9999; position: fixed; top: 0; left: 0; padding: 10px; width: 100%;';
-        errorDiv.innerHTML = '<h2>Uncaught Error Caught:</h2><pre>' + args.map(a => (a instanceof Error ? a.stack || a.message : String(a))).join(' ') + '</pre>';
+        errorDiv.style.cssText =
+          'color: white; background: red; font-size: 20px; z-index: 9999; position: fixed; top: 0; left: 0; padding: 10px; width: 100%;';
+        errorDiv.innerHTML =
+          '<h2>Uncaught Error Caught:</h2><pre>' +
+          args.map((a) => (a instanceof Error ? a.stack || a.message : String(a))).join(' ') +
+          '</pre>';
         document.body.appendChild(errorDiv);
       }
       if (args[0] instanceof Error) {
@@ -65,8 +63,10 @@ const App: React.FC = () => {
     if (typeof window !== 'undefined') {
       window.onerror = function (message, source, lineno, colno, error) {
         const errorDiv = document.createElement('div');
-        errorDiv.style.cssText = 'color: white; background: red; font-size: 20px; z-index: 9999; position: fixed; bottom: 0; left: 0; padding: 10px; width: 100%;';
-        errorDiv.innerHTML = '<h2>window.onerror:</h2><pre>' + message + ' ' + (error?.stack || '') + '</pre>';
+        errorDiv.style.cssText =
+          'color: white; background: red; font-size: 20px; z-index: 9999; position: fixed; bottom: 0; left: 0; padding: 10px; width: 100%;';
+        errorDiv.innerHTML =
+          '<h2>window.onerror:</h2><pre>' + message + ' ' + (error?.stack || '') + '</pre>';
         document.body.appendChild(errorDiv);
       };
     }
@@ -81,7 +81,10 @@ const App: React.FC = () => {
       const originalHandler = ErrorUtils.getGlobalHandler();
       ErrorUtils.setGlobalHandler((error: Error, isFatal: boolean | undefined) => {
         console.log('React Native глобальная ошибка:', error, 'isFatal:', isFatal);
-        errorReporter.reportError(error, `React Native Global Handler (isFatal: ${isFatal || false})`);
+        errorReporter.reportError(
+          error,
+          `React Native Global Handler (isFatal: ${isFatal || false})`,
+        );
         if (originalHandler) {
           originalHandler(error, isFatal || false);
         }
@@ -118,7 +121,7 @@ const App: React.FC = () => {
         setCurrentScreen('Onboarding');
         setUser(null);
       }
-    } catch (error) {
+    } catch (_error) {
       setCurrentScreen('Onboarding');
       setUser(null);
     } finally {
@@ -126,7 +129,7 @@ const App: React.FC = () => {
     }
   };
 
-  const createNewUser = async (data: any): Promise<User> => {
+  const createNewUser = useCallback(async (data: any): Promise<User> => {
     try {
       // 1. Анонимная авторизация в Firebase (JS SDK совместим с Expo Go)
       const userCredential = await signInAnonymously(auth);
@@ -135,12 +138,12 @@ const App: React.FC = () => {
 
       // 2. Создание пользователя на нашем бэкенде с привязкой к UID
       // Backend returns flat JSON { id, name, ... }, not { data: { ... } }
-      const userData = await ApiService.createUser({
+      const userData = (await ApiService.createUser({
         name: data?.name || 'Пользователь',
         email: `${uid}@anonymous.local`,
         subscription_type: 'free',
         firebase_uid: uid,
-      } as any) as unknown as User;
+      } as any)) as unknown as User;
 
       if (!userData || !(userData as any).id) {
         throw new Error('User data is null from API');
@@ -160,7 +163,7 @@ const App: React.FC = () => {
         updated_at: new Date().toISOString(),
       };
     }
-  };
+  }, []);
 
   const handleWatchAd = useCallback(() => {
     AdService.showRewardedAd(
@@ -174,8 +177,11 @@ const App: React.FC = () => {
       },
       () => {
         // onFailedOrDismissed
-        Alert.alert('Остановка', 'Показ прерван. Чтобы открыть прогноз полностью, посмотрите видео до конца.');
-      }
+        Alert.alert(
+          'Остановка',
+          'Показ прерван. Чтобы открыть прогноз полностью, посмотрите видео до конца.',
+        );
+      },
     );
   }, [user]);
 
@@ -201,21 +207,24 @@ const App: React.FC = () => {
     setSelectedChart(null);
   }, []);
 
-  const handleOnboardingComplete = useCallback(async (data: any) => {
-    setOnboardingData(data);
+  const handleOnboardingComplete = useCallback(
+    async (data: any) => {
+      setOnboardingData(data);
 
-    // Создаем пользователя сразу после онбординга
-    // Передаём data напрямую, чтобы не зависеть от асинхронного state update
-    try {
-      const newUser = await createNewUser(data);
-      setUser(newUser);
-      await AsyncStorage.setItem('user', JSON.stringify(newUser));
-    } catch (error) {
-      console.log('Ошибка создания пользователя:', error);
-    }
+      // Создаем пользователя сразу после онбординга
+      // Передаём data напрямую, чтобы не зависеть от асинхронного state update
+      try {
+        const newUser = await createNewUser(data);
+        setUser(newUser);
+        await AsyncStorage.setItem('user', JSON.stringify(newUser));
+      } catch (error) {
+        console.log('Ошибка создания пользователя:', error);
+      }
 
-    setCurrentScreen('Loading');
-  }, [createNewUser]);
+      setCurrentScreen('Loading');
+    },
+    [createNewUser],
+  );
 
   const handleLoadingComplete = useCallback(async () => {
     // Генерируем реальную натальную карту во время анимации
@@ -228,7 +237,7 @@ const App: React.FC = () => {
           birth_time: onboardingData.birthTime,
           birth_place: onboardingData.birthPlace,
           latitude: onboardingData.latitude,
-          longitude: onboardingData.longitude
+          longitude: onboardingData.longitude,
         };
 
         const response = await ApiService.createNatalChart(user.id, chartData);
@@ -242,7 +251,7 @@ const App: React.FC = () => {
             chart_data: generateResponse.data?.chart_data || 'Данные карты сгенерированы',
             sun: 'Скорпион', // Временные данные
             moon: 'Весы',
-            ascendant: 'Близнецы'
+            ascendant: 'Близнецы',
           };
 
           setChartResult(result);
@@ -251,15 +260,15 @@ const App: React.FC = () => {
           setChartResult({
             sun: 'Скорпион',
             moon: 'Весы',
-            ascendant: 'Близнецы'
+            ascendant: 'Близнецы',
           });
         }
-      } catch (error) {
+      } catch (_error) {
         // Fallback на заглушку
         setChartResult({
           sun: 'Скорпион',
           moon: 'Весы',
-          ascendant: 'Близнецы'
+          ascendant: 'Близнецы',
         });
       }
     } else {
@@ -267,7 +276,7 @@ const App: React.FC = () => {
       setChartResult({
         sun: 'Скорпион',
         moon: 'Весы',
-        ascendant: 'Близнецы'
+        ascendant: 'Близнецы',
       });
     }
 
@@ -294,27 +303,15 @@ const App: React.FC = () => {
     );
   }
 
-
   const renderScreen = () => {
     switch (currentScreen) {
       case 'Onboarding':
-        return (
-          <OnboardingScreen
-            onComplete={handleOnboardingComplete}
-          />
-        );
+        return <OnboardingScreen onComplete={handleOnboardingComplete} />;
       case 'Loading':
-        return (
-          <LoadingScreen
-            onComplete={handleLoadingComplete}
-          />
-        );
+        return <LoadingScreen onComplete={handleLoadingComplete} />;
       case 'Result':
         return chartResult ? (
-          <ResultScreen
-            result={chartResult}
-            onContinue={handleResultContinue}
-          />
+          <ResultScreen result={chartResult} onContinue={handleResultContinue} />
         ) : null;
       case 'CreateChart':
         return user ? (
@@ -354,11 +351,7 @@ const App: React.FC = () => {
     }
   };
 
-  return (
-    <ErrorBoundary>
-      {renderScreen()}
-    </ErrorBoundary>
-  );
+  return <ErrorBoundary>{renderScreen()}</ErrorBoundary>;
 };
 
 const styles = StyleSheet.create({

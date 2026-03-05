@@ -37,7 +37,15 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
       try {
         return JSON.parse(chart.chart_data) as NatalChartData;
       } catch (e) {
-        return { short_summary: '', identity: chart.chart_data, emotions: '', love_preview: '', love_locked: null, career_preview: '', career_locked: null };
+        return {
+          short_summary: '',
+          identity: chart.chart_data,
+          emotions: '',
+          love_preview: '',
+          love_locked: null,
+          career_preview: '',
+          career_locked: null,
+        };
       }
     }
     return chart.chart_data as NatalChartData;
@@ -104,7 +112,9 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
         {/* Info Header Card */}
         <BlurView intensity={20} tint="light" style={styles.infoCard}>
           <Text style={styles.chartName}>{chart.name}</Text>
-          <Text style={styles.detailText}>{formatDate(chart.birth_date)} в {chart.birth_time}</Text>
+          <Text style={styles.detailText}>
+            {formatDate(chart.birth_date)} в {chart.birth_time}
+          </Text>
           <Text style={styles.detailText}>{chart.birth_place}</Text>
         </BlurView>
 
@@ -125,20 +135,27 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
           </View>
         ) : (
           <View style={styles.cardsContainer}>
-
             {/* Short Summary Card (Free) */}
             {chartData.short_summary && (
               <BlurView intensity={40} tint="dark" style={styles.glimmerCard}>
-                <LinearGradient colors={['rgba(255,215,0,0.15)', 'rgba(255,255,255,0.0)']} style={styles.cardGradient}>
+                <LinearGradient
+                  colors={['rgba(255,215,0,0.15)', 'rgba(255,255,255,0.0)']}
+                  style={styles.cardGradient}
+                >
                   <Text style={styles.cardTitle}>🌟 Суть твоей карты</Text>
-                  <Text style={[styles.cardBody, { fontStyle: 'italic', fontWeight: '500' }]}>{chartData.short_summary}</Text>
+                  <Text style={[styles.cardBody, { fontStyle: 'italic', fontWeight: '500' }]}>
+                    {chartData.short_summary}
+                  </Text>
                 </LinearGradient>
               </BlurView>
             )}
 
             {/* Identity Card (Free) */}
             <BlurView intensity={40} tint="dark" style={styles.glimmerCard}>
-              <LinearGradient colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.0)']} style={styles.cardGradient}>
+              <LinearGradient
+                colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.0)']}
+                style={styles.cardGradient}
+              >
                 <Text style={styles.cardTitle}>✨ Личность и Карма</Text>
                 <Text style={styles.cardBody}>{chartData.identity}</Text>
               </LinearGradient>
@@ -147,7 +164,10 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
             {/* Emotions Card (Free) */}
             {chartData.emotions && (
               <BlurView intensity={40} tint="dark" style={styles.glimmerCard}>
-                <LinearGradient colors={['rgba(135,206,235,0.15)', 'rgba(255,255,255,0.0)']} style={styles.cardGradient}>
+                <LinearGradient
+                  colors={['rgba(135,206,235,0.15)', 'rgba(255,255,255,0.0)']}
+                  style={styles.cardGradient}
+                >
                   <Text style={styles.cardTitle}>🌊 Эмоции и Внутренний мир</Text>
                   <Text style={styles.cardBody}>{chartData.emotions}</Text>
                 </LinearGradient>
@@ -156,7 +176,10 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
 
             {/* Love Card (Ad Locked) */}
             <BlurView intensity={40} tint="dark" style={styles.glimmerCard}>
-              <LinearGradient colors={['rgba(255,105,180,0.15)', 'rgba(255,255,255,0.0)']} style={styles.cardGradient}>
+              <LinearGradient
+                colors={['rgba(255,105,180,0.15)', 'rgba(255,255,255,0.0)']}
+                style={styles.cardGradient}
+              >
                 <Text style={styles.cardTitle}>❤️ Любовь и Отношения</Text>
                 <Text style={styles.cardBody}>{chartData.love_preview}</Text>
 
@@ -177,12 +200,17 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
 
             {/* Career Card (Ad Locked) */}
             <BlurView intensity={40} tint="dark" style={styles.glimmerCard}>
-              <LinearGradient colors={['rgba(0,255,255,0.15)', 'rgba(255,255,255,0.0)']} style={styles.cardGradient}>
+              <LinearGradient
+                colors={['rgba(0,255,255,0.15)', 'rgba(255,255,255,0.0)']}
+                style={styles.cardGradient}
+              >
                 <Text style={styles.cardTitle}>💼 Карьера и Деньги</Text>
                 <Text style={styles.cardBody}>{chartData.career_preview}</Text>
 
                 {isCareerUnlocked && chartData.career_locked ? (
-                  <Text style={[styles.cardBody, { marginTop: 10 }]}>{chartData.career_locked}</Text>
+                  <Text style={[styles.cardBody, { marginTop: 10 }]}>
+                    {chartData.career_locked}
+                  </Text>
                 ) : (
                   <View style={styles.lockedContainer}>
                     <BlurView intensity={60} tint="dark" style={styles.lockOverlay}>
@@ -195,7 +223,6 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
                 )}
               </LinearGradient>
             </BlurView>
-
           </View>
         )}
       </ScrollView>

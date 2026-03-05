@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Users::Update
   def self.call(user, params)
     new(user, params).call

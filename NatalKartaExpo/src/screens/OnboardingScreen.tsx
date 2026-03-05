@@ -181,57 +181,52 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
           if (handlePrevRef.current) handlePrevRef.current();
         }
       },
-    })
+    }),
   ).current;
 
-  // Вычисляем знак зодиака при изменении даты
-  const zodiacSign = useMemo(() => {
-    const sign = getZodiacSign(selectedDate.month, selectedDate.day);
-    return sign;
-  }, [selectedDate.month, selectedDate.day]);
-
   // Debounced поиск городов через OpenStreetMap API
-  const searchCities = useCallback(
-    debounce(async (query: string) => {
-      if (query.length < 2) {
-        setFilteredCities([]);
-        setShowCityList(false);
-        return;
-      }
-
-      setIsSearchingCities(true);
-      try {
-        // Язык по раскладке: латиница -> en, кириллица -> ru. Без транслита
-        const primaryLang = /[A-Za-z]/.test(query) ? 'en' : 'ru';
-        const response = await ApiService.searchCities(query, primaryLang);
-
-        // В ApiService response.data содержит массив городов напрямую (или null при ошибке)
-        // Но бэкенд возвращает { data: [...], message: "..." }
-        // Глядя на ApiService.request: он возвращает data (который и есть { data: ..., message: ... })
-        const cities = (response as any).data || [];
-
-        if (cities && cities.length) {
-          setFilteredCities(cities);
-          setShowCityList(true);
-        } else {
+  const searchCities = useMemo(
+    () =>
+      debounce(async (query: string) => {
+        if (query.length < 2) {
           setFilteredCities([]);
           setShowCityList(false);
+          return;
         }
-      } catch (error) {
-        // Ошибка уже обработана в ApiService
-        setFilteredCities([]);
-        setShowCityList(false);
-      } finally {
-        setIsSearchingCities(false);
-      }
-    }, 300), // 300ms задержка
-    []
+
+        setIsSearchingCities(true);
+        try {
+          // Язык по раскладке: латиница -> en, кириллица -> ru. Без транслита
+          const primaryLang = /[A-Za-z]/.test(query) ? 'en' : 'ru';
+          const response = await ApiService.searchCities(query, primaryLang);
+
+          // В ApiService response.data содержит массив городов напрямую (или null при ошибке)
+          // Но бэкенд возвращает { data: [...], message: "..." }
+          // Глядя на ApiService.request: он возвращает data (который и есть { data: ..., message: ... })
+          const cities = (response as any).data || [];
+
+          if (cities && cities.length) {
+            setFilteredCities(cities);
+            setShowCityList(true);
+          } else {
+            setFilteredCities([]);
+            setShowCityList(false);
+          }
+        } catch (_error) {
+          // Ошибка уже обработана в ApiService
+          setFilteredCities([]);
+          setShowCityList(false);
+        } finally {
+          setIsSearchingCities(false);
+        }
+      }, 300), // 300ms задержка
+    [],
   );
 
   // Выбор города — без мерцания: сначала fade, потом коллапс списка
   const selectCity = (city: City) => {
     setCitySearch(`${city.name}, ${city.country}`);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       birthPlace: `${city.name}, ${city.country}`,
       latitude: city.latitude.toString(),
@@ -255,10 +250,23 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
   };
 
   const steps = [
-    { id: 'name', title: 'Как тебя зовут?', subtitle: 'Это поможет персонализировать твою натальную карту' },
+    {
+      id: 'name',
+      title: 'Как тебя зовут?',
+      subtitle: 'Это поможет персонализировать твою натальную карту',
+    },
     { id: 'gender', title: 'Твой пол', subtitle: 'Важно для точного расчета' },
-    { id: 'birthDate', title: 'Когда вы родились?', subtitle: 'Введите вашу точную дату рождения для раскрытия\nвашего уникального космического чертежа.' },
-    { id: 'birthTime', title: 'Время рождения', subtitle: 'Точное время очень важно для астрологии' },
+    {
+      id: 'birthDate',
+      title: 'Когда вы родились?',
+      subtitle:
+        'Введите вашу точную дату рождения для раскрытия\nвашего уникального космического чертежа.',
+    },
+    {
+      id: 'birthTime',
+      title: 'Время рождения',
+      subtitle: 'Точное время очень важно для астрологии',
+    },
     { id: 'birthPlace', title: 'Место рождения', subtitle: 'Город, где ты родился' },
   ];
 
@@ -304,12 +312,27 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
 
   const isStepValid = () => {
     switch (currentStep) {
-      case 0: return formData.name.trim().length > 0 && legalAccepted;
-      case 1: return formData.gender !== '';
-      case 2: return selectedDate.day > 0 && selectedDate.month > 0 && selectedDate.year > 0;
-      case 3: return selectedTime.hour >= 0 && selectedTime.hour <= 23 && selectedTime.minute >= 0 && selectedTime.minute <= 59;
-      case 4: return formData.birthPlace.trim().length > 0 && formData.latitude !== '' && formData.longitude !== '';
-      default: return false;
+      case 0:
+        return formData.name.trim().length > 0 && legalAccepted;
+      case 1:
+        return formData.gender !== '';
+      case 2:
+        return selectedDate.day > 0 && selectedDate.month > 0 && selectedDate.year > 0;
+      case 3:
+        return (
+          selectedTime.hour >= 0 &&
+          selectedTime.hour <= 23 &&
+          selectedTime.minute >= 0 &&
+          selectedTime.minute <= 59
+        );
+      case 4:
+        return (
+          formData.birthPlace.trim().length > 0 &&
+          formData.latitude !== '' &&
+          formData.longitude !== ''
+        );
+      default:
+        return false;
     }
   };
 
@@ -332,9 +355,19 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
         </View>
         <Text style={styles.checkboxLabel}>
           Я принимаю{' '}
-          <Text style={[styles.checkboxLabel, styles.linkText]} onPress={() => Linking.openURL('https://example.com/terms')}>Пользовательское соглашение</Text>
-          {' '}и{' '}
-          <Text style={[styles.checkboxLabel, styles.linkText]} onPress={() => Linking.openURL('https://example.com/privacy')}>Политику конфиденциальности</Text>
+          <Text
+            style={[styles.checkboxLabel, styles.linkText]}
+            onPress={() => Linking.openURL('https://example.com/terms')}
+          >
+            Пользовательское соглашение
+          </Text>{' '}
+          и{' '}
+          <Text
+            style={[styles.checkboxLabel, styles.linkText]}
+            onPress={() => Linking.openURL('https://example.com/privacy')}
+          >
+            Политику конфиденциальности
+          </Text>
         </Text>
       </TouchableOpacity>
     </View>
@@ -367,7 +400,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
     // Generate data matching the AstralDatePicker expectations
     const days = Array.from({ length: 31 }, (_, i) => ({
       label: String(i + 1).padStart(2, '0'),
-      value: i + 1
+      value: i + 1,
     }));
 
     const months = [
@@ -387,7 +420,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
 
     const years = Array.from({ length: 125 }, (_, i) => ({
       label: String(2024 - i),
-      value: 2024 - i
+      value: 2024 - i,
     }));
 
     return (
@@ -400,7 +433,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
           selectedMonth={selectedDate.month}
           selectedYear={selectedDate.year}
           onDateChange={(type, value) => {
-            setSelectedDate(prev => ({ ...prev, [type]: value }));
+            setSelectedDate((prev) => ({ ...prev, [type]: value }));
           }}
         />
       </View>
@@ -422,7 +455,11 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
           <View style={styles.timeSelectorsContainer}>
             <View style={styles.timeSelector}>
               <Text style={styles.timeSelectorLabel}>Час</Text>
-              <BlurView intensity={30} tint="dark" style={[styles.timeScrollContainer, { height: containerHeight }]}>
+              <BlurView
+                intensity={30}
+                tint="dark"
+                style={[styles.timeScrollContainer, { height: containerHeight }]}
+              >
                 {/* Верхний градиент */}
                 <LinearGradient
                   colors={['rgba(5,5,10,0.8)', 'rgba(5,5,10,0)']}
@@ -431,16 +468,30 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                 />
 
                 {/* Полосы выбора - верхняя и нижняя */}
-                <View style={[styles.selectionLinesContainer, { top: (containerHeight - itemHeight) / 2, height: itemHeight }]} pointerEvents="none">
+                <View
+                  style={[
+                    styles.selectionLinesContainer,
+                    { top: (containerHeight - itemHeight) / 2, height: itemHeight },
+                  ]}
+                  pointerEvents="none"
+                >
                   <View style={styles.selectionLineTop} />
                   <View style={styles.selectionLineBottom} />
                 </View>
 
                 <Animated.ScrollView
                   ref={hourScrollRef}
-                  style={[styles.timeScrollView, Platform.OS === 'web' ? { scrollSnapType: 'y mandatory', scrollBehavior: 'smooth' } as any : {}]}
+                  style={[
+                    styles.timeScrollView,
+                    Platform.OS === 'web'
+                      ? ({ scrollSnapType: 'y mandatory', scrollBehavior: 'smooth' } as any)
+                      : {},
+                  ]}
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={[styles.scrollContent, { paddingVertical: (containerHeight - itemHeight) / 2 }]}
+                  contentContainerStyle={[
+                    styles.scrollContent,
+                    { paddingVertical: (containerHeight - itemHeight) / 2 },
+                  ]}
                   decelerationRate="fast"
                   snapToInterval={itemHeight}
                   snapToAlignment="start"
@@ -453,10 +504,10 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                         const index = Math.round(y / itemHeight);
                         const hour = hours[index];
                         if (hour !== undefined && selectedTime.hour !== hour) {
-                          setSelectedTime(prev => ({ ...prev, hour }));
+                          setSelectedTime((prev) => ({ ...prev, hour }));
                         }
-                      }
-                    }
+                      },
+                    },
                   )}
                   scrollEventThrottle={16}
                   onMomentumScrollEnd={(event: any) => {
@@ -465,7 +516,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                     const index = Math.round(y / itemHeight);
                     const hour = hours[index];
                     if (hour !== undefined) {
-                      setSelectedTime(prev => ({ ...prev, hour }));
+                      setSelectedTime((prev) => ({ ...prev, hour }));
                     }
                     hourScrollRef.current?.scrollTo({ y: index * itemHeight, animated: true });
                   }}
@@ -479,22 +530,42 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                   {hours.map((hour, index) => {
                     const itemPosition = index * itemHeight;
                     const scale = hourScrollY.interpolate({
-                      inputRange: [itemPosition - itemHeight, itemPosition, itemPosition + itemHeight],
+                      inputRange: [
+                        itemPosition - itemHeight,
+                        itemPosition,
+                        itemPosition + itemHeight,
+                      ],
                       outputRange: [0.7, 1.2, 0.7],
                       extrapolate: 'clamp',
                     });
                     const opacity = hourScrollY.interpolate({
-                      inputRange: [itemPosition - itemHeight, itemPosition, itemPosition + itemHeight],
+                      inputRange: [
+                        itemPosition - itemHeight,
+                        itemPosition,
+                        itemPosition + itemHeight,
+                      ],
                       outputRange: [0.3, 1, 0.3],
                       extrapolate: 'clamp',
                     });
                     const color = hourScrollY.interpolate({
-                      inputRange: [itemPosition - itemHeight, itemPosition, itemPosition + itemHeight],
-                      outputRange: ['rgba(255, 255, 255, 1)', 'rgba(255, 215, 0, 1)', 'rgba(255, 255, 255, 1)'],
+                      inputRange: [
+                        itemPosition - itemHeight,
+                        itemPosition,
+                        itemPosition + itemHeight,
+                      ],
+                      outputRange: [
+                        'rgba(255, 255, 255, 1)',
+                        'rgba(255, 215, 0, 1)',
+                        'rgba(255, 255, 255, 1)',
+                      ],
                       extrapolate: 'clamp',
                     });
                     const textShadowRadius = hourScrollY.interpolate({
-                      inputRange: [itemPosition - itemHeight, itemPosition, itemPosition + itemHeight],
+                      inputRange: [
+                        itemPosition - itemHeight,
+                        itemPosition,
+                        itemPosition + itemHeight,
+                      ],
                       outputRange: [0, 10, 0],
                       extrapolate: 'clamp',
                     });
@@ -505,20 +576,22 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                         style={[
                           styles.timeOption,
                           { height: itemHeight },
-                          Platform.OS === 'web' ? { scrollSnapAlign: 'center' } as any : {}
+                          Platform.OS === 'web' ? ({ scrollSnapAlign: 'center' } as any) : {},
                         ]}
                       >
-                        <Animated.Text style={[
-                          styles.timeOptionText,
-                          {
-                            opacity,
-                            transform: [{ scale }],
-                            color,
-                            textShadowColor: 'rgba(255, 215, 0, 1)',
-                            textShadowRadius,
-                            fontWeight: 'bold',
-                          }
-                        ]}>
+                        <Animated.Text
+                          style={[
+                            styles.timeOptionText,
+                            {
+                              opacity,
+                              transform: [{ scale }],
+                              color,
+                              textShadowColor: 'rgba(255, 215, 0, 1)',
+                              textShadowRadius,
+                              fontWeight: 'bold',
+                            },
+                          ]}
+                        >
                           {hour.toString().padStart(2, '0')}
                         </Animated.Text>
                       </View>
@@ -541,7 +614,11 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
 
             <View style={styles.timeSelector}>
               <Text style={styles.timeSelectorLabel}>Минуты</Text>
-              <BlurView intensity={30} tint="dark" style={[styles.timeScrollContainer, { height: containerHeight }]}>
+              <BlurView
+                intensity={30}
+                tint="dark"
+                style={[styles.timeScrollContainer, { height: containerHeight }]}
+              >
                 {/* Верхний градиент */}
                 <LinearGradient
                   colors={['rgba(5,5,10,0.8)', 'rgba(5,5,10,0)']}
@@ -550,16 +627,30 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                 />
 
                 {/* Полосы выбора - верхняя и нижняя */}
-                <View style={[styles.selectionLinesContainer, { top: (containerHeight - itemHeight) / 2, height: itemHeight }]} pointerEvents="none">
+                <View
+                  style={[
+                    styles.selectionLinesContainer,
+                    { top: (containerHeight - itemHeight) / 2, height: itemHeight },
+                  ]}
+                  pointerEvents="none"
+                >
                   <View style={styles.selectionLineTop} />
                   <View style={styles.selectionLineBottom} />
                 </View>
 
                 <Animated.ScrollView
                   ref={minuteScrollRef}
-                  style={[styles.timeScrollView, Platform.OS === 'web' ? { scrollSnapType: 'y mandatory', scrollBehavior: 'smooth' } as any : {}]}
+                  style={[
+                    styles.timeScrollView,
+                    Platform.OS === 'web'
+                      ? ({ scrollSnapType: 'y mandatory', scrollBehavior: 'smooth' } as any)
+                      : {},
+                  ]}
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={[styles.scrollContent, { paddingVertical: (containerHeight - itemHeight) / 2 }]}
+                  contentContainerStyle={[
+                    styles.scrollContent,
+                    { paddingVertical: (containerHeight - itemHeight) / 2 },
+                  ]}
                   decelerationRate="fast"
                   snapToInterval={itemHeight}
                   snapToAlignment="start"
@@ -572,10 +663,10 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                         const index = Math.round(y / itemHeight);
                         const minute = minutes[index];
                         if (minute !== undefined && selectedTime.minute !== minute) {
-                          setSelectedTime(prev => ({ ...prev, minute }));
+                          setSelectedTime((prev) => ({ ...prev, minute }));
                         }
-                      }
-                    }
+                      },
+                    },
                   )}
                   scrollEventThrottle={16}
                   onMomentumScrollEnd={(event: any) => {
@@ -584,7 +675,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                     const index = Math.round(y / itemHeight);
                     const minute = minutes[index];
                     if (minute !== undefined) {
-                      setSelectedTime(prev => ({ ...prev, minute }));
+                      setSelectedTime((prev) => ({ ...prev, minute }));
                     }
                     minuteScrollRef.current?.scrollTo({ y: index * itemHeight, animated: true });
                   }}
@@ -598,22 +689,42 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                   {minutes.map((minute, index) => {
                     const itemPosition = index * itemHeight;
                     const scale = minuteScrollY.interpolate({
-                      inputRange: [itemPosition - itemHeight, itemPosition, itemPosition + itemHeight],
+                      inputRange: [
+                        itemPosition - itemHeight,
+                        itemPosition,
+                        itemPosition + itemHeight,
+                      ],
                       outputRange: [0.7, 1.2, 0.7],
                       extrapolate: 'clamp',
                     });
                     const opacity = minuteScrollY.interpolate({
-                      inputRange: [itemPosition - itemHeight, itemPosition, itemPosition + itemHeight],
+                      inputRange: [
+                        itemPosition - itemHeight,
+                        itemPosition,
+                        itemPosition + itemHeight,
+                      ],
                       outputRange: [0.3, 1, 0.3],
                       extrapolate: 'clamp',
                     });
                     const color = minuteScrollY.interpolate({
-                      inputRange: [itemPosition - itemHeight, itemPosition, itemPosition + itemHeight],
-                      outputRange: ['rgba(255, 255, 255, 1)', 'rgba(255, 215, 0, 1)', 'rgba(255, 255, 255, 1)'],
+                      inputRange: [
+                        itemPosition - itemHeight,
+                        itemPosition,
+                        itemPosition + itemHeight,
+                      ],
+                      outputRange: [
+                        'rgba(255, 255, 255, 1)',
+                        'rgba(255, 215, 0, 1)',
+                        'rgba(255, 255, 255, 1)',
+                      ],
                       extrapolate: 'clamp',
                     });
                     const textShadowRadius = minuteScrollY.interpolate({
-                      inputRange: [itemPosition - itemHeight, itemPosition, itemPosition + itemHeight],
+                      inputRange: [
+                        itemPosition - itemHeight,
+                        itemPosition,
+                        itemPosition + itemHeight,
+                      ],
                       outputRange: [0, 10, 0],
                       extrapolate: 'clamp',
                     });
@@ -624,20 +735,22 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                         style={[
                           styles.timeOption,
                           { height: itemHeight },
-                          Platform.OS === 'web' ? { scrollSnapAlign: 'center' } as any : {}
+                          Platform.OS === 'web' ? ({ scrollSnapAlign: 'center' } as any) : {},
                         ]}
                       >
-                        <Animated.Text style={[
-                          styles.timeOptionText,
-                          {
-                            opacity,
-                            transform: [{ scale }],
-                            color,
-                            textShadowColor: 'rgba(255, 215, 0, 1)',
-                            textShadowRadius,
-                            fontWeight: 'bold',
-                          }
-                        ]}>
+                        <Animated.Text
+                          style={[
+                            styles.timeOptionText,
+                            {
+                              opacity,
+                              transform: [{ scale }],
+                              color,
+                              textShadowColor: 'rgba(255, 215, 0, 1)',
+                              textShadowRadius,
+                              fontWeight: 'bold',
+                            },
+                          ]}
+                        >
                           {minute.toString().padStart(2, '0')}
                         </Animated.Text>
                       </View>
@@ -691,15 +804,10 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
               data={filteredCities}
               keyExtractor={(item, index) => `${item.name}-${item.country}-${index}`}
               renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.cityItem}
-                  onPress={() => selectCity(item)}
-                >
+                <TouchableOpacity style={styles.cityItem} onPress={() => selectCity(item)}>
                   <Text style={styles.cityName}>{item.name}</Text>
                   <Text style={styles.cityCountry}>{item.country}</Text>
-                  {item.admin_name1 && (
-                    <Text style={styles.cityRegion}>{item.admin_name1}</Text>
-                  )}
+                  {item.admin_name1 && <Text style={styles.cityRegion}>{item.admin_name1}</Text>}
                 </TouchableOpacity>
               )}
               style={styles.cityList}
@@ -716,30 +824,34 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
 
   const renderStepContent = () => {
     switch (currentStep) {
-      case 0: return renderNameStep();
-      case 1: return renderGenderStep();
-      case 2: return renderBirthDateStep();
-      case 3: return renderBirthTimeStep();
-      case 4: return renderBirthPlaceStep();
-      default: return null;
+      case 0:
+        return renderNameStep();
+      case 1:
+        return renderGenderStep();
+      case 2:
+        return renderBirthDateStep();
+      case 3:
+        return renderBirthTimeStep();
+      case 4:
+        return renderBirthPlaceStep();
+      default:
+        return null;
     }
   };
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
       <Image
-        source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBj_EyvNiJnWwHl1dT647d1neMGhn5cHPcdBqtFAaPHr5a3vZPbeQsnldExCo95wjhuFikQNLEPPNQ77lxA_H5DNylgzwV8zytGuSeNJcDdx_f-BuvafKAUoX30eogMG_oqc9kMsoPewi37YTSA8VvlJg5Os5pEDndnE3DI2SAbUqDACWl0EuLQzJh97D24G7oGQVTZe1dh3iNVIjvEzRIGKQAiOAYlYNataspz6w-xpQygLXXHhdMQE5r39xlZwfrnyLdEl6SwXTTs' }}
+        source={{
+          uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBj_EyvNiJnWwHl1dT647d1neMGhn5cHPcdBqtFAaPHr5a3vZPbeQsnldExCo95wjhuFikQNLEPPNQ77lxA_H5DNylgzwV8zytGuSeNJcDdx_f-BuvafKAUoX30eogMG_oqc9kMsoPewi37YTSA8VvlJg5Os5pEDndnE3DI2SAbUqDACWl0EuLQzJh97D24G7oGQVTZe1dh3iNVIjvEzRIGKQAiOAYlYNataspz6w-xpQygLXXHhdMQE5r39xlZwfrnyLdEl6SwXTTs',
+        }}
         style={StyleSheet.absoluteFillObject}
       />
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.6)' }]} />
 
       {/* Кнопка "Назад" в левом верхнем углу */}
       {currentStep > 0 && (
-        <TouchableOpacity
-          style={styles.topBackButton}
-          onPress={handlePrev}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity style={styles.topBackButton} onPress={handlePrev} activeOpacity={0.7}>
           <Ionicons name="chevron-back" size={28} color="rgba(255,255,255,0.8)" />
         </TouchableOpacity>
       )}
@@ -754,30 +866,30 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                 style={[
                   styles.dot,
                   currentStep === index ? styles.activeDot : styles.inactiveDot,
-                  currentStep === index && styles.activeDotGlow
+                  currentStep === index && styles.activeDotGlow,
                 ]}
               />
             ))}
           </View>
         </View>
-        <Text style={styles.stepCounterText}>{currentStep + 1} из {steps.length}</Text>
+        <Text style={styles.stepCounterText}>
+          {currentStep + 1} из {steps.length}
+        </Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Контент экрана */}
-        <Animated.View
-          style={[
-            styles.stepWrapper,
-            { opacity: fadeAnim }
-          ]}
-        >
+        <Animated.View style={[styles.stepWrapper, { opacity: fadeAnim }]}>
           <Text style={styles.stepTitle}>{steps[currentStep].title}</Text>
           <Text style={styles.stepSubtitle}>{steps[currentStep].subtitle}</Text>
 
           <View style={{ flex: 1, width: '100%', position: 'relative' }}>
             {currentStep >= 2 && (
               <View
-                style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', zIndex: -1 }]}
+                style={[
+                  StyleSheet.absoluteFillObject,
+                  { alignItems: 'center', justifyContent: 'center', zIndex: -1 },
+                ]}
                 pointerEvents="none"
               >
                 <ZodiacWheel spin={spin} />
@@ -789,12 +901,8 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
 
         {/* Навигация */}
         <View style={styles.navigationContainer}>
-
           <TouchableOpacity
-            style={[
-              styles.nextButtonWrapper,
-              !isStepValid() && styles.nextButtonDisabled
-            ]}
+            style={[styles.nextButtonWrapper, !isStepValid() && styles.nextButtonDisabled]}
             onPress={handleNext}
             disabled={!isStepValid()}
             activeOpacity={0.8}
@@ -817,8 +925,6 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
               </LinearGradient>
             </LinearGradient>
           </TouchableOpacity>
-
-
         </View>
       </ScrollView>
     </View>

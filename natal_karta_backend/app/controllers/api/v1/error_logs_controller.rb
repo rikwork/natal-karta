@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Api::V1::ErrorLogsController < ApplicationController
   before_action :set_error_log, only: [ :show, :update, :destroy ]
 
