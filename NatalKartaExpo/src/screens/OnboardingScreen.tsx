@@ -24,7 +24,6 @@ import { BlurView } from 'expo-blur';
 import ApiService from '../services/api';
 import { City } from '../types';
 import AstralDatePicker from '../components/AstralDatePicker';
-import ZodiacWheel from '../components/ZodiacWheel';
 
 const { width } = Dimensions.get('window');
 
@@ -81,9 +80,10 @@ interface OnboardingScreenProps {
     latitude: string;
     longitude: string;
   }) => void;
+  onStepChange: (step: number) => void;
 }
 
-const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
+const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onStepChange }) => {
   const [currentStep, setCurrentStep] = useState(0);
 
   const [formData, setFormData] = useState({
@@ -112,30 +112,9 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
   const [isSearchingCities, setIsSearchingCities] = useState(false);
   const [legalAccepted, setLegalAccepted] = useState(false);
 
-  const spinValue = useRef(new Animated.Value(0)).current;
-
-  const startAnimation = useCallback(() => {
-    spinValue.setValue(0);
-    Animated.timing(spinValue, {
-      toValue: 1,
-      duration: 60000,
-      easing: Easing.linear,
-      useNativeDriver: Platform.OS !== 'web',
-    }).start(({ finished }) => {
-      if (finished) {
-        startAnimation();
-      }
-    });
-  }, [spinValue]);
-
   useEffect(() => {
-    startAnimation();
-  }, [startAnimation]);
-
-  const spin = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+    onStepChange(currentStep);
+  }, [currentStep, onStepChange]);
 
   // Refs для ScrollView
   const dayScrollRef = useRef<ScrollView>(null);
@@ -225,28 +204,17 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
 
   // Выбор города — без мерцания: сначала fade, потом коллапс списка
   const selectCity = (city: City) => {
-    setCitySearch(`${city.name}, ${city.country}`);
-    setFormData((prev) => ({
-      ...prev,
-      birthPlace: `${city.name}, ${city.country}`,
-      latitude: city.latitude.toString(),
-      longitude: city.longitude.toString(),
-    }));
-
-    // Сначала запускаем fade-out, только ПОСЛЕ его завершения скрываем список.
-    // Это предотвращает двойной layout-shift (коллапс FlatList + fade одновременно).
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => {
-      setShowCityList(false);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
+    // Убрали анимацию fadeAnim, которая вызывала "моргание" всего экрана.
+    // Просто обновляем данные и скрываем список.
+    const formattedCity = `${city.name}${city.admin_name1 ? `, ${city.admin_name1}` : ''}, ${city.country}`;
+    setCitySearch(formattedCity);
+    setFormData({
+      ...formData,
+      birthPlace: formattedCity,
+      latitude: String(city.latitude),
+      longitude: String(city.longitude),
     });
+    setShowCityList(false);
   };
 
   const steps = [
@@ -294,7 +262,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
       }
       // Сохраняем время в formData при переходе с экрана времени
       if (currentStep === 3) {
-        const timeString = `${selectedTime.hour.toString().padStart(2, '0')}:${selectedTime.minute.toString().padStart(2, '0')}`;
+        const timeString = `${selectedTime.hour.toString().padStart(2, '0')}: ${selectedTime.minute.toString().padStart(2, '0')}`;
         setFormData({ ...formData, birthTime: timeString });
       }
       animateFade(() => setCurrentStep(currentStep + 1));
@@ -451,15 +419,11 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
     return (
       <View style={styles.stepContainer}>
         {/* Селекторы времени */}
-        <BlurView intensity={20} tint="dark" style={styles.dateSelectorsContainerWrapper}>
+        <View style={styles.dateSelectorsContainerWrapper}>
           <View style={styles.timeSelectorsContainer}>
             <View style={styles.timeSelector}>
               <Text style={styles.timeSelectorLabel}>Час</Text>
-              <BlurView
-                intensity={30}
-                tint="dark"
-                style={[styles.timeScrollContainer, { height: containerHeight }]}
-              >
+              <View style={[styles.timeScrollContainer, { height: containerHeight }]}>
                 {/* Верхний градиент */}
                 <LinearGradient
                   colors={['rgba(5,5,10,0.8)', 'rgba(5,5,10,0)']}
@@ -507,7 +471,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                           setSelectedTime((prev) => ({ ...prev, hour }));
                         }
                       },
-                    },
+                    }
                   )}
                   scrollEventThrottle={16}
                   onMomentumScrollEnd={(event: any) => {
@@ -605,7 +569,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                   style={styles.gradientBottom}
                   pointerEvents="none"
                 />
-              </BlurView>
+              </View>
             </View>
 
             <View style={styles.timeDivider}>
@@ -614,11 +578,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
 
             <View style={styles.timeSelector}>
               <Text style={styles.timeSelectorLabel}>Минуты</Text>
-              <BlurView
-                intensity={30}
-                tint="dark"
-                style={[styles.timeScrollContainer, { height: containerHeight }]}
-              >
+              <View style={[styles.timeScrollContainer, { height: containerHeight }]}>
                 {/* Верхний градиент */}
                 <LinearGradient
                   colors={['rgba(5,5,10,0.8)', 'rgba(5,5,10,0)']}
@@ -666,7 +626,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                           setSelectedTime((prev) => ({ ...prev, minute }));
                         }
                       },
-                    },
+                    }
                   )}
                   scrollEventThrottle={16}
                   onMomentumScrollEnd={(event: any) => {
@@ -764,14 +724,13 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                   style={styles.gradientBottom}
                   pointerEvents="none"
                 />
-              </BlurView>
+              </View>
             </View>
           </View>
-        </BlurView>
+        </View>
       </View>
     );
   };
-
   const renderBirthPlaceStep = () => (
     <View style={styles.stepContainer}>
       <View style={styles.citySearchContainer}>
@@ -802,7 +761,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
           <View style={styles.cityListContainer}>
             <FlatList
               data={filteredCities}
-              keyExtractor={(item, index) => `${item.name}-${item.country}-${index}`}
+              keyExtractor={(item, index) => `${item.name} - ${item.country} - ${index}`}
               renderItem={({ item }) => (
                 <TouchableOpacity style={styles.cityItem} onPress={() => selectCity(item)}>
                   <Text style={styles.cityName}>{item.name}</Text>
@@ -841,13 +800,6 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
-      <Image
-        source={{
-          uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBj_EyvNiJnWwHl1dT647d1neMGhn5cHPcdBqtFAaPHr5a3vZPbeQsnldExCo95wjhuFikQNLEPPNQ77lxA_H5DNylgzwV8zytGuSeNJcDdx_f-BuvafKAUoX30eogMG_oqc9kMsoPewi37YTSA8VvlJg5Os5pEDndnE3DI2SAbUqDACWl0EuLQzJh97D24G7oGQVTZe1dh3iNVIjvEzRIGKQAiOAYlYNataspz6w-xpQygLXXHhdMQE5r39xlZwfrnyLdEl6SwXTTs',
-        }}
-        style={StyleSheet.absoluteFillObject}
-      />
-      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.6)' }]} />
 
       {/* Кнопка "Назад" в левом верхнем углу */}
       {currentStep > 0 && (
@@ -884,17 +836,6 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
           <Text style={styles.stepSubtitle}>{steps[currentStep].subtitle}</Text>
 
           <View style={{ flex: 1, width: '100%', position: 'relative' }}>
-            {currentStep >= 2 && (
-              <View
-                style={[
-                  StyleSheet.absoluteFillObject,
-                  { alignItems: 'center', justifyContent: 'center', zIndex: -1 },
-                ]}
-                pointerEvents="none"
-              >
-                <ZodiacWheel spin={spin} />
-              </View>
-            )}
             {renderStepContent()}
           </View>
         </Animated.View>
@@ -1173,12 +1114,13 @@ const styles = StyleSheet.create({
   },
   // Стили для селекторов даты
   dateSelectorsContainerWrapper: {
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.15)',
-    padding: 16,
+    width: '100%',
+    borderRadius: 20, // Using 20 as a placeholder for theme.borderRadius.lg
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.2)',
+    padding: 16,
   },
   dateSelectorsContainer: {
     flexDirection: 'row',
@@ -1341,6 +1283,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   loadingContainer: {
+    position: 'absolute',
+    right: 15,
+    top: '50%',
+    marginTop: -10, // Центрируем по вертикали (половина высоты индикатора)
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

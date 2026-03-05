@@ -8,21 +8,12 @@ interface LoadingScreenProps {
 }
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
-  const wheelRotation = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
   const starsAnim = useRef(new Animated.Value(0)).current;
   const starsTwinkle = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Анимация вращения колеса - медленнее и плавнее
-    const wheelAnimation = Animated.loop(
-      Animated.timing(wheelRotation, {
-        toValue: 1,
-        duration: 8000, // Увеличили с 3000 до 8000
-        useNativeDriver: true,
-      }),
-    );
 
     // Анимация пульсации текста - более мягкая
     const pulseAnimation = Animated.loop(
@@ -73,7 +64,6 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
     );
 
     // Запуск анимаций
-    wheelAnimation.start();
     pulseAnimation.start();
     textAnimation.start();
     starsAnimation.start();
@@ -85,60 +75,12 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
     }, 5000);
 
     return () => {
-      wheelAnimation.stop();
       pulseAnimation.stop();
       starsTwinkleAnimation.stop();
       clearTimeout(timer);
     };
-  }, [onComplete, pulseAnim, starsAnim, starsTwinkle, textOpacity, wheelRotation]);
+  }, [onComplete, pulseAnim, starsAnim, starsTwinkle, textOpacity]);
 
-  const wheelRotationInterpolate = wheelRotation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  const renderWheel = () => {
-    const houses = [
-      { number: 1, name: 'I', angle: 0 },
-      { number: 2, name: 'II', angle: 30 },
-      { number: 3, name: 'III', angle: 60 },
-      { number: 4, name: 'IV', angle: 90 },
-      { number: 5, name: 'V', angle: 120 },
-      { number: 6, name: 'VI', angle: 150 },
-      { number: 7, name: 'VII', angle: 180 },
-      { number: 8, name: 'VIII', angle: 210 },
-      { number: 9, name: 'IX', angle: 240 },
-      { number: 10, name: 'X', angle: 270 },
-      { number: 11, name: 'XI', angle: 300 },
-      { number: 12, name: 'XII', angle: 330 },
-    ];
-
-    return (
-      <View style={styles.wheelContainer}>
-        <Animated.View
-          style={[styles.wheel, { transform: [{ rotate: wheelRotationInterpolate }] }]}
-        >
-          {houses.map((house, index) => (
-            <View
-              key={house.number}
-              style={[
-                styles.house,
-                {
-                  transform: [{ rotate: `${house.angle}deg` }, { translateY: -70 }],
-                },
-              ]}
-            >
-              <Text style={styles.houseNumber}>{house.number}</Text>
-              <Text style={styles.houseName}>{house.name}</Text>
-            </View>
-          ))}
-        </Animated.View>
-
-        {/* Центральная точка */}
-        <View style={styles.centerPoint} />
-      </View>
-    );
-  };
 
   const renderStars = () => {
     const stars = Array.from({ length: 15 }, (_, i) => ({
@@ -179,18 +121,10 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
 
   return (
     <View style={styles.container}>
-      <Image
-        source={{
-          uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBj_EyvNiJnWwHl1dT647d1neMGhn5cHPcdBqtFAaPHr5a3vZPbeQsnldExCo95wjhuFikQNLEPPNQ77lxA_H5DNylgzwV8zytGuSeNJcDdx_f-BuvafKAUoX30eogMG_oqc9kMsoPewi37YTSA8VvlJg5Os5pEDndnE3DI2SAbUqDACWl0EuLQzJh97D24G7oGQVTZe1dh3iNVIjvEzRIGKQAiOAYlYNataspz6w-xpQygLXXHhdMQE5r39xlZwfrnyLdEl6SwXTTs',
-        }}
-        style={StyleSheet.absoluteFillObject}
-      />
-      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.6)' }]} />
 
       {renderStars()}
 
       <View style={styles.content}>
-        {renderWheel()}
 
         <Animated.View
           style={[
@@ -230,61 +164,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
-  },
-  wheelContainer: {
-    width: 200,
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 60,
-  },
-  wheel: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 215, 0, 0.3)',
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 15,
-    elevation: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  house: {
-    position: 'absolute',
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  houseNumber: {
-    color: '#FFD700',
-    fontSize: 14,
-    fontWeight: 'bold',
-    fontFamily: 'serif',
-  },
-  houseName: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 10,
-  },
-  centerPoint: {
-    position: 'absolute',
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#FFD700',
-    top: '50%',
-    left: '50%',
-    marginTop: -5,
-    marginLeft: -5,
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 5,
   },
   textContainer: {
     alignItems: 'center',

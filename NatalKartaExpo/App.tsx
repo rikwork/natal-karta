@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, Alert, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, Alert, StyleSheet, Animated, Easing, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, NatalChart } from './src/types';
 import ApiService from './src/services/api';
@@ -13,10 +13,12 @@ import HomeScreen from './src/screens/HomeScreen';
 import CreateChartScreen from './src/screens/CreateChartScreen';
 import ChartsScreen from './src/screens/ChartsScreen';
 import ChartDetailScreen from './src/screens/ChartDetailScreen';
+import ZodiacWheel from './src/components/ZodiacWheel';
 import { theme } from './src/theme';
 
 // Простая навигация без React Navigation для начала
 import { auth, signInAnonymously } from './src/config/firebase';
+import { Image, ImageBackground } from 'react-native';
 
 // Типы для ErrorUtils
 declare const ErrorUtils: {
@@ -31,6 +33,54 @@ const App: React.FC = () => {
   const [selectedChart, setSelectedChart] = useState<NatalChart | null>(null);
   const [onboardingData, setOnboardingData] = useState<any>(null);
   const [chartResult, setChartResult] = useState<any>(null);
+
+  // Глобальное состояние для колеса зодиака
+  const spinValue = useRef(new Animated.Value(0)).current;
+  const wheelOpacity = useRef(new Animated.Value(0)).current;
+
+  const startWheelAnimation = useCallback(() => {
+    spinValue.setValue(0);
+    Animated.timing(spinValue, {
+      toValue: 1,
+      duration: 60000,
+      easing: Easing.linear,
+      useNativeDriver: Platform.OS !== 'web',
+    }).start(({ finished }) => {
+      if (finished) {
+        startWheelAnimation();
+      }
+    });
+  }, [spinValue]);
+
+  useEffect(() => {
+    startWheelAnimation();
+  }, [startWheelAnimation]);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  const setWheelVisible = useCallback(
+    (visible: boolean, duration: number = 800) => {
+      Animated.timing(wheelOpacity, {
+        toValue: visible ? 0.6 : 0,
+        duration,
+        useNativeDriver: true,
+      }).start();
+    },
+    [wheelOpacity],
+  );
+
+  // Управление видимостью колеса при смене экранов
+  useEffect(() => {
+    if (currentScreen === 'Loading' || currentScreen === 'Result') {
+      setWheelVisible(true);
+    } else if (currentScreen === 'Home' || currentScreen === 'Charts' || currentScreen === 'ChartDetail' || currentScreen === 'CreateChart') {
+      setWheelVisible(false);
+    }
+    // Для Onboarding экран сам сообщает, когда показать колесо через onStepChange
+  }, [currentScreen, setWheelVisible]);
 
   useEffect(() => {
     // Обработчик необработанных промисов
@@ -207,6 +257,17 @@ const App: React.FC = () => {
     setSelectedChart(null);
   }, []);
 
+  const handleOnboardingStepChange = useCallback(
+    (step: number) => {
+      if (step >= 2) {
+        setWheelVisible(true);
+      } else {
+        setWheelVisible(false);
+      }
+    },
+    [setWheelVisible],
+  );
+
   const handleOnboardingComplete = useCallback(
     async (data: any) => {
       setOnboardingData(data);
@@ -306,7 +367,12 @@ const App: React.FC = () => {
   const renderScreen = () => {
     switch (currentScreen) {
       case 'Onboarding':
-        return <OnboardingScreen onComplete={handleOnboardingComplete} />;
+        return (
+          <OnboardingScreen
+            onComplete={handleOnboardingComplete}
+            onStepChange={handleOnboardingStepChange}
+          />
+        );
       case 'Loading':
         return <LoadingScreen onComplete={handleLoadingComplete} />;
       case 'Result':
@@ -351,15 +417,65 @@ const App: React.FC = () => {
     }
   };
 
-  return <ErrorBoundary>{renderScreen()}</ErrorBoundary>;
+  return (
+    <ErrorBoundary>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background.dark, overflow: 'hidden' }}>
+        {/* Глобальный фон и колесо зодиака, висящие за всеми экранами */}
+        {(currentScreen === 'Onboarding' || currentScreen === 'Loading' || currentScreen === 'Result') && (
+          <View style={StyleSheet.absoluteFillObject}>
+            <Image
+              source={{
+                uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBj_EyvNiJnWwHl1dT647d1neMGhn5cHPcdBqtFAaPHr5a3vZPbeQsnldExCo95wjhuFikQNLEPPNQ77lxA_H5DNylgzwV8zytGuSeNJcDdx_f-BuvafKAUoX30eogMG_oqc9kMsoPewi37YTSA8VvlJg5Os5pEDndnE3DI2SAbUqDACWl0EuLQzJh97D24G7oGQVTZe1dh3iNVIjvEzRIGKQAiOAYlYNataspz6w-xpQygLXXHhdMQE5r39xlZwfrnyLdEl6SwXTTs',
+              }}
+              style={StyleSheet.absoluteFillObject}
+            />
+            <View
+              style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.6)' }]}
+            />
+
+            <View
+              style={[
+                StyleSheet.absoluteFillObject,
+                { alignItems: 'center', justifyContent: 'center' },
+              ]}
+              pointerEvents="none"
+            >
+              {/* Мы используем Animated.View для управления общей прозрачностью колеса */}
+              <Animated.View
+                style={[
+                  StyleSheet.absoluteFillObject,
+                  {
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: wheelOpacity,
+                    // Смещаем вниз, чтобы колесо было центрировано под заголовком
+                    transform: [{ translateY: 50 }],
+                  },
+                ]}
+              >
+                <ZodiacWheel spin={spin} opacity={1} />
+              </Animated.View>
+            </View>
+          </View>
+        )}
+
+        {renderScreen()}
+      </View>
+    </ErrorBoundary>
+  );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.colors.background.dark,
+    // backgroundColor: theme.colors.background.dark, // Удалено для прозрачности
   },
   loadingText: {
     fontSize: theme.fontSize.lg,
