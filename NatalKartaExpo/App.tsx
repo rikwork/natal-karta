@@ -271,11 +271,7 @@ const App: React.FC = () => {
       });
     }
 
-    setCurrentScreen('Result');
-  }, [user, onboardingData]);
-
-  const handleResultContinue = useCallback(async () => {
-    // Пользователь уже создан, просто сохраняем флаг завершения онбординга
+    // Автоматически переходим на Home вместо Result
     try {
       await AsyncStorage.setItem('onboarding_completed', 'true');
       setCurrentScreen('Home');
@@ -283,6 +279,11 @@ const App: React.FC = () => {
       console.log('Ошибка сохранения флага онбординга:', error);
       setCurrentScreen('Home');
     }
+  }, [user, onboardingData]);
+
+  const handleResultContinue = useCallback(async () => {
+    // Этот метод теперь вызывается только если мы вручную перешли на Result (например, для отладки)
+    setCurrentScreen('Home');
   }, []);
 
   if (loading) {
