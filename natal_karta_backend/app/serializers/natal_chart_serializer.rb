@@ -49,6 +49,6 @@ class NatalChartSerializer
   def get_remaining_paragraphs(text)
     return nil unless text
     paragraphs = text.split("\n\n")
-    paragraphs.size > 1 ? paragraphs[1..-1].join("\n\n") : nil
+    paragraphs.size > 1 ? paragraphs[1..].join("\n\n") : nil
   end
 end
