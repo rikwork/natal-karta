@@ -781,11 +781,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
             </LinearGradient>
           </TouchableOpacity>
 
-          <View style={styles.signInContainer}>
-            <Text style={styles.signInText}>
-              Уже есть аккаунт? <Text style={styles.signInLink} onPress={() => { }}>Войти</Text>
-            </Text>
-          </View>
+
         </View>
       </ScrollView>
     </View>
@@ -1011,18 +1007,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
-  signInContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  signInText: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 14,
-  },
-  signInLink: {
-    color: '#ffffff',
-    fontWeight: '600',
-  },
+
   // Стили для знака зодиака
   zodiacContainer: {
     alignItems: 'center',
