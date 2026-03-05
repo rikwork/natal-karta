@@ -128,29 +128,33 @@ const App: React.FC = () => {
 
   const createNewUser = async (): Promise<User> => {
     try {
+      // 1. Анонимная авторизация в Firebase (JS SDK совместим с Expo Go)
       const userCredential = await signInAnonymously(auth);
       const uid = userCredential.user.uid;
+      console.log('Firebase Anonymous UID:', uid);
 
+      // 2. Создание пользователя на нашем бэкенде с привязкой к UID
       const response = await ApiService.createUser({
-        name: 'Пользователь',
-        email: `${uid}@anonymous.local`,
+        name: onboardingData?.name || 'Пользователь',
+        email: `${uid}@anonymous.local`, // Используем UID для уникального email
         subscription_type: 'free',
-      });
+        firebase_uid: uid, // Сообщаем бэкенду реальный UID из Firebase
+      } as any);
 
       const userData = response.data;
       if (!userData) {
-        throw new Error('User data is null');
+        throw new Error('User data is null from API');
       }
 
       await AsyncStorage.setItem('user', JSON.stringify(userData));
       return userData;
     } catch (error) {
-      console.log('Error creating/authenticating user:', error);
-      // Возвращаем временного пользователя
+      console.error('Error creating/authenticating user:', error);
+      // Fallback: возвращаем временный объект, чтобы приложение не падало
       return {
-        id: 1,
-        name: 'Пользователь',
-        email: 'user@example.com',
+        id: Date.now(), // Временный ID
+        name: onboardingData?.name || 'Пользователь',
+        email: 'error@example.com',
         subscription_type: 'free',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

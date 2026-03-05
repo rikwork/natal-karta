@@ -3,13 +3,12 @@ import { getAuth, signInAnonymously } from 'firebase/auth';
 import { Platform } from 'react-native';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDummyKeyForDevelopmentPurposes123",
-    authDomain: "natal-karta-app.firebaseapp.com",
-    projectId: "natal-karta-app",
-    storageBucket: "natal-karta-app.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdef1234567890abcdef",
-    measurementId: "G-ABCDEF1234"
+    apiKey: "AIzaSyDVbcm8B9MW4v3_yyF-nI4EIJSiLlN326c",
+    authDomain: "natal-karta.firebaseapp.com",
+    projectId: "natal-karta",
+    storageBucket: "natal-karta.firebasestorage.app",
+    messagingSenderId: "1081661555220",
+    appId: "1:1081661555220:android:3c549ed159c305ce1b1d01" // Используем существующий ID для старта
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
