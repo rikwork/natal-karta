@@ -1,13 +1,11 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
     View,
     Text,
     StyleSheet,
     Animated,
-    Image,
     FlatList,
     Platform,
-    Easing,
     useWindowDimensions
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -31,8 +29,6 @@ const ITEM_HEIGHT = 40;
 const VISIBLE_ITEMS = 5;
 const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 
-const ZODIAC_RING = require('../../assets/images/zodiac_transparent.png');
-
 const AstralDatePicker: React.FC<AstralDatePickerProps> = ({
     days,
     months,
@@ -43,30 +39,6 @@ const AstralDatePicker: React.FC<AstralDatePickerProps> = ({
     onDateChange,
 }) => {
     const { width } = useWindowDimensions();
-    const spinValue = useRef(new Animated.Value(0)).current;
-
-    const startAnimation = useCallback(() => {
-        spinValue.setValue(0);
-        Animated.timing(spinValue, {
-            toValue: 1,
-            duration: 60000,
-            easing: Easing.linear,
-            useNativeDriver: Platform.OS !== 'web',
-        }).start(({ finished }) => {
-            if (finished) {
-                startAnimation();
-            }
-        });
-    }, [spinValue]);
-
-    useEffect(() => {
-        startAnimation();
-    }, [startAnimation]);
-
-    const spin = spinValue.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '360deg'],
-    });
 
     const renderList = (
         data: PickerItem[],
@@ -189,18 +161,8 @@ const AstralDatePicker: React.FC<AstralDatePickerProps> = ({
         );
     };
 
-    const wheelSize = width * 1.2;
-
     return (
         <View style={[styles.container, { width: width * 0.95 }]}>
-            <Animated.Image
-                source={ZODIAC_RING}
-                style={[
-                    styles.wheelImage,
-                    { width: wheelSize, height: wheelSize, transform: [{ rotate: spin }] }
-                ]}
-            />
-
             <View style={styles.headerContainer}>
                 <Text style={styles.headerText}>День</Text>
                 <Text style={styles.headerText}>Месяц</Text>
@@ -243,12 +205,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 5,
-    },
-    wheelImage: {
-        position: 'absolute',
-        opacity: 0.6,
-        zIndex: -1,
-        backgroundColor: 'transparent',
     },
     headerContainer: {
         position: 'absolute',

@@ -16,6 +16,7 @@ import {
   Platform,
   BackHandler,
   PanResponder,
+  Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,6 +24,7 @@ import { BlurView } from 'expo-blur';
 import ApiService from '../services/api';
 import { City } from '../types';
 import AstralDatePicker from '../components/AstralDatePicker';
+import ZodiacWheel from '../components/ZodiacWheel';
 
 const { width } = Dimensions.get('window');
 
@@ -109,6 +111,31 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
   const [showCityList, setShowCityList] = useState(false);
   const [isSearchingCities, setIsSearchingCities] = useState(false);
   const [legalAccepted, setLegalAccepted] = useState(false);
+
+  const spinValue = useRef(new Animated.Value(0)).current;
+
+  const startAnimation = useCallback(() => {
+    spinValue.setValue(0);
+    Animated.timing(spinValue, {
+      toValue: 1,
+      duration: 60000,
+      easing: Easing.linear,
+      useNativeDriver: Platform.OS !== 'web',
+    }).start(({ finished }) => {
+      if (finished) {
+        startAnimation();
+      }
+    });
+  }, [spinValue]);
+
+  useEffect(() => {
+    startAnimation();
+  }, [startAnimation]);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   // Refs для ScrollView
   const dayScrollRef = useRef<ScrollView>(null);
@@ -705,6 +732,8 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
         style={StyleSheet.absoluteFillObject}
       />
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.6)' }]} />
+
+      {currentStep >= 2 && <ZodiacWheel spin={spin} />}
 
       {/* Кнопка "Назад" в левом верхнем углу */}
       {currentStep > 0 && (
