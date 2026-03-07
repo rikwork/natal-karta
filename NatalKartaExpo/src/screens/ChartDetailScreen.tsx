@@ -7,14 +7,13 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { NatalChart, NatalChartData } from '../types';
 import ApiService from '../services/api';
 
-const { width } = Dimensions.get('window');
+// Removed unused width Dimensions
 
 interface ChartDetailScreenProps {
   chart: NatalChart;
@@ -36,7 +35,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
     if (typeof chart.chart_data === 'string') {
       try {
         return JSON.parse(chart.chart_data) as NatalChartData;
-      } catch (e) {
+      } catch (_e) {
         return {
           short_summary: '',
           identity: chart.chart_data,
@@ -76,7 +75,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
       } else {
         Alert.alert('Ошибка', 'Не удалось получить данные натальной карты');
       }
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('Ошибка', 'Не удалось сгенерировать натальную карту');
     } finally {
       setLoading(false);

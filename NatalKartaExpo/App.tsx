@@ -56,14 +56,19 @@ const App: React.FC = () => {
     setWheelVisible(step >= 2);
   }, [setWheelVisible]);
 
+  const handleUpdateUser = useCallback(async (updatedUser: any) => {
+    setUser(updatedUser);
+    await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+  }, [setUser]);
+
   const handleOnboardingComplete = useCallback(async (data: any) => {
     setOnboardingData(data);
     try {
       const newUser = await createNewUser(data);
       setUser(newUser);
       await AsyncStorage.setItem('user', JSON.stringify(newUser));
-    } catch (e) {
-      console.error('Onboarding user creation failed:', e);
+    } catch (_e) {
+      console.error('Onboarding user creation failed:', _e);
     }
     setCurrentScreen('Loading');
   }, [createNewUser, setUser, setOnboardingData, setCurrentScreen]);
@@ -87,7 +92,7 @@ const App: React.FC = () => {
             sun: 'Скорпион', moon: 'Весы', ascendant: 'Близнецы',
           });
         }
-      } catch (e) {
+      } catch (_e) {
         setChartResult({ sun: 'Скорпион', moon: 'Весы', ascendant: 'Близнецы' });
       }
     }
@@ -132,7 +137,7 @@ const App: React.FC = () => {
             isVideoEnabled={isVideoEnabled}
             onToggleVideo={toggleVideoBackground}
             onBack={() => setCurrentScreen('Home')}
-            onUpdateUser={setUser}
+            onUpdateUser={handleUpdateUser}
           />
         );
       default:

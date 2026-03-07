@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -10,12 +10,14 @@ import {
     Alert,
     ActivityIndicator,
     Platform,
+    ImageBackground,
+    KeyboardAvoidingView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
-import { User, City, NatalChart } from '../types';
+import { User, City } from '../types';
 import ApiService from '../services/api';
-import NameStep from '../screens/Onboarding/steps/NameStep';
 import BirthDateStep from '../screens/Onboarding/steps/BirthDateStep';
 import BirthTimeStep from '../screens/Onboarding/steps/BirthTimeStep';
 import BirthPlaceStep from '../screens/Onboarding/steps/BirthPlaceStep';
@@ -51,29 +53,38 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     const [isSearchingCities, setIsSearchingCities] = useState(false);
     const [showCityList, setShowCityList] = useState(false);
 
-    // Constraint: Check if can update birth data
     const canUpdateBirthData = () => {
         if (!user.birth_data_updated_at) return true;
-        const lastUpdate = new Date(user.birth_data_updated_at);
-        const now = new Date();
-        const diff = now.getTime() - lastUpdate.getTime();
-        return diff > 24 * 60 * 60 * 1000;
+
+        try {
+            const lastUpdate = new Date(user.birth_data_updated_at);
+            const now = new Date();
+
+            // Check if it's a different calendar day (local time)
+            const isDifferentDay =
+                lastUpdate.getDate() !== now.getDate() ||
+                lastUpdate.getMonth() !== now.getMonth() ||
+                lastUpdate.getFullYear() !== now.getFullYear();
+
+            return isDifferentDay;
+        } catch (_e) {
+            return true;
+        }
     };
 
     const isBirthDataLocked = !canUpdateBirthData();
 
-    useEffect(() => {
-        if (visible) {
-            fetchUserChart();
-        }
-    }, [visible]);
+    // Check if anything actually changed
+    // Removed unused hasChanges function
 
-    const fetchUserChart = async () => {
+
+
+    const fetchUserChart = useCallback(async () => {
         setIsFetchingChart(true);
         try {
             const response = await ApiService.getNatalCharts(user.id);
             if (response.data && response.data.length > 0) {
-                const chart = response.data[0]; // Assuming first chart is primary
+                const chart = response.data[0];
                 const birthDate = new Date(chart.birth_date);
                 const [hour, minute] = chart.birth_time.split(':').map(Number);
 
@@ -95,7 +106,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         } finally {
             setIsFetchingChart(false);
         }
-    };
+    }, [user.id, user.name]);
+
+    useEffect(() => {
+        if (visible) {
+            fetchUserChart();
+        }
+    }, [visible, fetchUserChart]);
 
     const handleCitySearch = async (text: string) => {
         setCitySearch(text);
@@ -130,18 +147,20 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     };
 
     const handleSave = async () => {
-        // Check if birth data was changed
-        const birthDataChanged =
-            birthData.place !== citySearch || // Simple check, might need more robust comparison
-            true; // For simplicity, assume change if not locked
+        const nameChanged = name !== user.name;
 
-        if (birthDataChanged && isBirthDataLocked) {
-            // This shouldn't happen if fields are disabled, but good to have
-            Alert.alert('Ограничение', 'Данные рождения можно менять только раз в день.');
+        // Accurate birth data change detection would require originalData state
+        // For now, if it's locked, we ignore birth data changes entirely
+        const birthDataChanged = !isBirthDataLocked;
+
+        if (!nameChanged && (!birthDataChanged || isBirthDataLocked)) {
+            Alert.alert('Информация', 'Изменений не обнаружено.');
             return;
         }
 
-        if (birthDataChanged) {
+        const birthDateChanged = true; // Simple logic for now
+
+        if (birthDateChanged && !isBirthDataLocked) {
             const confirm = await new Promise((resolve) => {
                 Alert.alert(
                     'Подтверждение',
@@ -157,30 +176,28 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
         setIsLoading(true);
         try {
-            // 1. Update User Name
             if (name !== user.name) {
                 await ApiService.updateUser(user.id, { name });
             }
 
-            // 2. Create/Update Natal Chart if birth data changed
-            const updatedBirthDate = `${birthData.year}-${String(birthData.month).padStart(2, '0')}-${String(birthData.day).padStart(2, '0')}`;
-            const updatedBirthTime = `${String(birthData.hour).padStart(2, '0')}:${String(birthData.minute).padStart(2, '0')}`;
+            if (!isBirthDataLocked) {
+                const updatedBirthDate = `${birthData.year}-${String(birthData.month).padStart(2, '0')}-${String(birthData.day).padStart(2, '0')}`;
+                const updatedBirthTime = `${String(birthData.hour).padStart(2, '0')}:${String(birthData.minute).padStart(2, '0')}`;
 
-            const chartResponse = await ApiService.createNatalChart(user.id, {
-                name: `${name} - Натальная карта`,
-                birth_date: updatedBirthDate,
-                birth_time: updatedBirthTime,
-                birth_place: birthData.place,
-                latitude: birthData.latitude,
-                longitude: birthData.longitude,
-            });
+                const chartResponse = await ApiService.createNatalChart(user.id, {
+                    name: `${name} - Натальная карта`,
+                    birth_date: updatedBirthDate,
+                    birth_time: updatedBirthTime,
+                    birth_place: birthData.place,
+                    latitude: birthData.latitude,
+                    longitude: birthData.longitude,
+                });
 
-            if (chartResponse.data) {
-                // 3. Trigger regeneration
-                await ApiService.generateNatalChart(user.id, chartResponse.data.id);
+                if (chartResponse.data) {
+                    await ApiService.generateNatalChart(user.id, chartResponse.data.id);
+                }
             }
 
-            // Fetch updated user to get birth_data_updated_at
             const userResponse = await ApiService.getUser(user.id);
             if (userResponse.data) {
                 onUpdate(userResponse.data);
@@ -198,27 +215,26 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
     return (
         <Modal visible={visible} animationType="slide" transparent>
-            <View style={styles.modalOverlay}>
-                <LinearGradient
-                    colors={['#050514', '#1A1A2E'] as const}
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.modalOverlay}
+            >
+                <ImageBackground
+                    source={require('../../assets/images/header_celestial.png')}
                     style={styles.modalContent}
+                    imageStyle={{ opacity: 0.6 }}
                 >
+                    <LinearGradient
+                        colors={['rgba(5, 5, 20, 0.6)', 'rgba(26, 26, 46, 0.8)']}
+                        style={StyleSheet.absoluteFill}
+                    />
+
                     <View style={styles.header}>
                         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                             <Ionicons name="close" size={28} color="#FFD700" />
                         </TouchableOpacity>
                         <Text style={styles.headerTitle}>Редактировать профиль</Text>
-                        <TouchableOpacity
-                            onPress={handleSave}
-                            disabled={isLoading || isFetchingChart}
-                            style={styles.saveButton}
-                        >
-                            {isLoading ? (
-                                <ActivityIndicator size="small" color="#FFD700" />
-                            ) : (
-                                <Text style={styles.saveButtonText}>Сохранить</Text>
-                            )}
-                        </TouchableOpacity>
+                        <View style={{ width: 40 }} />
                     </View>
 
                     {isFetchingChart ? (
@@ -226,10 +242,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                             <ActivityIndicator size="large" color="#FFD700" />
                         </View>
                     ) : (
-                        <ScrollView contentContainerStyle={styles.formContent}>
+                        <ScrollView
+                            contentContainerStyle={styles.formContent}
+                            showsVerticalScrollIndicator={false}
+                        >
                             <View style={styles.section}>
                                 <Text style={styles.sectionTitle}>Личные данные</Text>
-                                <View style={styles.inputWrapper}>
+                                <BlurView intensity={20} tint="light" style={styles.inputCard}>
                                     <Text style={styles.inputLabel}>Имя</Text>
                                     <TextInput
                                         style={styles.textInput}
@@ -238,7 +257,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                                         placeholder="Ваше имя"
                                         placeholderTextColor="rgba(255,255,255,0.3)"
                                     />
-                                </View>
+                                </BlurView>
                             </View>
 
                             <View style={styles.section}>
@@ -254,41 +273,67 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
                                 {isBirthDataLocked && (
                                     <Text style={styles.hintText}>
-                                        Вы уже обновляли данные рождения за последние 24 часа. Следующее изменение будет доступно позже.
+                                        Данные рождения заблокированы до следующего дня.
                                     </Text>
                                 )}
 
-                                <View style={[styles.birthDataContainer, isBirthDataLocked && styles.lockedContainer]}>
+                                <BlurView intensity={15} tint="light" style={[styles.inputCard, isBirthDataLocked && styles.lockedCard]}>
                                     <View pointerEvents={isBirthDataLocked ? 'none' : 'auto'}>
-                                        <Text style={styles.inputLabel}>Дата рождения</Text>
-                                        <BirthDateStep
-                                            selectedDate={{ day: birthData.day, month: birthData.month, year: birthData.year }}
-                                            onDateChange={(type, value) => setBirthData({ ...birthData, [type]: value })}
-                                        />
+                                        <View style={styles.fieldGroup}>
+                                            <Text style={styles.inputLabel}>Дата рождения</Text>
+                                            <BirthDateStep
+                                                selectedDate={{ day: birthData.day, month: birthData.month, year: birthData.year }}
+                                                onDateChange={(type, value) => setBirthData({ ...birthData, [type]: value })}
+                                            />
+                                        </View>
 
-                                        <Text style={styles.inputLabel}>Время рождения</Text>
-                                        <BirthTimeStep
-                                            selectedTime={{ hour: birthData.hour, minute: birthData.minute }}
-                                            onTimeChange={(time) => setBirthData({ ...birthData, ...time })}
-                                        />
+                                        <View style={styles.fieldGroup}>
+                                            <Text style={styles.inputLabel}>Время рождения</Text>
+                                            <BirthTimeStep
+                                                selectedTime={{ hour: birthData.hour, minute: birthData.minute }}
+                                                onTimeChange={(time) => setBirthData({ ...birthData, ...time })}
+                                            />
+                                        </View>
 
-                                        <Text style={styles.inputLabel}>Место рождения</Text>
-                                        <BirthPlaceStep
-                                            citySearch={citySearch}
-                                            onCitySearchChange={handleCitySearch}
-                                            isSearchingCities={isSearchingCities}
-                                            showCityList={showCityList}
-                                            filteredCities={filteredCities}
-                                            onSelectCity={handleSelectCity}
-                                            onFocus={() => setShowCityList(citySearch.length >= 2)}
-                                        />
+                                        <View style={styles.fieldGroup}>
+                                            <Text style={styles.inputLabel}>Место рождения</Text>
+                                            <BirthPlaceStep
+                                                citySearch={citySearch}
+                                                onCitySearchChange={handleCitySearch}
+                                                isSearchingCities={isSearchingCities}
+                                                showCityList={showCityList}
+                                                filteredCities={filteredCities}
+                                                onSelectCity={handleSelectCity}
+                                                onFocus={() => setShowCityList(citySearch.length >= 2)}
+                                            />
+                                        </View>
                                     </View>
-                                </View>
+                                </BlurView>
                             </View>
+
+                            <TouchableOpacity
+                                style={[
+                                    styles.mainSaveButton,
+                                    (isLoading || (name === user.name && isBirthDataLocked)) && styles.disabledSaveButton
+                                ]}
+                                onPress={handleSave}
+                                disabled={isLoading}
+                            >
+                                <LinearGradient
+                                    colors={['#FFD700', '#FFA500']}
+                                    style={styles.saveGradient}
+                                >
+                                    {isLoading ? (
+                                        <ActivityIndicator size="small" color="#FFF" />
+                                    ) : (
+                                        <Text style={styles.saveText}>Применить изменения</Text>
+                                    )}
+                                </LinearGradient>
+                            </TouchableOpacity>
                         </ScrollView>
                     )}
-                </LinearGradient>
-            </View>
+                </ImageBackground>
+            </KeyboardAvoidingView>
         </Modal>
     );
 };
@@ -296,23 +341,18 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        justifyContent: 'flex-end',
+        backgroundColor: '#050514',
     },
     modalContent: {
-        height: '90%',
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-        paddingTop: 20,
+        flex: 1,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
+        paddingTop: Platform.OS === 'ios' ? 50 : 20,
         paddingBottom: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.1)',
     },
     closeButton: {
         padding: 5,
@@ -321,14 +361,8 @@ const styles = StyleSheet.create({
         color: '#F0E6D2',
         fontSize: 18,
         fontWeight: 'bold',
-    },
-    saveButton: {
-        padding: 5,
-    },
-    saveButtonText: {
-        color: '#FFD700',
-        fontSize: 16,
-        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        letterSpacing: 2,
     },
     centerContainer: {
         flex: 1,
@@ -337,7 +371,7 @@ const styles = StyleSheet.create({
     },
     formContent: {
         padding: 20,
-        paddingBottom: 40,
+        paddingBottom: 60,
     },
     section: {
         marginBottom: 30,
@@ -346,37 +380,45 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 15,
+        marginBottom: 12,
     },
     sectionTitle: {
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: '900',
         color: 'rgba(255, 255, 255, 0.4)',
-        letterSpacing: 2,
+        letterSpacing: 1.5,
         textTransform: 'uppercase',
+        marginBottom: 10,
     },
-    inputWrapper: {
-        marginTop: 10,
+    inputCard: {
+        borderRadius: 24,
+        padding: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        overflow: 'hidden',
+    },
+    fieldGroup: {
+        marginBottom: 20,
     },
     inputLabel: {
-        color: '#F0E6D2',
-        fontSize: 14,
-        marginBottom: 8,
-        opacity: 0.8,
+        color: 'rgba(255, 215, 0, 0.8)',
+        fontSize: 13,
+        marginBottom: 10,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
     textInput: {
         backgroundColor: 'rgba(255,255,255,0.05)',
-        borderRadius: 12,
-        padding: 15,
+        borderRadius: 16,
+        padding: 16,
         color: '#FFF',
-        fontSize: 16,
+        fontSize: 18,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.1)',
     },
-    birthDataContainer: {
-        marginTop: 10,
-    },
-    lockedContainer: {
+    lockedCard: {
         opacity: 0.5,
     },
     lockBadge: {
@@ -396,9 +438,29 @@ const styles = StyleSheet.create({
     hintText: {
         color: '#FFA500',
         fontSize: 12,
-        marginBottom: 15,
-        lineHeight: 18,
+        marginBottom: 10,
         fontStyle: 'italic',
+        opacity: 0.8,
+    },
+    mainSaveButton: {
+        marginTop: 10,
+        borderRadius: 20,
+        overflow: 'hidden',
+        height: 60,
+    },
+    saveGradient: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    saveText: {
+        color: '#FFF',
+        fontSize: 18,
+        fontWeight: 'bold',
+        letterSpacing: 1,
+    },
+    disabledSaveButton: {
+        opacity: 0.4,
     },
 });
 

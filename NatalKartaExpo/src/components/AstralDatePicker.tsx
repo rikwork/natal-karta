@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -139,7 +139,7 @@ const PickerList: React.FC<{
             : {}
         }
         data={paddedData}
-        keyExtractor={(_, index) => `${type}-${index}`}
+        keyExtractor={(_, index) => `${type} -${index} `}
         renderItem={renderItem}
         snapToInterval={ITEM_HEIGHT}
         decelerationRate="fast"

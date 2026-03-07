@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
-import { Animated, PanResponder, BackHandler, Platform } from 'react-native';
+import { Animated, PanResponder, BackHandler } from 'react-native';
 import ApiService from '../services/api';
 import { City } from '../types';
 

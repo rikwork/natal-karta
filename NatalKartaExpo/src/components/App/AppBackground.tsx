@@ -17,7 +17,7 @@ const AppBackground: React.FC<AppBackgroundProps> = ({
     pulseAnim,
     isVideoEnabled,
 }) => {
-    const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+    useWindowDimensions();
     const showBackground = true;
 
     if (!showBackground) return null;

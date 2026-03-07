@@ -1,6 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, signInAnonymously } from 'firebase/auth';
-import { Platform } from 'react-native';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDVbcm8B9MW4v3_yyF-nI4EIJSiLlN326c',

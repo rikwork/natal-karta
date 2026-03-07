@@ -7,13 +7,15 @@ import {
     Switch,
     Platform,
     SafeAreaView,
+    ActivityIndicator,
+    ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
-import { User } from '../types';
-import { theme } from '../theme';
+import { User, NatalChart } from '../types';
 import EditProfileModal from '../components/EditProfileModal';
+import ApiService from '../services/api';
 
 interface CabinetScreenProps {
     user: User | null;
@@ -31,77 +33,148 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
     onUpdateUser,
 }) => {
     const [isEditModalVisible, setIsEditModalVisible] = React.useState(false);
+    const [userChart, setUserChart] = React.useState<NatalChart | null>(null);
+    const [isLoadingData, setIsLoadingData] = React.useState(true);
+
+
+
+    const fetchUserChart = React.useCallback(async () => {
+        setIsLoadingData(true);
+        try {
+            const response = await ApiService.getNatalCharts(user!.id);
+            if (response.data && response.data.length > 0) {
+                setUserChart(response.data[0]);
+            }
+        } catch (error) {
+            console.error('Error fetching chart in cabinet:', error);
+        } finally {
+            setIsLoadingData(false);
+        }
+    }, [user]);
+
+    React.useEffect(() => {
+        if (user) {
+            fetchUserChart();
+        }
+    }, [user, fetchUserChart]);
+
     return (
-        <SafeAreaView style={styles.mainContainer}>
-            <LinearGradient
-                colors={['#050514', '#1A1A2E'] as const}
+        <View style={styles.mainContainer}>
+            <ImageBackground
+                source={require('../../assets/images/app_background.png')}
                 style={StyleSheet.absoluteFill}
-            />
+                resizeMode="cover"
+            >
+                <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.75)' }]} />
 
-            <View style={styles.header}>
-                <TouchableOpacity onPress={onBack} style={styles.backButton}>
-                    <Text style={styles.backButtonText}>← Назад</Text>
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Личный кабинет</Text>
-            </View>
-
-            <View style={styles.content}>
-                <View style={styles.profileSection}>
-                    <View style={styles.avatarBorder}>
-                        <LinearGradient
-                            colors={['#FFD700', '#9D50BB'] as const}
-                            style={styles.avatarPlaceholder}
-                        >
-                            <Text style={styles.avatarText}>
-                                {(user?.name || 'E').charAt(0)}
-                            </Text>
-                        </LinearGradient>
+                <SafeAreaView style={{ flex: 1 }}>
+                    <View style={styles.header}>
+                        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+                            <Text style={styles.backButtonText}>← Назад</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>Личный кабинет</Text>
                     </View>
-                    <Text style={styles.userName}>{user?.name || 'Исследователь'}</Text>
-                    <Text style={styles.userEmail}>{user?.email}</Text>
 
-                    <TouchableOpacity
-                        style={styles.editButton}
-                        onPress={() => setIsEditModalVisible(true)}
-                    >
-                        <Ionicons name="create-outline" size={16} color="#FFD700" />
-                        <Text style={styles.editButtonText}>Редактировать профиль</Text>
-                    </TouchableOpacity>
+                    <View style={styles.content}>
+                        <View style={styles.profileSection}>
+                            <View style={styles.avatarBorder}>
+                                <LinearGradient
+                                    colors={['#FFD700', '#9D50BB'] as const}
+                                    style={styles.avatarPlaceholder}
+                                >
+                                    <Text style={styles.avatarText}>
+                                        {(user?.name || 'E').charAt(0)}
+                                    </Text>
+                                </LinearGradient>
+                            </View>
+                            <Text style={styles.userName}>{user?.name || 'Исследователь'}</Text>
+                            <Text style={styles.userEmail}>{user?.email}</Text>
 
-                    <View style={styles.badgeContainer}>
-                        <LinearGradient
-                            colors={user?.subscription_type === 'premium' ? ['#FFD700', '#FFA500'] : ['#4B4B4B', '#2F2F2F']}
-                            style={styles.badge}
-                        >
-                            <Text style={styles.badgeText}>
-                                {user?.subscription_type === 'premium' ? 'PREMIUM' : 'FREE'}
-                            </Text>
-                        </LinearGradient>
-                    </View>
-                </View>
+                            <TouchableOpacity
+                                style={styles.editButton}
+                                onPress={() => setIsEditModalVisible(true)}
+                            >
+                                <LinearGradient
+                                    colors={['#FFD700', '#FFA500']}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={styles.editButtonGradient}
+                                >
+                                    <Ionicons name="create-outline" size={16} color="#FFF" />
+                                    <Text style={styles.editButtonText}>Изменить данные</Text>
+                                </LinearGradient>
+                            </TouchableOpacity>
 
-                <View style={styles.settingsSection}>
-                    <Text style={styles.sectionTitle}>Настройки</Text>
-
-                    <BlurView intensity={20} tint="light" style={styles.settingItem}>
-                        <View style={styles.settingInfo}>
-                            <Text style={styles.settingLabel}>Видео-фон</Text>
-                            <Text style={styles.settingDescription}>
-                                Использовать анимированное звездное небо на главном экране
-                            </Text>
+                            <View style={styles.badgeContainer}>
+                                <LinearGradient
+                                    colors={user?.subscription_type === 'premium' ? ['#FFD700', '#FFA500'] : ['#4B4B4B', '#2F2F2F']}
+                                    style={styles.badge}
+                                >
+                                    <Text style={styles.badgeText}>
+                                        {user?.subscription_type === 'premium' ? 'PREMIUM' : 'FREE'}
+                                    </Text>
+                                </LinearGradient>
+                            </View>
                         </View>
-                        <Switch
-                            value={isVideoEnabled}
-                            onValueChange={onToggleVideo}
-                            trackColor={{ false: '#3e3e3e', true: '#9D50BB' }}
-                            thumbColor={isVideoEnabled ? '#FFD700' : '#f4f3f4'}
-                            ios_backgroundColor="#3e3e3e"
-                        />
-                    </BlurView>
 
-                    {/* Future settings can be added here */}
-                </View>
-            </View>
+                        <View style={styles.dataSection}>
+                            <Text style={styles.sectionTitle}>Астрологический профиль</Text>
+                            <BlurView intensity={20} tint="light" style={styles.dataCard}>
+                                <View style={styles.dataRow}>
+                                    <View style={styles.iconCircle}>
+                                        <Ionicons name="calendar-outline" size={18} color="#FFD700" />
+                                    </View>
+                                    <View>
+                                        <Text style={styles.dataLabel}>Дата и время рождения</Text>
+                                        {isLoadingData ? (
+                                            <ActivityIndicator size="small" color="#FFD700" style={{ alignSelf: 'flex-start' }} />
+                                        ) : (
+                                            <Text style={styles.dataValue}>
+                                                {userChart ? `${new Date(userChart.birth_date).toLocaleDateString('ru-RU')} ${userChart.birth_time}` : 'Данные не загружены'}
+                                            </Text>
+                                        )}
+                                    </View>
+                                </View>
+                                <View style={styles.dataRow}>
+                                    <View style={styles.iconCircle}>
+                                        <Ionicons name="location-outline" size={18} color="#FFD700" />
+                                    </View>
+                                    <View>
+                                        <Text style={styles.dataLabel}>Место рождения</Text>
+                                        {isLoadingData ? (
+                                            <ActivityIndicator size="small" color="#FFD700" style={{ alignSelf: 'flex-start' }} />
+                                        ) : (
+                                            <Text style={styles.dataValue}>
+                                                {userChart?.birth_place || 'Данные не загружены'}
+                                            </Text>
+                                        )}
+                                    </View>
+                                </View>
+                            </BlurView>
+                        </View>
+
+                        <View style={styles.settingsSection}>
+                            <Text style={styles.sectionTitle}>Настройки</Text>
+
+                            <BlurView intensity={20} tint="light" style={styles.settingItem}>
+                                <View style={styles.settingInfo}>
+                                    <Text style={styles.settingLabel}>Видео-фон</Text>
+                                    <Text style={styles.settingDescription}>
+                                        Использовать анимированное звездное небо на главном экране
+                                    </Text>
+                                </View>
+                                <Switch
+                                    value={isVideoEnabled}
+                                    onValueChange={onToggleVideo}
+                                    trackColor={{ false: '#3e3e3e', true: '#9D50BB' }}
+                                    thumbColor={isVideoEnabled ? '#FFD700' : '#f4f3f4'}
+                                    ios_backgroundColor="#3e3e3e"
+                                />
+                            </BlurView>
+                        </View>
+                    </View>
+                </SafeAreaView>
+            </ImageBackground>
 
             {user && (
                 <EditProfileModal
@@ -111,7 +184,7 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
                     onUpdate={onUpdateUser}
                 />
             )}
-        </SafeAreaView>
+        </View>
     );
 };
 
@@ -142,7 +215,7 @@ const styles = StyleSheet.create({
         color: '#F0E6D2',
         fontSize: 18,
         fontWeight: 'bold',
-        marginRight: 40, // Offset for back button to center title
+        marginRight: 40,
         fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
     },
     content: {
@@ -236,18 +309,57 @@ const styles = StyleSheet.create({
         lineHeight: 16,
     },
     editButton: {
+        marginTop: 15,
+        borderRadius: 15,
+        overflow: 'hidden',
+        width: 'auto',
+    },
+    editButtonGradient: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 10,
-        backgroundColor: 'rgba(255, 215, 0, 0.1)',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 12,
-        gap: 6,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        gap: 8,
     },
     editButtonText: {
-        color: '#FFD700',
-        fontSize: 14,
+        color: '#FFF',
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    dataSection: {
+        marginBottom: 30,
+    },
+    dataCard: {
+        borderRadius: 24,
+        padding: 24,
+        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.08)',
+        gap: 20,
+    },
+    dataRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+    },
+    iconCircle: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    dataLabel: {
+        color: 'rgba(255, 255, 255, 0.4)',
+        fontSize: 11,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginBottom: 4,
+    },
+    dataValue: {
+        color: '#F0E6D2',
+        fontSize: 15,
         fontWeight: '600',
     },
 });

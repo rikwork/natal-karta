@@ -88,7 +88,7 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
 
       await ApiService.createNatalChart(userId, chartData);
       Alert.alert('Успех', 'Натальная карта создана!', [{ text: 'OK', onPress: onChartCreated }]);
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('Ошибка', 'Не удалось создать натальную карту');
     } finally {
       setLoading(false);

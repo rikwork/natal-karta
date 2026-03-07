@@ -14,9 +14,14 @@ class Api::V1::NatalChartsController < ApplicationController
   end
 
   def create
+    unless @user.can_update_birth_data?
+      return render json: { error: "Вы можете изменять данные рождения только раз в день" }, status: :too_many_requests
+    end
+
     result = NatalCharts::Create.call(@user, natal_chart_params)
 
     if result[:success]
+      @user.update!(birth_data_updated_at: Time.current)
       render json: NatalChartSerializer.new(result[:data]).as_json, status: :created
     else
       render json: { errors: result[:errors] }, status: :unprocessable_entity

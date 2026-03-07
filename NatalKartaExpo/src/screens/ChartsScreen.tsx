@@ -31,7 +31,7 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({ userId, onChartPress, onBac
       } else {
         setCharts([]);
       }
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('Ошибка', 'Не удалось загрузить натальные карты');
       setCharts([]);
     } finally {
@@ -51,10 +51,10 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({ userId, onChartPress, onBac
 
   const handleGenerateChart = async (chart: NatalChart) => {
     try {
-      const response = await ApiService.generateNatalChart(userId, chart.id);
+      await ApiService.generateNatalChart(userId, chart.id);
       Alert.alert('Успех', 'Натальная карта сгенерирована!');
       loadCharts(); // Обновляем список
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('Ошибка', 'Не удалось сгенерировать натальную карту');
     }
   };

@@ -86,17 +86,18 @@ export const useAppInitialization = () => {
             const userCredential = await signInAnonymously(auth);
             const uid = userCredential.user.uid;
 
-            const userData = (await ApiService.createUser({
+            const response = await ApiService.createUser({
                 name: data?.name || 'Пользователь',
                 email: `${uid}@anonymous.local`,
                 subscription_type: 'free',
                 firebase_uid: uid,
-            } as any)) as unknown as User;
+            } as any);
 
-            if (!userData || !(userData as any).id) {
+            if (!response.data || !response.data.id) {
                 throw new Error('User data is null from API');
             }
 
+            const userData = response.data;
             await AsyncStorage.setItem('user', JSON.stringify(userData));
             return userData;
         } catch (error) {

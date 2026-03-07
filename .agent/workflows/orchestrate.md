@@ -15,7 +15,7 @@ You are now in **ORCHESTRATION MODE**. Coordinate specialized agents using `git 
 
 ### PHASE 2: PREPARATION (Isolation)
 Before invoking agents:
-1. **Setup Spaces**: Run `.agent/scripts/workspace_manager.py gc` to clean old sessions.
+1. **Setup Spaces**: Run `.agent/scripts/workspace_manager.py gc` to start new session and clean old.
 2. Capture the `PATH` returned by the script.
 
 ### PHASE 3: PARALLEL EXECUTION (Isolated)
@@ -28,13 +28,17 @@ Invoke agents in parallel. **MANDATORY**: Tell each agent:
 1. Review changes in EACH workspace.
 2. **Merge**: Once review is done, merge changes into the feature branch.
 3. **Synthesis**: Combine findings into one report.
-4. **push**: Commit, merg and push changes
 
 ### 🗺️ PHASE 5: ROADMAP Sync (MANDATORY)
 After task completion or when adding new features:
 1.  **Mark completed tasks** in `ROADMAP.md` using `[x]` or `✅`.
 2. **Add new requested features/tasks** to the appropriate Phase in `ROADMAP.md`.
 3. **Ensure `ROADMAP.md` always reflects** the current state of the project.
+
+### 🗺️ PHASE 5: ROADMAP Sync (MANDATORY)
+1. As user to confirm changes
+2. **push**: Commit, merg and push changes
+
 
 ---
 

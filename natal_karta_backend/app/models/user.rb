@@ -10,4 +10,8 @@ class User < ApplicationRecord
   def has_active_subscription?
     subscription_type == "premium" && subscription_expires_at&.future?
   end
+
+  def can_update_birth_data?
+    birth_data_updated_at.nil? || birth_data_updated_at < 24.hours.ago
+  end
 end
