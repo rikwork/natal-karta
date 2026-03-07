@@ -96,7 +96,7 @@ const BirthTimeStep: React.FC<BirthTimeStepProps> = ({ selectedTime, onTimeChang
               const index = Math.round(y / itemHeight);
               ref.current?.scrollTo({ y: index * itemHeight, animated: true });
             }}
-            initialContentOffset={{ x: 0, y: currentValue * itemHeight }}
+            contentOffset={{ x: 0, y: currentValue * itemHeight }}
           >
             {data.map((val, index) => {
               const itemPosition = index * itemHeight;

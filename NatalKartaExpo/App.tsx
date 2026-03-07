@@ -80,46 +80,51 @@ const App: React.FC = () => {
   const handleOnboardingComplete = useCallback(
     async (data: any) => {
       setOnboardingData(data);
+      let newUserObj = user;
       try {
-        const newUser = await createNewUser(data);
-        setUser(newUser);
-        await AsyncStorage.setItem('user', JSON.stringify(newUser));
+        newUserObj = await createNewUser(data);
+        setUser(newUserObj);
+        await AsyncStorage.setItem('user', JSON.stringify(newUserObj));
       } catch (_e) {
         console.error('Onboarding user creation failed:', _e);
       }
+
       setCurrentScreen('Loading');
+
+      // Start generation immediately in parallel
+      if (newUserObj) {
+        try {
+          const chartData = {
+            name: `${newUserObj.name} - Натальная карта`,
+            birth_date: data.birthDate,
+            birth_time: data.birthTime,
+            birth_place: data.birthPlace,
+            latitude: data.latitude,
+            longitude: data.longitude,
+          };
+          const response = await ApiService.createNatalChart(newUserObj.id, chartData);
+          if (response.data) {
+            await ApiService.generateNatalChart(newUserObj.id, response.data.id);
+            setChartResult({
+              chart: response.data,
+              sun: 'Скорпион',
+              moon: 'Весы',
+              ascendant: 'Близнецы',
+            });
+          }
+        } catch (_e) {
+          console.error('Parallel generation failed:', _e);
+          setChartResult({ sun: 'Скорпион', moon: 'Весы', ascendant: 'Близнецы' });
+        }
+      }
     },
-    [createNewUser, setUser, setOnboardingData, setCurrentScreen],
+    [user, createNewUser, setUser, setOnboardingData, setCurrentScreen, setChartResult],
   );
 
   const handleLoadingComplete = useCallback(async () => {
-    if (user && onboardingData) {
-      try {
-        const chartData = {
-          name: `${user.name} - Натальная карта`,
-          birth_date: onboardingData.birthDate,
-          birth_time: onboardingData.birthTime,
-          birth_place: onboardingData.birthPlace,
-          latitude: onboardingData.latitude,
-          longitude: onboardingData.longitude,
-        };
-        const response = await ApiService.createNatalChart(user.id, chartData);
-        if (response.data) {
-          await ApiService.generateNatalChart(user.id, response.data.id);
-          setChartResult({
-            chart: response.data,
-            sun: 'Скорпион',
-            moon: 'Весы',
-            ascendant: 'Близнецы',
-          });
-        }
-      } catch (_e) {
-        setChartResult({ sun: 'Скорпион', moon: 'Весы', ascendant: 'Близнецы' });
-      }
-    }
     await AsyncStorage.setItem('onboarding_completed', 'true');
     setCurrentScreen('Home');
-  }, [user, onboardingData, setCurrentScreen, setChartResult]);
+  }, [setCurrentScreen]);
 
   if (loading) {
     return (
@@ -139,7 +144,12 @@ const App: React.FC = () => {
           />
         );
       case 'Loading':
-        return <LoadingScreen onComplete={handleLoadingComplete} />;
+        return (
+          <LoadingScreen
+            isReady={!!chartResult}
+            onComplete={handleLoadingComplete}
+          />
+        );
       case 'Result':
         return chartResult ? (
           <ResultScreen result={chartResult} onContinue={() => setCurrentScreen('Home')} />

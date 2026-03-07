@@ -220,14 +220,9 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.modalOverlay}
       >
-        <ImageBackground
-          source={require('../../assets/images/header_celestial.png')}
-          style={styles.modalContent}
-          imageStyle={{ opacity: 0.6 }}
-        >
-          <LinearGradient
-            colors={['rgba(5, 5, 20, 0.6)', 'rgba(26, 26, 46, 0.8)']}
-            style={StyleSheet.absoluteFill}
+        <View style={styles.modalContent}>
+          <View
+            style={[StyleSheet.absoluteFillObject, { backgroundColor: 'transparent' }]}
           />
 
           <View style={styles.header}>
@@ -344,7 +339,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               </TouchableOpacity>
             </>
           )}
-        </ImageBackground>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -353,10 +348,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: '#050514',
+    backgroundColor: 'transparent',
   },
   modalContent: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   header: {
     flexDirection: 'row',

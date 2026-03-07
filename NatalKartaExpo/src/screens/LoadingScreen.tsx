@@ -4,44 +4,46 @@ import { View, Text, Animated, Dimensions, StyleSheet } from 'react-native';
 const { width, height } = Dimensions.get('window');
 
 interface LoadingScreenProps {
+  isReady: boolean;
   onComplete: () => void;
 }
 
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ isReady, onComplete }) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
   const starsAnim = useRef(new Animated.Value(0)).current;
   const starsTwinkle = useRef(new Animated.Value(0)).current;
+  const [minTimeElapsed, setMinTimeElapsed] = React.useState(false);
 
   useEffect(() => {
     // Анимация пульсации текста - более мягкая
     const pulseAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.05, // Уменьшили с 1.1 до 1.05
-          duration: 2000, // Увеличили с 1000 до 2000
+          toValue: 1.05,
+          duration: 2000,
           useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
-          duration: 2000, // Увеличили с 1000 до 2000
+          duration: 2000,
           useNativeDriver: true,
         }),
       ]),
     );
 
-    // Анимация появления текста - более плавная
+    // Анимация появления текста
     const textAnimation = Animated.timing(textOpacity, {
       toValue: 1,
-      duration: 1500, // Увеличили с 1000 до 1500
+      duration: 1500,
       useNativeDriver: true,
     });
 
-    // Анимация звезд - медленнее
+    // Анимация звезд
     const starsAnimation = Animated.loop(
       Animated.timing(starsAnim, {
         toValue: 1,
-        duration: 12000, // Увеличили с 4000 до 12000
+        duration: 12000,
         useNativeDriver: true,
       }),
     );
@@ -68,17 +70,24 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
     starsAnimation.start();
     starsTwinkleAnimation.start();
 
-    // Завершение через 5 секунд
+    // Минимальное время анимации для UX (например, 2.5 секунды)
     const timer = setTimeout(() => {
-      onComplete();
-    }, 5000);
+      setMinTimeElapsed(true);
+    }, 2500);
 
     return () => {
       pulseAnimation.stop();
       starsTwinkleAnimation.stop();
       clearTimeout(timer);
     };
-  }, [onComplete, pulseAnim, starsAnim, starsTwinkle, textOpacity]);
+  }, [pulseAnim, starsAnim, starsTwinkle, textOpacity]);
+
+  // Завершаем экран, как только готовы данные И прошло мин. время
+  useEffect(() => {
+    if (isReady && minTimeElapsed) {
+      onComplete();
+    }
+  }, [isReady, minTimeElapsed, onComplete]);
 
   const renderStars = () => {
     const stars = Array.from({ length: 15 }, (_, i) => ({

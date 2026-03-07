@@ -183,13 +183,14 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: 'transparent',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#6B46C1',
+    padding: 24,
+    paddingTop: 60,
+    backgroundColor: 'rgba(107, 70, 193, 0.4)',
   },
   backButton: {
     marginRight: 16,
@@ -211,22 +212,24 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontSize: 14,
+    fontWeight: '700',
+    color: 'rgba(255, 215, 0, 0.8)',
     marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    padding: 12,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    padding: 16,
     fontSize: 16,
   },
   inputText: {
     fontSize: 16,
-    color: '#1F2937',
+    color: '#F0E6D2',
   },
   placeholder: {
     color: '#9CA3AF',

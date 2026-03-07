@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 24,
-    paddingTop: 60, // approximate notch height
+    paddingTop: 60,
     backgroundColor: 'rgba(107, 70, 193, 0.4)',
   },
   backButton: {
