@@ -31,13 +31,13 @@ Invoke agents in parallel. **MANDATORY**: Tell each agent:
 
 ### 🗺️ PHASE 5: ROADMAP Sync (MANDATORY)
 After task completion or when adding new features:
-1.  **Mark completed tasks** in `ROADMAP.md` using `[x]` or `✅`.
+1. **Mark completed tasks** in `ROADMAP.md` using `[x]` or `✅`.
 2. **Add new requested features/tasks** to the appropriate Phase in `ROADMAP.md`.
 3. **Ensure `ROADMAP.md` always reflects** the current state of the project.
 
 ### 🗺️ PHASE 5: ROADMAP Sync (MANDATORY)
 1. As user to confirm changes
-2. **push**: Commit, merg and push changes
+2. **push**: Commit, merge and push changes
 
 
 ---

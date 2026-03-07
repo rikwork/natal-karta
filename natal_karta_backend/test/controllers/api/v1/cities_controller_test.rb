@@ -11,7 +11,7 @@ class Api::V1::CitiesControllerTest < ActionDispatch::IntegrationTest
     mock_results = [{ name: "Moscow", latitude: 55.75, longitude: 37.61 }]
     
     DadataGeocodingService.stub(:search_cities, mock_results) do
-      get api_v1_search_cities_url, params: { q: "Mos" }, as: :json
+      get search_api_v1_cities_url(q: "Mos"), as: :json
       assert_response :success
       
       json_response = JSON.parse(response.body)
@@ -21,7 +21,7 @@ class Api::V1::CitiesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should return bad request if query is missing" do
-    get api_v1_search_cities_url, as: :json
+    get search_api_v1_cities_url, as: :json
     assert_response :bad_request
   end
 end

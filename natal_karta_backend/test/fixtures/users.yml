@@ -1,13 +1,13 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  name: MyString
-  email: MyString
+  name: User One
+  email: user_one@example.com
   subscription_type: MyString
   subscription_expires_at: 2025-10-17 11:10:36
 
 two:
-  name: MyString
-  email: MyString
+  name: User Two
+  email: user_two@example.com
   subscription_type: MyString
   subscription_expires_at: 2025-10-17 11:10:36
