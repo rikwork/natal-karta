@@ -46,6 +46,16 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     latitude: 0,
     longitude: 0,
   });
+  const [originalBirthData, setOriginalBirthData] = useState({
+    day: 1,
+    month: 1,
+    year: 1990,
+    hour: 12,
+    minute: 0,
+    place: '',
+    latitude: 0,
+    longitude: 0,
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingChart, setIsFetchingChart] = useState(true);
   const [citySearch, setCitySearch] = useState('');
@@ -86,7 +96,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         const birthDate = new Date(chart.birth_date);
         const [hour, minute] = chart.birth_time.split(':').map(Number);
 
-        setBirthData({
+        const initialData = {
           day: birthDate.getDate(),
           month: birthDate.getMonth() + 1,
           year: birthDate.getFullYear(),
@@ -95,7 +105,9 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           place: chart.birth_place,
           latitude: chart.latitude,
           longitude: chart.longitude,
-        });
+        };
+        setBirthData(initialData);
+        setOriginalBirthData(initialData);
         setCitySearch(chart.birth_place);
         setName(user.name);
       }
@@ -145,40 +157,28 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   };
 
   const handleSave = async () => {
+    console.warn('SAVE: handleSave started. Updating user and chart.');
     const nameChanged = name !== user.name;
+    const isBirthDataActuallyChanged = JSON.stringify(birthData) !== JSON.stringify(originalBirthData);
+    const birthDataChanged = isBirthDataActuallyChanged && !isBirthDataLocked;
 
-    // Accurate birth data change detection would require originalData state
-    // For now, if it's locked, we ignore birth data changes entirely
-    const birthDataChanged = !isBirthDataLocked;
-
-    if (!nameChanged && (!birthDataChanged || isBirthDataLocked)) {
-      Alert.alert('Информация', 'Изменений не обнаружено.');
+    if (!nameChanged && !birthDataChanged) {
+      Alert.alert('Информация', 'Вы не внесли никаких изменений.');
       return;
     }
 
-    const birthDateChanged = true; // Simple logic for now
-
-    if (birthDateChanged && !isBirthDataLocked) {
-      const confirm = await new Promise((resolve) => {
-        Alert.alert(
-          'Подтверждение',
-          'Вы уверены? Время и место рождения можно менять только раз в день.',
-          [
-            { text: 'Отмена', onPress: () => resolve(false), style: 'cancel' },
-            { text: 'Да, изменить', onPress: () => resolve(true) },
-          ],
-        );
-      });
-      if (!confirm) return;
+    if (birthDataChanged && !birthData.place) {
+      Alert.alert('Ошибка', 'Пожалуйста, выберите город из списка, чтобы сохранить место рождения.');
+      return;
     }
 
     setIsLoading(true);
     try {
-      if (name !== user.name) {
+      if (nameChanged) {
         await ApiService.updateUser(user.id, { name });
       }
 
-      if (!isBirthDataLocked) {
+      if (birthDataChanged) {
         const updatedBirthDate = `${birthData.year}-${String(birthData.month).padStart(2, '0')}-${String(birthData.day).padStart(2, '0')}`;
         const updatedBirthTime = `${String(birthData.hour).padStart(2, '0')}:${String(birthData.minute).padStart(2, '0')}`;
 
@@ -201,11 +201,12 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         onUpdate(userResponse.data);
       }
 
-      Alert.alert('Успех', 'Данные успешно обновлены');
+      Alert.alert('Успех', 'Ваши данные сохранены!');
       onClose();
-    } catch (error) {
-      console.error('Save profile error:', error);
-      Alert.alert('Ошибка', 'Не удалось сохранить изменения');
+    } catch (error: any) {
+      console.error('Save error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Что-то пошло не так при сохранении.';
+      Alert.alert('Ошибка', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -240,90 +241,93 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <ActivityIndicator size="large" color="#FFD700" />
             </View>
           ) : (
-            <ScrollView
-              contentContainerStyle={styles.formContent}
-              showsVerticalScrollIndicator={false}
-            >
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Личные данные</Text>
-                <BlurView intensity={20} tint="light" style={styles.inputCard}>
-                  <Text style={styles.inputLabel}>Имя</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={name}
-                    onChangeText={setName}
-                    placeholder="Ваше имя"
-                    placeholderTextColor="rgba(255,255,255,0.3)"
-                  />
-                </BlurView>
-              </View>
-
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Данные рождения</Text>
-                  {isBirthDataLocked && (
-                    <View style={styles.lockBadge}>
-                      <Ionicons name="lock-closed" size={12} color="#FFA500" />
-                      <Text style={styles.lockText}>Раз в день</Text>
-                    </View>
-                  )}
+            <>
+              <ScrollView
+                contentContainerStyle={styles.formContent}
+                showsVerticalScrollIndicator={false}
+              >
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Личные данные</Text>
+                  <BlurView intensity={20} tint="light" style={styles.inputCard}>
+                    <Text style={styles.inputLabel}>Имя</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={name}
+                      onChangeText={setName}
+                      placeholder="Ваше имя"
+                      placeholderTextColor="rgba(255,255,255,0.3)"
+                    />
+                  </BlurView>
                 </View>
 
-                {isBirthDataLocked && (
-                  <Text style={styles.hintText}>
-                    Данные рождения заблокированы до следующего дня.
-                  </Text>
-                )}
-
-                <BlurView
-                  intensity={15}
-                  tint="light"
-                  style={[styles.inputCard, isBirthDataLocked && styles.lockedCard]}
-                >
-                  <View pointerEvents={isBirthDataLocked ? 'none' : 'auto'}>
-                    <View style={styles.fieldGroup}>
-                      <Text style={styles.inputLabel}>Дата рождения</Text>
-                      <BirthDateStep
-                        selectedDate={{
-                          day: birthData.day,
-                          month: birthData.month,
-                          year: birthData.year,
-                        }}
-                        onDateChange={(type, value) =>
-                          setBirthData({ ...birthData, [type]: value })
-                        }
-                      />
-                    </View>
-
-                    <View style={styles.fieldGroup}>
-                      <Text style={styles.inputLabel}>Время рождения</Text>
-                      <BirthTimeStep
-                        selectedTime={{ hour: birthData.hour, minute: birthData.minute }}
-                        onTimeChange={(time) => setBirthData({ ...birthData, ...time })}
-                      />
-                    </View>
-
-                    <View style={styles.fieldGroup}>
-                      <Text style={styles.inputLabel}>Место рождения</Text>
-                      <BirthPlaceStep
-                        citySearch={citySearch}
-                        onCitySearchChange={handleCitySearch}
-                        isSearchingCities={isSearchingCities}
-                        showCityList={showCityList}
-                        filteredCities={filteredCities}
-                        onSelectCity={handleSelectCity}
-                        onFocus={() => setShowCityList(citySearch.length >= 2)}
-                      />
-                    </View>
+                <View style={styles.section}>
+                  <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>Данные рождения</Text>
+                    {isBirthDataLocked && (
+                      <View style={styles.lockBadge}>
+                        <Ionicons name="lock-closed" size={12} color="#FFA500" />
+                        <Text style={styles.lockText}>Раз в день</Text>
+                      </View>
+                    )}
                   </View>
-                </BlurView>
-              </View>
+
+                  {isBirthDataLocked && (
+                    <Text style={styles.hintText}>
+                      Данные рождения заблокированы до следующего дня.
+                    </Text>
+                  )}
+
+                  <BlurView
+                    intensity={15}
+                    tint="light"
+                    style={[styles.inputCard, isBirthDataLocked && styles.lockedCard]}
+                  >
+                    <View pointerEvents={isBirthDataLocked ? 'none' : 'auto'}>
+                      <View style={styles.fieldGroup}>
+                        <Text style={styles.inputLabel}>Дата рождения</Text>
+                        <BirthDateStep
+                          selectedDate={{
+                            day: birthData.day,
+                            month: birthData.month,
+                            year: birthData.year,
+                          }}
+                          onDateChange={(type, value) =>
+                            setBirthData({ ...birthData, [type]: value })
+                          }
+                        />
+                      </View>
+
+                      <View style={styles.fieldGroup}>
+                        <Text style={styles.inputLabel}>Время рождения</Text>
+                        <BirthTimeStep
+                          selectedTime={{ hour: birthData.hour, minute: birthData.minute }}
+                          onTimeChange={(time) => setBirthData({ ...birthData, ...time })}
+                        />
+                      </View>
+
+                      <View style={styles.fieldGroup}>
+                        <Text style={styles.inputLabel}>Место рождения</Text>
+                        <BirthPlaceStep
+                          citySearch={citySearch}
+                          onCitySearchChange={handleCitySearch}
+                          isSearchingCities={isSearchingCities}
+                          showCityList={showCityList}
+                          filteredCities={filteredCities}
+                          onSelectCity={handleSelectCity}
+                          onFocus={() => setShowCityList(citySearch.length >= 2)}
+                        />
+                      </View>
+                    </View>
+                  </BlurView>
+                </View>
+
+              </ScrollView>
 
               <TouchableOpacity
                 style={[
                   styles.mainSaveButton,
                   (isLoading || (name === user.name && isBirthDataLocked)) &&
-                    styles.disabledSaveButton,
+                  styles.disabledSaveButton,
                 ]}
                 onPress={handleSave}
                 disabled={isLoading}
@@ -336,7 +340,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   )}
                 </LinearGradient>
               </TouchableOpacity>
-            </ScrollView>
+            </>
           )}
         </ImageBackground>
       </KeyboardAvoidingView>

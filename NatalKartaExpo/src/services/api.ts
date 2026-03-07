@@ -20,10 +20,17 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Ошибка сервера');
+        throw new Error(data.error || data.message || 'Ошибка сервера');
       }
 
-      return data;
+      // Normalize response: if the backend didn't wrap the payload in { data: ... }, we do it here.
+      // Some endpoints (like cities) return { data: [], message: '...' }.
+      // Others (like GET /users/:id) return the raw JSON object { id: 1, name: '...' }.
+      if (data && typeof data === 'object' && !Array.isArray(data) && ('data' in data || 'message' in data || 'error' in data) && Object.keys(data).length <= 3) {
+        return data;
+      }
+
+      return { data };
     } catch (error) {
       // Отправляем ошибку на сервер
       if (error instanceof Error) {
