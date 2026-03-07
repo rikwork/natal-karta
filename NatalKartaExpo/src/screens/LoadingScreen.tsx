@@ -14,7 +14,6 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   const starsTwinkle = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-
     // Анимация пульсации текста - более мягкая
     const pulseAnimation = Animated.loop(
       Animated.sequence([
@@ -81,7 +80,6 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
     };
   }, [onComplete, pulseAnim, starsAnim, starsTwinkle, textOpacity]);
 
-
   const renderStars = () => {
     const stars = Array.from({ length: 15 }, (_, i) => ({
       id: i,
@@ -121,11 +119,9 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
 
   return (
     <View style={styles.container}>
-
       {renderStars()}
 
       <View style={styles.content}>
-
         <Animated.View
           style={[
             styles.textContainer,

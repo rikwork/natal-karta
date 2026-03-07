@@ -14,15 +14,19 @@ const ZodiacWheel: React.FC<ZodiacWheelProps> = ({ spin, opacity = 0.6, pulseAni
   const wheelSize = width * 1.2;
 
   // Анимации для "Звездного импульса"
-  const pulseScale = pulseAnim ? pulseAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 1.15],
-  }) : 1;
+  const pulseScale = pulseAnim
+    ? pulseAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 1.15],
+      })
+    : 1;
 
-  const pulseOpacity = pulseAnim ? pulseAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.2, 0.7],
-  }) : 0;
+  const pulseOpacity = pulseAnim
+    ? pulseAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0.2, 0.7],
+      })
+    : 0;
 
   return (
     <View style={styles.container}>
@@ -36,10 +40,7 @@ const ZodiacWheel: React.FC<ZodiacWheelProps> = ({ spin, opacity = 0.6, pulseAni
               width: wheelSize,
               height: wheelSize,
               opacity: pulseOpacity,
-              transform: [
-                { rotate: spin },
-                { scale: pulseScale }
-              ],
+              transform: [{ rotate: spin }, { scale: pulseScale }],
               tintColor: '#FFD700', // Золотистое свечение
             },
           ]}

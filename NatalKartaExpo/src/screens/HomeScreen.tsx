@@ -32,13 +32,25 @@ interface HomeScreenProps {
   onWatchAd: () => void;
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ user, onNavigateToCharts, onNavigateToCreateChart, onNavigateToCabinet, onWatchAd }) => {
+const HomeScreen: React.FC<HomeScreenProps> = ({
+  user,
+  onNavigateToCharts,
+  onNavigateToCreateChart,
+  onNavigateToCabinet,
+  onWatchAd,
+}) => {
   const { parsedContent, generateNewPrediction } = useHomeScreen(user);
 
   const renderDateItem = (item: any, index: number) => (
-    <TouchableOpacity key={index} style={[styles.dateItem, item.active && styles.activeDateItem]} activeOpacity={0.7}>
+    <TouchableOpacity
+      key={index}
+      style={[styles.dateItem, item.active && styles.activeDateItem]}
+      activeOpacity={0.7}
+    >
       <Text style={[styles.dateText, item.active && styles.activeDateText]}>{item.day}</Text>
-      <Text style={[styles.dateSubText, item.active && styles.activeDateSubText]}>{item.label}</Text>
+      <Text style={[styles.dateSubText, item.active && styles.activeDateSubText]}>
+        {item.label}
+      </Text>
       {item.active && (
         <LinearGradient
           colors={['#FFD700', '#9D50BB'] as const}
@@ -68,7 +80,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, onNavigateToCharts, onNav
               <Text style={styles.greetingText}>Добрый вечер,</Text>
               <Text style={styles.userName}>{user?.name || 'Исследователь'} ✨</Text>
             </View>
-            <TouchableOpacity style={styles.avatarBorder} activeOpacity={0.8} onPress={onNavigateToCabinet}>
+            <TouchableOpacity
+              style={styles.avatarBorder}
+              activeOpacity={0.8}
+              onPress={onNavigateToCabinet}
+            >
               <LinearGradient
                 colors={['#FFD700', '#9D50BB'] as const}
                 style={styles.avatarPlaceholder}
@@ -82,7 +98,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, onNavigateToCharts, onNav
         </ImageBackground>
 
         <View style={styles.dateStrip}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateStripContent}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.dateStripContent}
+          >
             {DATES.map(renderDateItem)}
           </ScrollView>
         </View>
@@ -93,7 +113,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, onNavigateToCharts, onNav
           </Text>
 
           <View style={styles.mainCardsRow}>
-            <HoroscopeCard onPress={generateNewPrediction} content={parsedContent?.recommendations?.[0] || ''} />
+            <HoroscopeCard
+              onPress={generateNewPrediction}
+              content={parsedContent?.recommendations?.[0] || ''}
+            />
             <TarotCard />
           </View>
 
@@ -101,15 +124,27 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, onNavigateToCharts, onNav
 
           <View style={styles.actionButtonsRow}>
             {[
-              { label: 'Карты', icon: '📊', colors: ['#411d73', '#1a0b2e'] as const, onPress: onNavigateToCharts },
-              { label: 'Новая', icon: '➕', colors: ['#411d73', '#1a0b2e'] as const, onPress: onNavigateToCreateChart }
+              {
+                label: 'Карты',
+                icon: '📊',
+                colors: ['#411d73', '#1a0b2e'] as const,
+                onPress: onNavigateToCharts,
+              },
+              {
+                label: 'Новая',
+                icon: '➕',
+                colors: ['#411d73', '#1a0b2e'] as const,
+                onPress: onNavigateToCreateChart,
+              },
             ].map((btn, i) => (
-              <TouchableOpacity key={i} style={styles.navButton} onPress={btn.onPress} activeOpacity={0.8}>
+              <TouchableOpacity
+                key={i}
+                style={styles.navButton}
+                onPress={btn.onPress}
+                activeOpacity={0.8}
+              >
                 <BlurView intensity={20} tint="light" style={styles.navButtonBlur}>
-                  <LinearGradient
-                    colors={btn.colors}
-                    style={styles.navButtonGradient}
-                  >
+                  <LinearGradient colors={btn.colors} style={styles.navButtonGradient}>
                     <Text style={styles.navButtonIcon}>{btn.icon}</Text>
                     <Text style={styles.navButtonText}>{btn.label}</Text>
                   </LinearGradient>

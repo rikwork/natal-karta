@@ -24,13 +24,20 @@ setupErrorHandlers();
 
 const App: React.FC = () => {
   const {
-    user, setUser,
+    user,
+    setUser,
     loading,
-    currentScreen, setCurrentScreen,
-    selectedChart, setSelectedChart,
-    onboardingData, setOnboardingData,
-    chartResult, setChartResult,
-    wheelOpacity, spin, pulseAnim,
+    currentScreen,
+    setCurrentScreen,
+    selectedChart,
+    setSelectedChart,
+    onboardingData,
+    setOnboardingData,
+    chartResult,
+    setChartResult,
+    wheelOpacity,
+    spin,
+    pulseAnim,
     setWheelVisible,
     createNewUser,
     isVideoEnabled,
@@ -47,31 +54,43 @@ const App: React.FC = () => {
         }
       },
       () => {
-        Alert.alert('Остановка', 'Показ прерван. Чтобы открыть прогноз полностью, посмотрите видео до конца.');
+        Alert.alert(
+          'Остановка',
+          'Показ прерван. Чтобы открыть прогноз полностью, посмотрите видео до конца.',
+        );
       },
     );
   }, [user, setUser]);
 
-  const handleOnboardingStepChange = useCallback((step: number) => {
-    setWheelVisible(step >= 2);
-  }, [setWheelVisible]);
+  const handleOnboardingStepChange = useCallback(
+    (step: number) => {
+      setWheelVisible(step >= 2);
+    },
+    [setWheelVisible],
+  );
 
-  const handleUpdateUser = useCallback(async (updatedUser: any) => {
-    setUser(updatedUser);
-    await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-  }, [setUser]);
+  const handleUpdateUser = useCallback(
+    async (updatedUser: any) => {
+      setUser(updatedUser);
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+    },
+    [setUser],
+  );
 
-  const handleOnboardingComplete = useCallback(async (data: any) => {
-    setOnboardingData(data);
-    try {
-      const newUser = await createNewUser(data);
-      setUser(newUser);
-      await AsyncStorage.setItem('user', JSON.stringify(newUser));
-    } catch (_e) {
-      console.error('Onboarding user creation failed:', _e);
-    }
-    setCurrentScreen('Loading');
-  }, [createNewUser, setUser, setOnboardingData, setCurrentScreen]);
+  const handleOnboardingComplete = useCallback(
+    async (data: any) => {
+      setOnboardingData(data);
+      try {
+        const newUser = await createNewUser(data);
+        setUser(newUser);
+        await AsyncStorage.setItem('user', JSON.stringify(newUser));
+      } catch (_e) {
+        console.error('Onboarding user creation failed:', _e);
+      }
+      setCurrentScreen('Loading');
+    },
+    [createNewUser, setUser, setOnboardingData, setCurrentScreen],
+  );
 
   const handleLoadingComplete = useCallback(async () => {
     if (user && onboardingData) {
@@ -89,7 +108,9 @@ const App: React.FC = () => {
           await ApiService.generateNatalChart(user.id, response.data.id);
           setChartResult({
             chart: response.data,
-            sun: 'Скорпион', moon: 'Весы', ascendant: 'Близнецы',
+            sun: 'Скорпион',
+            moon: 'Весы',
+            ascendant: 'Близнецы',
           });
         }
       } catch (_e) {
@@ -111,15 +132,37 @@ const App: React.FC = () => {
   const renderScreen = () => {
     switch (currentScreen) {
       case 'Onboarding':
-        return <OnboardingScreen onComplete={handleOnboardingComplete} onStepChange={handleOnboardingStepChange} />;
+        return (
+          <OnboardingScreen
+            onComplete={handleOnboardingComplete}
+            onStepChange={handleOnboardingStepChange}
+          />
+        );
       case 'Loading':
         return <LoadingScreen onComplete={handleLoadingComplete} />;
       case 'Result':
-        return chartResult ? <ResultScreen result={chartResult} onContinue={() => setCurrentScreen('Home')} /> : null;
+        return chartResult ? (
+          <ResultScreen result={chartResult} onContinue={() => setCurrentScreen('Home')} />
+        ) : null;
       case 'CreateChart':
-        return user ? <CreateChartScreen userId={user.id} onChartCreated={() => setCurrentScreen('Charts')} onBack={() => setCurrentScreen('Home')} /> : null;
+        return user ? (
+          <CreateChartScreen
+            userId={user.id}
+            onChartCreated={() => setCurrentScreen('Charts')}
+            onBack={() => setCurrentScreen('Home')}
+          />
+        ) : null;
       case 'Charts':
-        return user ? <ChartsScreen userId={user.id} onChartPress={(chart) => { setSelectedChart(chart); setCurrentScreen('ChartDetail'); }} onBack={() => setCurrentScreen('Home')} /> : null;
+        return user ? (
+          <ChartsScreen
+            userId={user.id}
+            onChartPress={(chart) => {
+              setSelectedChart(chart);
+              setCurrentScreen('ChartDetail');
+            }}
+            onBack={() => setCurrentScreen('Home')}
+          />
+        ) : null;
       case 'ChartDetail':
         return selectedChart && user ? (
           <ChartDetailScreen
