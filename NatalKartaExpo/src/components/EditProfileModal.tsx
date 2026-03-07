@@ -21,6 +21,7 @@ import ApiService from '../services/api';
 import BirthDateStep from '../screens/Onboarding/steps/BirthDateStep';
 import BirthTimeStep from '../screens/Onboarding/steps/BirthTimeStep';
 import BirthPlaceStep from '../screens/Onboarding/steps/BirthPlaceStep';
+import { formatBirthTime } from '../utils/dateFormatter';
 
 interface EditProfileModalProps {
   visible: boolean;
@@ -94,7 +95,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       if (response.data && response.data.length > 0) {
         const chart = response.data[0];
         const birthDate = new Date(chart.birth_date);
-        const [hour, minute] = chart.birth_time.split(':').map(Number);
+        const formattedTime = formatBirthTime(chart.birth_time);
+        const [hour, minute] = formattedTime.split(':').map(Number);
 
         const initialData = {
           day: birthDate.getDate(),

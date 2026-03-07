@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { NatalChart, NatalChartData } from '../types';
 import ApiService from '../services/api';
+import { formatBirthTime } from '../utils/dateFormatter';
 
 // Removed unused width Dimensions
 
@@ -112,7 +113,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
         <BlurView intensity={20} tint="light" style={styles.infoCard}>
           <Text style={styles.chartName}>{chart.name}</Text>
           <Text style={styles.detailText}>
-            {formatDate(chart.birth_date)} в {chart.birth_time}
+            {formatDate(chart.birth_date)} в {formatBirthTime(chart.birth_time)}
           </Text>
           <Text style={styles.detailText}>{chart.birth_place}</Text>
         </BlurView>

@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { User, NatalChart } from '../types';
 import EditProfileModal from '../components/EditProfileModal';
 import ApiService from '../services/api';
+import { formatBirthTime } from '../utils/dateFormatter';
 
 interface CabinetScreenProps {
   user: User | null;
@@ -137,7 +138,7 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
                     ) : (
                       <Text style={styles.dataValue}>
                         {userChart
-                          ? `${new Date(userChart.birth_date).toLocaleDateString('ru-RU')} ${userChart.birth_time}`
+                          ? `${new Date(userChart.birth_date).toLocaleDateString('ru-RU')} ${formatBirthTime(userChart.birth_time)}`
                           : 'Данные не загружены'}
                       </Text>
                     )}
