@@ -3,21 +3,39 @@ import json
 import g4f
 
 def generate_completion(prompt):
-    max_retries = 3
-    for attempt in range(max_retries):
+    providers = [
+        g4f.Provider.AIBadgr,
+        g4f.Provider.BlackboxPro,
+        g4f.Provider.GeminiPro,
+        g4f.Provider.DeepSeek
+    ]
+    
+    for provider in providers:
         try:
+            # print(f"Trying provider: {provider.__name__}", file=sys.stderr)
             response = g4f.ChatCompletion.create(
                 model=g4f.models.default,
+                provider=provider,
                 messages=[{"role": "user", "content": prompt}],
-                timeout=180
+                timeout=60
             )
-            print(json.dumps({"success": True, "data": response}))
-            return
+            if response:
+                print(json.dumps({"success": True, "data": response}))
+                return
         except Exception as e:
-            if attempt == max_retries - 1:
-                print(json.dumps({"success": False, "error": f"Failed after {max_retries} attempts. Last error: {str(e)}"}))
-            import time
-            time.sleep(2)
+            # print(f"Provider {provider.__name__} failed: {str(e)}", file=sys.stderr)
+            continue
+            
+    # Fallback to default if all specific providers fail
+    try:
+        response = g4f.ChatCompletion.create(
+            model=g4f.models.default,
+            messages=[{"role": "user", "content": prompt}],
+            timeout=120
+        )
+        print(json.dumps({"success": True, "data": response}))
+    except Exception as e:
+        print(json.dumps({"success": False, "error": f"All providers failed. Last error: {str(e)}"}))
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
