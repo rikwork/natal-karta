@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Animated, Easing, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth, signInAnonymously } from '../config/firebase';
@@ -13,6 +13,7 @@ export const useAppInitialization = () => {
     const [selectedChart, setSelectedChart] = useState<NatalChart | null>(null);
     const [onboardingData, setOnboardingData] = useState<any>(null);
     const [chartResult, setChartResult] = useState<any>(null);
+    const [isVideoEnabled, setIsVideoEnabled] = useState<boolean>(true);
 
     const spinValue = useRef(new Animated.Value(0)).current;
     const wheelOpacity = useRef(new Animated.Value(0)).current;
@@ -111,10 +112,20 @@ export const useAppInitialization = () => {
         }
     }, []);
 
+    const toggleVideoBackground = useCallback(async (enabled: boolean) => {
+        setIsVideoEnabled(enabled);
+        await AsyncStorage.setItem('isVideoEnabled', JSON.stringify(enabled));
+    }, []);
+
     const initializeApp = async () => {
         try {
             const savedUser = await AsyncStorage.getItem('user');
             const hasCompletedOnboarding = await AsyncStorage.getItem('onboarding_completed');
+            const savedVideoSetting = await AsyncStorage.getItem('isVideoEnabled');
+
+            if (savedVideoSetting !== null) {
+                setIsVideoEnabled(JSON.parse(savedVideoSetting));
+            }
 
             if (savedUser && hasCompletedOnboarding) {
                 setUser(JSON.parse(savedUser));
@@ -159,5 +170,7 @@ export const useAppInitialization = () => {
         wheelOpacity, spin, pulseAnim,
         setWheelVisible,
         createNewUser,
+        isVideoEnabled,
+        toggleVideoBackground,
     };
 };

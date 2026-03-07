@@ -4,6 +4,7 @@ export interface User {
   email: string;
   subscription_type: 'free' | 'premium';
   subscription_expires_at?: string;
+  birth_data_updated_at?: string;
   created_at: string;
   updated_at: string;
 }

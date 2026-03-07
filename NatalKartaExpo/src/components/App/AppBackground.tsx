@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet, Animated, Image } from 'react-native';
+import { View, StyleSheet, Animated, Image, useWindowDimensions } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
 import ZodiacWheel from '../ZodiacWheel';
 
 interface AppBackgroundProps {
@@ -7,6 +7,7 @@ interface AppBackgroundProps {
     wheelOpacity: Animated.Value;
     spin: Animated.AnimatedInterpolation<string | number>;
     pulseAnim: Animated.Value;
+    isVideoEnabled: boolean;
 }
 
 const AppBackground: React.FC<AppBackgroundProps> = ({
@@ -14,20 +15,31 @@ const AppBackground: React.FC<AppBackgroundProps> = ({
     wheelOpacity,
     spin,
     pulseAnim,
+    isVideoEnabled,
 }) => {
-    const showBackground =
-        currentScreen === 'Onboarding' || currentScreen === 'Loading' || currentScreen === 'Result';
+    const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+    const showBackground = true;
 
     if (!showBackground) return null;
 
     return (
-        <View style={StyleSheet.absoluteFillObject}>
-            <Image
-                source={{
-                    uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBj_EyvNiJnWwHl1dT647d1neMGhn5cHPcdBqtFAaPHr5a3vZPbeQsnldExCo95wjhuFikQNLEPPNQ77lxA_H5DNylgzwV8zytGuSeNJcDdx_f-BuvafKAUoX30eogMG_oqc9kMsoPewi37YTSA8VvlJg5Os5pEDndnE3DI2SAbUqDACWl0EuLQzJh97D24G7oGQVTZe1dh3iNVIjvEzRIGKQAiOAYlYNataspz6w-xpQygLXXHhdMQE5r39xlZwfrnyLdEl6SwXTTs',
-                }}
-                style={StyleSheet.absoluteFillObject}
-            />
+        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#050514' }]}>
+            {isVideoEnabled ? (
+                <Video
+                    source={require('../../../assets/videos/background_video.mp4')}
+                    style={StyleSheet.absoluteFill}
+                    resizeMode={ResizeMode.COVER}
+                    isLooping
+                    shouldPlay
+                    isMuted
+                />
+            ) : (
+                <Image
+                    source={require('../../../assets/images/app_background.png')}
+                    style={StyleSheet.absoluteFill}
+                    resizeMode="cover"
+                />
+            )}
             <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.6)' }]} />
 
             <View

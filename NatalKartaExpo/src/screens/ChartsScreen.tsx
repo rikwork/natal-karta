@@ -134,13 +134,14 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({ userId, onChartPress, onBac
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: 'transparent',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#6B46C1',
+    padding: 24,
+    paddingTop: 60, // approximate notch height
+    backgroundColor: 'rgba(107, 70, 193, 0.4)',
   },
   backButton: {
     marginRight: 16,
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: 'transparent',
   },
   loadingText: {
     marginTop: 16,

@@ -16,6 +16,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import CreateChartScreen from './src/screens/CreateChartScreen';
 import ChartsScreen from './src/screens/ChartsScreen';
 import ChartDetailScreen from './src/screens/ChartDetailScreen';
+import CabinetScreen from './src/screens/CabinetScreen';
 import AppBackground from './src/components/App/AppBackground';
 
 // Setup global error handling
@@ -32,6 +33,8 @@ const App: React.FC = () => {
     wheelOpacity, spin, pulseAnim,
     setWheelVisible,
     createNewUser,
+    isVideoEnabled,
+    toggleVideoBackground,
   } = useAppInitialization();
 
   const handleWatchAd = useCallback(() => {
@@ -122,12 +125,23 @@ const App: React.FC = () => {
             hasSubscription={user.subscription_type === 'premium'}
           />
         ) : null;
+      case 'Cabinet':
+        return (
+          <CabinetScreen
+            user={user}
+            isVideoEnabled={isVideoEnabled}
+            onToggleVideo={toggleVideoBackground}
+            onBack={() => setCurrentScreen('Home')}
+            onUpdateUser={setUser}
+          />
+        );
       default:
         return user ? (
           <HomeScreen
             user={user}
             onNavigateToCharts={() => setCurrentScreen('Charts')}
             onNavigateToCreateChart={() => setCurrentScreen('CreateChart')}
+            onNavigateToCabinet={() => setCurrentScreen('Cabinet')}
             onWatchAd={handleWatchAd}
           />
         ) : null;
@@ -137,7 +151,13 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <View style={styles.appContainer}>
-        <AppBackground currentScreen={currentScreen} wheelOpacity={wheelOpacity} spin={spin} pulseAnim={pulseAnim} />
+        <AppBackground
+          currentScreen={currentScreen}
+          wheelOpacity={wheelOpacity}
+          spin={spin}
+          pulseAnim={pulseAnim}
+          isVideoEnabled={isVideoEnabled}
+        />
         {renderScreen()}
       </View>
     </ErrorBoundary>

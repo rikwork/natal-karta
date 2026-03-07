@@ -100,7 +100,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
   };
 
   return (
-    <LinearGradient colors={['#1a1025', '#2a1a4a', '#100a1a']} style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <Text style={styles.backButtonText}>← Назад</Text>
@@ -226,20 +226,21 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
           </View>
         )}
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 24,
     paddingTop: 60, // approximate notch height
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: 'rgba(107, 70, 193, 0.4)',
   },
   backButton: {
     marginRight: 16,

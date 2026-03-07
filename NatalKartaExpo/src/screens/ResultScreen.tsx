@@ -74,7 +74,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onContinue }) => {
   };
 
   return (
-    <LinearGradient colors={['#1a1a2e', '#16213e', '#0f3460']} style={styles.container}>
+    <View style={styles.container}>
       <Animated.View
         style={[
           styles.content,
@@ -142,19 +142,26 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onContinue }) => {
           </LinearGradient>
         </TouchableOpacity>
       </Animated.View>
-    </LinearGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   title: {
     fontSize: 28,
