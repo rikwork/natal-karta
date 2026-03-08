@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
-  Dimensions,
   Animated,
   Image,
 } from 'react-native';
@@ -117,34 +116,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
           <CelestialAlignments />
 
-          <View style={styles.actionButtonsRow}>
-            <View style={styles.navButtonWrapper}>
-              <Animated.View style={[
-                styles.orbBackgroundContainer,
-                {
-                  transform: [
-                    { rotate: spin },
-                    {
-                      scale: pulseAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [1, 1.05]
-                      })
-                    }
-                  ]
-                }
-              ]}>
-                <Image
-                  source={require('../../assets/images/cosmic_orb.png')}
-                  style={styles.orbBackground}
-                  resizeMode="contain"
-                />
-              </Animated.View>
-              <AstralButton
-                title="ОТКРЫТЬ НАТАЛЬНУЮ КАРТУ"
-                onPress={onNavigateToCharts}
-                style={styles.nextButton}
-              />
-            </View>
+          <View style={styles.navButtonWrapper}>
+            <AstralButton
+              title="ОТКРЫТЬ НАТАЛЬНУЮ КАРТУ"
+              onPress={onNavigateToCharts}
+              style={styles.nextButton}
+            />
           </View>
         </View>
         <View style={{ height: 120 }} />
@@ -231,27 +208,14 @@ const styles = StyleSheet.create({
     gap: 15,
     marginBottom: 35,
   },
-  actionButtonsRow: { flexDirection: 'row', gap: 15, marginTop: 15, marginBottom: 20 },
   navButtonWrapper: {
-    flex: 1,
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  orbBackgroundContainer: {
-    position: 'absolute',
-    width: 320,
-    height: 320,
-    zIndex: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  orbBackground: {
+    marginTop: 40,
     width: '100%',
-    height: '100%',
-    opacity: 0.95,
   },
-  nextButton: { width: '100%', height: 60, borderRadius: 30 },
+  nextButton: {
+    width: '90%',
+    alignSelf: 'center',
+  },
 });
 
 

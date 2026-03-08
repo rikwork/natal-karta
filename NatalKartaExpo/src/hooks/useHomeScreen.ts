@@ -19,7 +19,7 @@ export const useHomeScreen = (user: User | null) => {
     const spinLoop = Animated.loop(
       Animated.timing(spinValue, {
         toValue: 1,
-        duration: 30000,
+        duration: 60000,
         easing: Easing.linear,
         useNativeDriver: true,
       })
