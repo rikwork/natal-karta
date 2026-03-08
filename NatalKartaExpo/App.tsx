@@ -227,7 +227,7 @@ const App: React.FC = () => {
           {user && (
             <HoroscopeDetailScreen
               sign="Скорпион"
-              signImage={require('./assets/images/scorpio_icon.png')}
+              signImage={require('./assets/images/zodiac/scorpio_icon.png')}
               onBack={() => setCurrentScreen('Home')}
             />
           )}
