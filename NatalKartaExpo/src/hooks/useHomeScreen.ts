@@ -10,13 +10,12 @@ export const useHomeScreen = (user: User | null) => {
   const [loading, setLoading] = useState(false);
   const [period, setPeriod] = useState<HoroscopePeriod>('today');
 
-  // Анимации для ZodiacWheel и CTA кнопок
+  // Анимации для ZodiacWheel
   const spinValue = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(0)).current;
-  const ctaPulseAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Вращение колеса (и орбиты) - делаем чуть быстрее (30с)
+    // Вращение колеса (и орбиты) - цикл 30с
     const spinLoop = Animated.loop(
       Animated.timing(spinValue, {
         toValue: 1,
@@ -46,31 +45,11 @@ export const useHomeScreen = (user: User | null) => {
     );
     pulseLoop.start();
 
-    // CTA Пульсация (зазывающая, более частая)
-    const ctaLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(ctaPulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(ctaPulseAnim, {
-          toValue: 0,
-          duration: 1200,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    ctaLoop.start();
-
     return () => {
       spinLoop.stop();
       pulseLoop.stop();
-      ctaLoop.stop();
     };
-  }, [spinValue, pulseAnim, ctaPulseAnim]);
+  }, [spinValue, pulseAnim]);
 
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
@@ -130,7 +109,6 @@ export const useHomeScreen = (user: User | null) => {
     generateNewPrediction,
     spin,
     pulseAnim,
-    ctaPulseAnim,
     period,
     setPeriod
   };
