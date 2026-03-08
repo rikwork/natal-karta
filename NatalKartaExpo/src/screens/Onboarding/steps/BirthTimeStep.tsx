@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -22,6 +22,28 @@ const BirthTimeStep: React.FC<BirthTimeStepProps> = ({ selectedTime, onTimeChang
 
   const hourScrollRef = useRef<any>(null);
   const minuteScrollRef = useRef<any>(null);
+
+  // Synchronize scroll position when time changes from parent (e.g. data loaded from API)
+  useEffect(() => {
+    const scrollToTime = () => {
+      if (hourScrollRef.current) {
+        hourScrollRef.current.scrollTo({
+          y: selectedTime.hour * itemHeight,
+          animated: true,
+        });
+      }
+      if (minuteScrollRef.current) {
+        minuteScrollRef.current.scrollTo({
+          y: selectedTime.minute * itemHeight,
+          animated: true,
+        });
+      }
+    };
+
+    // Small delay to ensure layout is ready
+    const timer = setTimeout(scrollToTime, 100);
+    return () => clearTimeout(timer);
+  }, [selectedTime.hour, selectedTime.minute]);
 
   const renderTimePicker = (
     data: number[],

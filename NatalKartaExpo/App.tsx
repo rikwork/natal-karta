@@ -17,6 +17,7 @@ import CreateChartScreen from './src/screens/CreateChartScreen';
 import ChartsScreen from './src/screens/ChartsScreen';
 import ChartDetailScreen from './src/screens/ChartDetailScreen';
 import CabinetScreen from './src/screens/CabinetScreen';
+import EditProfileScreen from './src/screens/EditProfileScreen';
 import HoroscopeDetailScreen from './src/screens/HoroscopeDetailScreen';
 import AppBackground from './src/components/App/AppBackground';
 import FadeScreen from './src/components/App/FadeScreen';
@@ -207,6 +208,17 @@ const App: React.FC = () => {
               onToggleVideo={toggleVideoBackground}
               onBack={() => setCurrentScreen('Home')}
               onUpdateUser={handleUpdateUser}
+              onNavigateToEditProfile={() => setCurrentScreen('EditProfile')}
+            />
+          )}
+        </FadeScreen>
+
+        <FadeScreen active={currentScreen === 'EditProfile'}>
+          {user && (
+            <EditProfileScreen
+              user={user}
+              onUpdateUser={handleUpdateUser}
+              onBack={() => setCurrentScreen('Cabinet')}
             />
           )}
         </FadeScreen>

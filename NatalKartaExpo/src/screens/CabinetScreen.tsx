@@ -14,7 +14,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { User, NatalChart } from '../types';
-import EditProfileModal from '../components/EditProfileModal';
 import AstralButton from '../components/AstralButton';
 import ApiService from '../services/api';
 import { formatBirthTime } from '../utils/dateFormatter';
@@ -25,6 +24,7 @@ interface CabinetScreenProps {
   onToggleVideo: (enabled: boolean) => void;
   onBack: () => void;
   onUpdateUser: (updatedUser: User) => void;
+  onNavigateToEditProfile: () => void;
 }
 
 const CabinetScreen: React.FC<CabinetScreenProps> = ({
@@ -33,8 +33,8 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
   onToggleVideo,
   onBack,
   onUpdateUser,
+  onNavigateToEditProfile,
 }) => {
-  const [isEditModalVisible, setIsEditModalVisible] = React.useState(false);
   const [userChart, setUserChart] = React.useState<NatalChart | null>(null);
   const [isLoadingData, setIsLoadingData] = React.useState(true);
 
@@ -86,7 +86,7 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
 
             <AstralButton
               title="Изменить данные"
-              onPress={() => setIsEditModalVisible(true)}
+              onPress={onNavigateToEditProfile}
               style={styles.editButton}
               textStyle={styles.editButtonText}
             />
@@ -174,15 +174,6 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
           </View>
         </View>
       </SafeAreaView>
-
-      {user && (
-        <EditProfileModal
-          visible={isEditModalVisible}
-          onClose={() => setIsEditModalVisible(false)}
-          user={user}
-          onUpdate={onUpdateUser}
-        />
-      )}
     </View>
   );
 };
