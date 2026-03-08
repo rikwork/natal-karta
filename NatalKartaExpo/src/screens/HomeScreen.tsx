@@ -15,10 +15,7 @@ import { useHomeScreen } from '../hooks/useHomeScreen';
 import HoroscopeCard from './Home/components/HoroscopeCard';
 import TarotCard from './Home/components/TarotCard';
 import CelestialAlignments from './Home/components/CelestialAlignments';
-import ZodiacWheel from '../components/ZodiacWheel';
 import AstralButton from '../components/AstralButton';
-
-const { width: _width } = Dimensions.get('window');
 
 interface HomeScreenProps {
   user: User | null;
@@ -146,7 +143,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 title="ОТКРЫТЬ НАТАЛЬНУЮ КАРТУ"
                 onPress={onNavigateToCharts}
                 style={styles.nextButton}
-                hasCosmicGlow={true}
               />
             </View>
           </View>
