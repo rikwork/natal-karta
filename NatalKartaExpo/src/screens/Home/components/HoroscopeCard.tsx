@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HoroscopePeriod } from '../../../hooks/useHomeScreen';
 
-const SCORPIO_ICON = require('../../../../assets/images/scorpio_icon.png');
+const SCORPIO_ICON = require('../../../../assets/images/zodiac/scorpio_icon.png');
 const { width } = Dimensions.get('window');
 
 interface HoroscopeCardProps {
