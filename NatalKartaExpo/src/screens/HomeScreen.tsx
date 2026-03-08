@@ -117,6 +117,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           <CelestialAlignments />
 
           <View style={styles.navButtonWrapper}>
+            <Animated.View style={[
+              styles.orbBackgroundContainer,
+              {
+                transform: [
+                  { rotate: spin },
+                  {
+                    scale: pulseAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [1, 1.05]
+                    })
+                  }
+                ]
+              }
+            ]}>
+              <Image
+                source={require('../../assets/images/cosmic_orb.png')}
+                style={styles.orbBackground}
+                resizeMode="contain"
+              />
+            </Animated.View>
             <AstralButton
               title="ОТКРЫТЬ НАТАЛЬНУЮ КАРТУ"
               onPress={onNavigateToCharts}
@@ -209,8 +229,25 @@ const styles = StyleSheet.create({
     marginBottom: 35,
   },
   navButtonWrapper: {
+    flex: 1,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 40,
     width: '100%',
+  },
+  orbBackgroundContainer: {
+    position: 'absolute',
+    width: 320,
+    height: 320,
+    zIndex: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  orbBackground: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.95,
   },
   nextButton: {
     width: '90%',

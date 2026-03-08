@@ -22,6 +22,7 @@ export const useHomeScreen = (user: User | null) => {
         duration: 60000,
         easing: Easing.linear,
         useNativeDriver: true,
+        isInteraction: false,
       })
     );
     spinLoop.start();
@@ -34,12 +35,14 @@ export const useHomeScreen = (user: User | null) => {
           duration: 3000,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
+          isInteraction: false,
         }),
         Animated.timing(pulseAnim, {
           toValue: 0,
           duration: 3000,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
+          isInteraction: false,
         }),
       ])
     );
