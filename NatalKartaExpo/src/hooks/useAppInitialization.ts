@@ -147,10 +147,24 @@ export const useAppInitialization = () => {
     initializeApp();
   }, [startWheelAnimation]);
 
+  const wheelTranslateY = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     if (currentScreen === 'Loading' || currentScreen === 'Result') {
       setWheelVisible(true);
-    } else if (['Home', 'Charts', 'ChartDetail', 'CreateChart'].includes(currentScreen)) {
+      Animated.timing(wheelTranslateY, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }).start();
+    } else if (currentScreen === 'Home') {
+      setWheelVisible(true);
+      Animated.timing(wheelTranslateY, {
+        toValue: -130, // Смещение в шапку
+        duration: 1200,
+        useNativeDriver: true,
+      }).start();
+    } else {
       setWheelVisible(false);
     }
 
@@ -159,7 +173,7 @@ export const useAppInitialization = () => {
     } else {
       stopPulseAnimation();
     }
-  }, [currentScreen, setWheelVisible, startPulseAnimation, stopPulseAnimation]);
+  }, [currentScreen, setWheelVisible, startPulseAnimation, stopPulseAnimation, wheelTranslateY]);
 
   return {
     user,
@@ -174,6 +188,7 @@ export const useAppInitialization = () => {
     chartResult,
     setChartResult,
     wheelOpacity,
+    wheelTranslateY,
     spin,
     pulseAnim,
     setWheelVisible,
@@ -181,4 +196,5 @@ export const useAppInitialization = () => {
     isVideoEnabled,
     toggleVideoBackground,
   };
+
 };

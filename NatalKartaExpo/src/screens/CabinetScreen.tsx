@@ -15,6 +15,7 @@ import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { User, NatalChart } from '../types';
 import EditProfileModal from '../components/EditProfileModal';
+import AstralButton from '../components/AstralButton';
 import ApiService from '../services/api';
 import { formatBirthTime } from '../utils/dateFormatter';
 
@@ -84,20 +85,12 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
             <Text style={styles.userName}>{user?.name || 'Исследователь'}</Text>
             <Text style={styles.userEmail}>{user?.email}</Text>
 
-            <TouchableOpacity
-              style={styles.editButton}
+            <AstralButton
+              title="Изменить данные"
               onPress={() => setIsEditModalVisible(true)}
-            >
-              <LinearGradient
-                colors={['#FFD700', '#FFA500']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.editButtonGradient}
-              >
-                <Ionicons name="create-outline" size={16} color="#FFF" />
-                <Text style={styles.editButtonText}>Изменить данные</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+              style={styles.editButton}
+              textStyle={styles.editButtonText}
+            />
 
             <View style={styles.badgeContainer}>
               <LinearGradient
@@ -317,21 +310,13 @@ const styles = StyleSheet.create({
   },
   editButton: {
     marginTop: 15,
-    borderRadius: 15,
-    overflow: 'hidden',
-    width: 'auto',
-  },
-  editButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    height: 36,
+    borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 8,
   },
   editButtonText: {
-    color: '#FFF',
     fontSize: 13,
-    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   dataSection: {
     marginBottom: 30,

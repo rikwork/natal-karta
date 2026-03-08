@@ -9,7 +9,6 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 
 import { useOnboarding } from '../hooks/useOnboarding';
 import NameStep from './Onboarding/steps/NameStep';
@@ -17,6 +16,7 @@ import GenderStep from './Onboarding/steps/GenderStep';
 import BirthDateStep from './Onboarding/steps/BirthDateStep';
 import BirthTimeStep from './Onboarding/steps/BirthTimeStep';
 import BirthPlaceStep from './Onboarding/steps/BirthPlaceStep';
+import AstralButton from '../components/AstralButton';
 
 interface OnboardingScreenProps {
   onComplete: (data: any) => void;
@@ -164,30 +164,12 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onStepC
         </Animated.View>
 
         <View style={styles.navigationContainer}>
-          <TouchableOpacity
-            style={[styles.nextButtonWrapper, !isStepValid && styles.nextButtonDisabled]}
+          <AstralButton
+            title={currentStep === steps.length - 1 ? 'Завершить' : 'Continue'}
             onPress={handleNext}
             disabled={!isStepValid}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={['#9D50BB', '#FFD700']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.nextButtonOuter}
-            >
-              <LinearGradient
-                colors={['#1a0b2e', '#411d73']}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
-                style={styles.nextButtonInner}
-              >
-                <Text style={styles.nextButtonText}>
-                  {currentStep === steps.length - 1 ? 'Завершить' : 'Continue'}
-                </Text>
-              </LinearGradient>
-            </LinearGradient>
-          </TouchableOpacity>
+            style={styles.nextButton}
+          />
         </View>
       </ScrollView>
     </View>
@@ -283,36 +265,10 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     paddingHorizontal: 30,
   },
-  navigationContainer: { marginTop: 40, gap: 15 },
-  nextButtonWrapper: {
-    height: 56,
-    borderRadius: 28,
+  navigationContainer: { marginTop: 40 },
+  nextButton: {
     width: '90%',
     alignSelf: 'center',
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  nextButtonOuter: { flex: 1, borderRadius: 28, padding: 1.5 },
-  nextButtonInner: {
-    flex: 1,
-    borderRadius: 26.5,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  nextButtonDisabled: { opacity: 0.4, shadowOpacity: 0 },
-  nextButtonText: {
-    color: '#F0E6D2',
-    fontSize: 22,
-    fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
-    textAlign: 'center',
-    letterSpacing: 1,
-    textShadowColor: 'rgba(255, 255, 255, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
   },
 });
 

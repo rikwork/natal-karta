@@ -5,6 +5,7 @@ import ZodiacWheel from '../ZodiacWheel';
 interface AppBackgroundProps {
   currentScreen: string;
   wheelOpacity: Animated.Value;
+  wheelTranslateY: Animated.Value;
   spin: Animated.AnimatedInterpolation<string | number>;
   pulseAnim: Animated.Value;
   isVideoEnabled: boolean;
@@ -13,10 +14,12 @@ interface AppBackgroundProps {
 const AppBackground: React.FC<AppBackgroundProps> = ({
   currentScreen,
   wheelOpacity,
+  wheelTranslateY,
   spin,
   pulseAnim,
   isVideoEnabled,
 }) => {
+
   useWindowDimensions();
   const showBackground = true;
 
@@ -40,7 +43,7 @@ const AppBackground: React.FC<AppBackgroundProps> = ({
           resizeMode="cover"
         />
       )}
-      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.6)' }]} />
+      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.75)' }]} />
 
       <View
         style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center' }]}
@@ -53,8 +56,9 @@ const AppBackground: React.FC<AppBackgroundProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               opacity: wheelOpacity,
-              transform: [{ translateY: 50 }],
+              transform: [{ translateY: wheelTranslateY }],
             },
+
           ]}
         >
           <ZodiacWheel spin={spin} opacity={1} pulseAnim={pulseAnim} />

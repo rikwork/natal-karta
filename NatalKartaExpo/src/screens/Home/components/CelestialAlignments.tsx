@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
     minWidth: 220,
     gap: 15,
     overflow: 'hidden',
+    backgroundColor: 'rgba(26,26,46,0.5)',
   },
   iconCircle: {
     width: 44,

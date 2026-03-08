@@ -1,40 +1,56 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Image, Dimensions } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
+import { HoroscopePeriod } from '../../../hooks/useHomeScreen';
+
+const SCORPIO_ICON = require('../../../../assets/images/scorpio_icon.png');
+const { width } = Dimensions.get('window');
 
 interface HoroscopeCardProps {
   onPress: () => void;
   content: string;
+  period: HoroscopePeriod;
+  onPeriodChange: (period: HoroscopePeriod) => void;
 }
 
-const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ onPress, content }) => {
+const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ onPress, content, period }) => {
+  const getPeriodTitle = () => {
+    switch (period) {
+      case 'today': return 'СЕГОДНЯ';
+      case 'tomorrow': return 'ЗАВТРА';
+      case 'week': return 'НЕДЕЛЯ';
+      case 'month': return 'МЕСЯЦ';
+      default: return 'ГОРОСКОП';
+    }
+  };
+
   return (
-    <TouchableOpacity style={styles.horoscopeCardWrapper} onPress={onPress} activeOpacity={0.9}>
+    <TouchableOpacity style={styles.horoscopeCardWrapper} onPress={onPress} activeOpacity={1}>
       <BlurView intensity={40} tint="dark" style={styles.glassCard}>
         <LinearGradient
-          colors={['rgba(255,215,0,0.1)', 'transparent'] as const}
+          colors={['rgba(255,215,0,0.15)', 'transparent'] as const}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
 
         <View style={styles.cardHeader}>
-          <Text style={styles.cardSmallTitle}>ГОРОСКОП НА СЕГОДНЯ: 28 ОКТ</Text>
+          <Text style={styles.cardSmallTitle}>{getPeriodTitle()}:</Text>
           <Text style={styles.signTitle}>СКОРПИОН</Text>
         </View>
 
-        <View style={styles.emojiContainer}>
-          <Text style={styles.signEmoji}>♏</Text>
+        <View style={styles.iconContainer}>
           <View style={styles.glowEffect} />
+          <Image source={SCORPIO_ICON} style={styles.scorpioImage} resizeMode="contain" />
         </View>
 
         <View style={styles.cardFooter}>
           <Text style={styles.cardDescription} numberOfLines={3}>
-            {content || 'Принимайте перемены с уверенностью. Сегодня вас ждет творческий прорыв!'}
+            {content || 'Звезды сулят вам необычайный прилив творческой энергии. Прислушайтесь к интуиции.'}
           </Text>
-          <View style={styles.cardSmallIcons}>
-            <Text style={styles.iconText}>✨ 🌙 🌟</Text>
+          <View style={styles.actionPrompt}>
+            <Text style={styles.actionText}>Подробнее →</Text>
           </View>
         </View>
       </BlurView>
@@ -44,7 +60,7 @@ const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ onPress, content }) => {
 
 const styles = StyleSheet.create({
   horoscopeCardWrapper: {
-    flex: 1.1,
+    flex: 1,
     shadowColor: '#FFD700',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
@@ -54,16 +70,13 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,215,0,0.2)',
+    borderColor: 'rgba(255,215,0,0.3)',
     padding: 20,
     height: 300,
-    backgroundColor: 'rgba(26,26,46,0.4)',
+    backgroundColor: 'rgba(26,26,46,0.80)',
   },
   cardHeader: {
     marginBottom: 12,
-    borderLeftWidth: 2,
-    borderLeftColor: '#FFD700',
-    paddingLeft: 10,
   },
   cardSmallTitle: {
     fontSize: 9,
@@ -74,50 +87,54 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   signTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     color: '#FFD700',
     letterSpacing: 1,
     fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
   },
-  emojiContainer: {
-    marginVertical: 15,
+  iconContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  signEmoji: {
-    fontSize: 56,
-    color: '#FFD700',
-    zIndex: 2,
+    marginVertical: 10,
   },
   glowEffect: {
     position: 'absolute',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FFD700',
-    opacity: 0.2,
-    // Note: filter is not supported in React Native StyleSheet, but this is a reminder for web/future
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255, 215, 0, 0.08)',
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+  },
+  scorpioImage: {
+    width: 110,
+    height: 110,
   },
   cardFooter: {
-    marginTop: 'auto',
+    marginTop: 6,
   },
   cardDescription: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.85)',
-    lineHeight: 18,
-    marginBottom: 10,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
+    lineHeight: 16,
     fontWeight: '400',
     fontStyle: 'italic',
+    marginBottom: 8,
   },
-  cardSmallIcons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+  actionPrompt: {
+    marginTop: 2,
   },
-  iconText: {
-    fontSize: 14,
-    opacity: 0.8,
+  actionText: {
+    fontSize: 12,
+    color: '#FFD700',
+    fontWeight: '700',
+    letterSpacing: 1,
   },
 });
 
 export default HoroscopeCard;
+

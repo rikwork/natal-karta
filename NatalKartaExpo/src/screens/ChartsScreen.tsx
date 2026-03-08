@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
     paddingTop: 60,
-    backgroundColor: 'rgba(107, 70, 193, 0.4)',
+    backgroundColor: 'transparent',
   },
   backButton: {
     marginRight: 16,
@@ -176,12 +176,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#F0E6D2',
     marginBottom: 12,
   },
   emptyText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: 'rgba(255, 255, 255, 0.6)',
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -189,15 +189,12 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   chartCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   chartHeader: {
     marginBottom: 12,
@@ -205,7 +202,7 @@ const styles = StyleSheet.create({
   chartName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#F0E6D2',
     marginBottom: 4,
   },
   chartDate: {
@@ -218,7 +215,7 @@ const styles = StyleSheet.create({
   },
   chartDetail: {
     fontSize: 14,
-    color: '#6B7280',
+    color: 'rgba(255, 255, 255, 0.6)',
     marginBottom: 4,
   },
   chartActions: {

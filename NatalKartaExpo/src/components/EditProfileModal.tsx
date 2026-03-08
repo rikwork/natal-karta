@@ -21,6 +21,7 @@ import ApiService from '../services/api';
 import BirthDateStep from '../screens/Onboarding/steps/BirthDateStep';
 import BirthTimeStep from '../screens/Onboarding/steps/BirthTimeStep';
 import BirthPlaceStep from '../screens/Onboarding/steps/BirthPlaceStep';
+import AstralButton from './AstralButton';
 import { formatBirthTime } from '../utils/dateFormatter';
 
 interface EditProfileModalProps {
@@ -320,23 +321,12 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
               </ScrollView>
 
-              <TouchableOpacity
-                style={[
-                  styles.mainSaveButton,
-                  (isLoading || (name === user.name && isBirthDataLocked)) &&
-                  styles.disabledSaveButton,
-                ]}
+              <AstralButton
+                title={isLoading ? 'Сохранение...' : 'Применить изменения'}
                 onPress={handleSave}
-                disabled={isLoading}
-              >
-                <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.saveGradient}>
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color="#FFF" />
-                  ) : (
-                    <Text style={styles.saveText}>Применить изменения</Text>
-                  )}
-                </LinearGradient>
-              </TouchableOpacity>
+                disabled={isLoading || (name === user.name && isBirthDataLocked)}
+                style={styles.mainSaveButton}
+              />
             </>
           )}
         </View>
@@ -452,23 +442,8 @@ const styles = StyleSheet.create({
   },
   mainSaveButton: {
     marginTop: 10,
-    borderRadius: 20,
-    overflow: 'hidden',
     height: 60,
-  },
-  saveGradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  saveText: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  disabledSaveButton: {
-    opacity: 0.4,
+    borderRadius: 20,
   },
 });
 

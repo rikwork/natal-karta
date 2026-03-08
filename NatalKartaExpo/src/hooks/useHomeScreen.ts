@@ -1,11 +1,60 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import { Alert } from 'react-native';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { Alert, Animated, Easing } from 'react-native';
 import ApiService from '../services/api';
 import { User, DailyPrediction, DailyPredictionContent } from '../types';
+
+export type HoroscopePeriod = 'today' | 'tomorrow' | 'week' | 'month' | 'year';
 
 export const useHomeScreen = (user: User | null) => {
   const [dailyPrediction, setDailyPrediction] = useState<DailyPrediction | null>(null);
   const [loading, setLoading] = useState(false);
+  const [period, setPeriod] = useState<HoroscopePeriod>('today');
+
+  // Анимации для ZodiacWheel
+  const spinValue = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Вращение колеса
+    const spinAnimation = Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 1,
+        duration: 60000, // Медленное вращение (1 мин)
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    spinAnimation.start();
+
+    // Пульсация
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 3000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0,
+          duration: 3000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    pulseAnimation.start();
+
+    return () => {
+      spinAnimation.stop();
+      pulseAnimation.stop();
+    };
+  }, [spinValue, pulseAnim]);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   const parsedContent = useMemo(() => {
     if (!dailyPrediction || !dailyPrediction.content) return null;
@@ -18,10 +67,12 @@ export const useHomeScreen = (user: User | null) => {
     }
   }, [dailyPrediction]);
 
-  const loadDailyPrediction = useCallback(async () => {
+  const loadPrediction = useCallback(async (selectedPeriod: HoroscopePeriod) => {
     if (!user) return;
     setLoading(true);
     try {
+      // Пока что бэкенд поддерживает только сегодня/даты. 
+      // Для недели/месяца/года временно используем текущее предсказание или расширим в будущем.
       const response = await ApiService.getDailyPrediction(user.id);
       if (response.data) setDailyPrediction(response.data);
     } catch {
@@ -32,8 +83,8 @@ export const useHomeScreen = (user: User | null) => {
   }, [user]);
 
   useEffect(() => {
-    if (user) loadDailyPrediction();
-  }, [user, loadDailyPrediction]);
+    if (user) loadPrediction(period);
+  }, [user, period, loadPrediction]);
 
   const generateNewPrediction = useCallback(async () => {
     if (!user) return;
@@ -52,5 +103,16 @@ export const useHomeScreen = (user: User | null) => {
     }
   }, [user]);
 
-  return { dailyPrediction, parsedContent, loading, loadDailyPrediction, generateNewPrediction };
+  return {
+    dailyPrediction,
+    parsedContent,
+    loading,
+    loadPrediction,
+    generateNewPrediction,
+    spin,
+    pulseAnim,
+    period,
+    setPeriod
+  };
 };
+

@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const TarotCard: React.FC = () => {
   return (
-    <TouchableOpacity style={styles.tarotCardWrapper} activeOpacity={0.9}>
+    <TouchableOpacity style={styles.tarotCardWrapper} activeOpacity={1}>
       <BlurView intensity={40} tint="dark" style={styles.glassCard}>
         <LinearGradient
           colors={['rgba(157,101,255,0.15)', 'transparent'] as const}
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(157,101,255,0.3)',
     padding: 20,
     height: 300,
-    backgroundColor: 'rgba(26,26,46,0.4)',
+    backgroundColor: 'rgba(26,26,46,0.80)',
   },
   cardHeader: {
     marginBottom: 12,

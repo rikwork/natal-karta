@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Text, Alert, StyleSheet } from 'react-native';
+import { View, Text, Alert, StyleSheet, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useAppInitialization } from './src/hooks/useAppInitialization';
@@ -17,7 +17,9 @@ import CreateChartScreen from './src/screens/CreateChartScreen';
 import ChartsScreen from './src/screens/ChartsScreen';
 import ChartDetailScreen from './src/screens/ChartDetailScreen';
 import CabinetScreen from './src/screens/CabinetScreen';
+import HoroscopeDetailScreen from './src/screens/HoroscopeDetailScreen';
 import AppBackground from './src/components/App/AppBackground';
+import FadeScreen from './src/components/App/FadeScreen';
 
 // Setup global error handling
 setupErrorHandlers();
@@ -38,6 +40,7 @@ const App: React.FC = () => {
     wheelOpacity,
     spin,
     pulseAnim,
+    wheelTranslateY,
     setWheelVisible,
     createNewUser,
     isVideoEnabled,
@@ -102,6 +105,18 @@ const App: React.FC = () => {
             latitude: data.latitude,
             longitude: data.longitude,
           };
+
+          // ВРЕМЕННАЯ ЗАГЛУШКА: вместо реального запроса ставим мок-данные через 1 сек
+          setTimeout(() => {
+            setChartResult({
+              chart: { id: Date.now(), ...chartData, chart_data: "{}" },
+              sun: 'Скорпион',
+              moon: 'Весы',
+              ascendant: 'Близнецы',
+            });
+          }, 1000);
+
+          /* 
           const response = await ApiService.createNatalChart(newUserObj.id, chartData);
           if (response.data) {
             await ApiService.generateNatalChart(newUserObj.id, response.data.id);
@@ -112,11 +127,13 @@ const App: React.FC = () => {
               ascendant: 'Близнецы',
             });
           }
+          */
         } catch (_e) {
           console.error('Parallel generation failed:', _e);
           setChartResult({ sun: 'Скорпион', moon: 'Весы', ascendant: 'Близнецы' });
         }
       }
+
     },
     [user, createNewUser, setUser, setOnboardingData, setCurrentScreen, setChartResult],
   );
@@ -135,75 +152,99 @@ const App: React.FC = () => {
   }
 
   const renderScreen = () => {
-    switch (currentScreen) {
-      case 'Onboarding':
-        return (
+    return (
+      <>
+        <FadeScreen active={currentScreen === 'Onboarding'}>
           <OnboardingScreen
             onComplete={handleOnboardingComplete}
             onStepChange={handleOnboardingStepChange}
           />
-        );
-      case 'Loading':
-        return (
+        </FadeScreen>
+
+        <FadeScreen active={currentScreen === 'Loading'}>
           <LoadingScreen
             isReady={!!chartResult}
             onComplete={handleLoadingComplete}
           />
-        );
-      case 'Result':
-        return chartResult ? (
-          <ResultScreen result={chartResult} onContinue={() => setCurrentScreen('Home')} />
-        ) : null;
-      case 'CreateChart':
-        return user ? (
-          <CreateChartScreen
-            userId={user.id}
-            onChartCreated={() => setCurrentScreen('Charts')}
-            onBack={() => setCurrentScreen('Home')}
-          />
-        ) : null;
-      case 'Charts':
-        return user ? (
-          <ChartsScreen
-            userId={user.id}
-            onChartPress={(chart) => {
-              setSelectedChart(chart);
-              setCurrentScreen('ChartDetail');
-            }}
-            onBack={() => setCurrentScreen('Home')}
-          />
-        ) : null;
-      case 'ChartDetail':
-        return selectedChart && user ? (
-          <ChartDetailScreen
-            chart={selectedChart}
-            userId={user.id}
-            onBack={() => setCurrentScreen('Home')}
-            onWatchAd={handleWatchAd}
-            hasSubscription={user.subscription_type === 'premium'}
-          />
-        ) : null;
-      case 'Cabinet':
-        return (
-          <CabinetScreen
-            user={user}
-            isVideoEnabled={isVideoEnabled}
-            onToggleVideo={toggleVideoBackground}
-            onBack={() => setCurrentScreen('Home')}
-            onUpdateUser={handleUpdateUser}
-          />
-        );
-      default:
-        return user ? (
-          <HomeScreen
-            user={user}
-            onNavigateToCharts={() => setCurrentScreen('Charts')}
-            onNavigateToCreateChart={() => setCurrentScreen('CreateChart')}
-            onNavigateToCabinet={() => setCurrentScreen('Cabinet')}
-            onWatchAd={handleWatchAd}
-          />
-        ) : null;
-    }
+        </FadeScreen>
+
+        <FadeScreen active={currentScreen === 'Result'}>
+          {chartResult && (
+            <ResultScreen result={chartResult} onContinue={() => setCurrentScreen('Home')} />
+          )}
+        </FadeScreen>
+
+        <FadeScreen active={currentScreen === 'CreateChart'}>
+          {user && (
+            <CreateChartScreen
+              userId={user.id}
+              onChartCreated={() => setCurrentScreen('Charts')}
+              onBack={() => setCurrentScreen('Home')}
+            />
+          )}
+        </FadeScreen>
+
+        <FadeScreen active={currentScreen === 'Charts'}>
+          {user && (
+            <ChartsScreen
+              userId={user.id}
+              onChartPress={(chart) => {
+                setSelectedChart(chart);
+                setCurrentScreen('ChartDetail');
+              }}
+              onBack={() => setCurrentScreen('Home')}
+            />
+          )}
+        </FadeScreen>
+
+        <FadeScreen active={currentScreen === 'ChartDetail'}>
+          {selectedChart && user && (
+            <ChartDetailScreen
+              chart={selectedChart}
+              userId={user.id}
+              onBack={() => setCurrentScreen('Home')}
+              onWatchAd={handleWatchAd}
+              hasSubscription={user.subscription_type === 'premium'}
+            />
+          )}
+        </FadeScreen>
+
+        <FadeScreen active={currentScreen === 'Cabinet'}>
+          {user && (
+            <CabinetScreen
+              user={user}
+              isVideoEnabled={isVideoEnabled}
+              onToggleVideo={toggleVideoBackground}
+              onBack={() => setCurrentScreen('Home')}
+              onUpdateUser={handleUpdateUser}
+            />
+          )}
+        </FadeScreen>
+
+        <FadeScreen active={currentScreen === 'HoroscopeDetail'}>
+          {user && (
+            <HoroscopeDetailScreen
+              sign="Скорпион"
+              signImage={require('./assets/images/scorpio_icon.png')}
+              onBack={() => setCurrentScreen('Home')}
+            />
+          )}
+        </FadeScreen>
+
+        <FadeScreen active={currentScreen === 'Home'}>
+          {user && (
+            <HomeScreen
+              user={user}
+              onNavigateToCharts={() => setCurrentScreen('Charts')}
+              onNavigateToCreateChart={() => setCurrentScreen('CreateChart')}
+              onNavigateToCabinet={() => setCurrentScreen('Cabinet')}
+              onNavigateToHoroscope={() => setCurrentScreen('HoroscopeDetail')}
+              onWatchAd={handleWatchAd}
+            />
+          )}
+        </FadeScreen>
+      </>
+    );
   };
 
   return (
@@ -212,10 +253,12 @@ const App: React.FC = () => {
         <AppBackground
           currentScreen={currentScreen}
           wheelOpacity={wheelOpacity}
+          wheelTranslateY={wheelTranslateY}
           spin={spin}
           pulseAnim={pulseAnim}
           isVideoEnabled={isVideoEnabled}
         />
+
         {renderScreen()}
       </View>
     </ErrorBoundary>

@@ -105,6 +105,11 @@ class ApiService {
     return this.request<DailyPrediction[]>(`/users/${userId}/daily_predictions`);
   }
 
+  async getZodiacPredictions(sign: string): Promise<ApiResponse<any>> {
+    const params = new URLSearchParams({ sign });
+    return this.request<any>(`/zodiac_predictions?${params}`);
+  }
+
   // Cities methods
   async searchCities(query: string, language: string = 'ru'): Promise<ApiResponse<City[]>> {
     const params = new URLSearchParams({

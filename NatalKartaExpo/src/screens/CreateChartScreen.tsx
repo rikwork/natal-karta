@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import { BirthData } from '../types';
 import ApiService from '../services/api';
+import AstralButton from '../components/AstralButton';
 
 interface CreateChartScreenProps {
   userId: number;
@@ -145,17 +145,12 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
           />
         </View>
 
-        <TouchableOpacity
-          style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+        <AstralButton
+          title={loading ? 'Загрузка...' : 'Создать натальную карту'}
           onPress={handleSubmit}
           disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.submitButtonText}>Создать натальную карту</Text>
-          )}
-        </TouchableOpacity>
+          style={styles.submitButton}
+        />
       </View>
 
       <DatePicker
@@ -190,7 +185,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
     paddingTop: 60,
-    backgroundColor: 'rgba(107, 70, 193, 0.4)',
+    backgroundColor: 'transparent',
   },
   backButton: {
     marginRight: 16,
@@ -207,6 +202,7 @@ const styles = StyleSheet.create({
   },
   form: {
     padding: 20,
+    paddingBottom: 40,
   },
   inputGroup: {
     marginBottom: 20,
@@ -235,19 +231,9 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
   },
   submitButton: {
-    backgroundColor: '#6B46C1',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
     marginTop: 20,
-  },
-  submitButtonDisabled: {
-    backgroundColor: '#9CA3AF',
-  },
-  submitButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    height: 60,
+    borderRadius: 20,
   },
 });
 
