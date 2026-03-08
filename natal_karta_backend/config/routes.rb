@@ -35,6 +35,8 @@ Rails.application.routes.draw do
           get :search
         end
       end
+
+      resources :zodiac_predictions, only: [:index]
     end
   end
 

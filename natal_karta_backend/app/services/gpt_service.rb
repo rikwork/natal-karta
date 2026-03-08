@@ -14,6 +14,11 @@ class GptService
     generate_content(prompt)
   end
 
+  def self.generate_zodiac_prediction(sign, date, period = 'today')
+    prompt = build_zodiac_prediction_prompt(sign, date, period)
+    generate_content(prompt)
+  end
+
   class << self
     private
 
@@ -44,6 +49,33 @@ class GptService
         Опиши предрасположенности к профессиям, отношения с деньгами. Объемный анализ. Также разбей на абзацы (через \\n\\n), где первый - это "тизер".
 
         Отвечай ТОЛЬКО валидным JSON. Разметка markdown вокруг JSON запрещена.
+      PROMPT
+    end
+
+    def build_zodiac_prediction_prompt(sign, date, period)
+      duration = case period
+                 when 'today' then "день #{date.strftime('%d.%m.%Y')}"
+                 when 'tomorrow' then "день #{(date + 1.day).strftime('%d.%m.%Y')}"
+                 when 'week' then "неделю с #{date.strftime('%d.%m.%Y')}"
+                 when 'month' then "месяц #{date.strftime('%m.%Y')}"
+                 else "день #{date.strftime('%d.%m.%Y')}"
+                 end
+
+      <<~PROMPT
+        Создай профессиональный астрологический гороскоп на #{duration} для знака зодиака #{sign}. 
+        ДУМАЙ ПОШАГОВО (think step by step). Будь вдохновляющим, но реалистичным.
+
+        Включи в гороскоп:
+        1. Общую энергетику и настроение периода
+        2. Рекомендации в сферах любви, карьеры и саморазвития
+        3. Предупреждения (на что обратить внимание)
+        4. Благоприятные часы или дни (если прогноз на неделю/месяц)
+        5. Цвет удачи
+        6. Число удачи
+
+        Ответ должен быть СТРОГО в формате JSON с ключами: "energy", "recommendations", "warnings", "lucky_hours", "color", "number".
+        "recommendations" и "warnings" должны быть массивами строк.
+        Никакого текста кроме валидного JSON (разметка markdown вокруг JSON запрещена).
       PROMPT
     end
 
