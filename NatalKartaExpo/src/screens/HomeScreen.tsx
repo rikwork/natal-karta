@@ -39,6 +39,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     parsedContent,
     spin,
     pulseAnim,
+    ctaPulseAnim,
     period,
     setPeriod
   } = useHomeScreen(user);
@@ -142,11 +143,31 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                   resizeMode="contain"
                 />
               </Animated.View>
-              <AstralButton
-                title="ОТКРЫТЬ НАТАЛЬНУЮ КАРТУ"
-                onPress={onNavigateToCharts}
-                style={styles.nextButton}
-              />
+              <Animated.View style={[
+                styles.ctaButtonWrapper,
+                {
+                  transform: [{
+                    scale: ctaPulseAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [1, 1.03]
+                    })
+                  }],
+                  shadowOpacity: ctaPulseAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.4, 0.8]
+                  }),
+                  shadowRadius: ctaPulseAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [10, 20]
+                  }),
+                }
+              ]}>
+                <AstralButton
+                  title="ОТКРЫТЬ НАТАЛЬНУЮ КАРТУ"
+                  onPress={onNavigateToCharts}
+                  style={styles.nextButton}
+                />
+              </Animated.View>
             </View>
           </View>
         </View>
@@ -255,6 +276,12 @@ const styles = StyleSheet.create({
     opacity: 0.95,
   },
   nextButton: { width: '100%', height: 60, borderRadius: 30 },
+  ctaButtonWrapper: {
+    width: '100%',
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 10,
+  },
 });
 
 

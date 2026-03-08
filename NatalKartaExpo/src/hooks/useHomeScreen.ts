@@ -10,24 +10,25 @@ export const useHomeScreen = (user: User | null) => {
   const [loading, setLoading] = useState(false);
   const [period, setPeriod] = useState<HoroscopePeriod>('today');
 
-  // Анимации для ZodiacWheel
+  // Анимации для ZodiacWheel и CTA кнопок
   const spinValue = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(0)).current;
+  const ctaPulseAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Вращение колеса
-    const spinAnimation = Animated.loop(
+    // Вращение колеса (и орбиты) - делаем чуть быстрее (30с)
+    const spinLoop = Animated.loop(
       Animated.timing(spinValue, {
         toValue: 1,
-        duration: 60000, // Медленное вращение (1 мин)
+        duration: 30000,
         easing: Easing.linear,
         useNativeDriver: true,
       })
     );
-    spinAnimation.start();
+    spinLoop.start();
 
-    // Пульсация
-    const pulseAnimation = Animated.loop(
+    // Фоновая пульсация (медленная)
+    const pulseLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1,
@@ -43,13 +44,33 @@ export const useHomeScreen = (user: User | null) => {
         }),
       ])
     );
-    pulseAnimation.start();
+    pulseLoop.start();
+
+    // CTA Пульсация (зазывающая, более частая)
+    const ctaLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(ctaPulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(ctaPulseAnim, {
+          toValue: 0,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    ctaLoop.start();
 
     return () => {
-      spinAnimation.stop();
-      pulseAnimation.stop();
+      spinLoop.stop();
+      pulseLoop.stop();
+      ctaLoop.stop();
     };
-  }, [spinValue, pulseAnim]);
+  }, [spinValue, pulseAnim, ctaPulseAnim]);
 
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
@@ -71,8 +92,6 @@ export const useHomeScreen = (user: User | null) => {
     if (!user) return;
     setLoading(true);
     try {
-      // Пока что бэкенд поддерживает только сегодня/даты. 
-      // Для недели/месяца/года временно используем текущее предсказание или расширим в будущем.
       const response = await ApiService.getDailyPrediction(user.id);
       if (response.data) setDailyPrediction(response.data);
     } catch {
@@ -111,8 +130,8 @@ export const useHomeScreen = (user: User | null) => {
     generateNewPrediction,
     spin,
     pulseAnim,
+    ctaPulseAnim,
     period,
     setPeriod
   };
 };
-
