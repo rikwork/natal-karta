@@ -16,8 +16,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isReady, onComplete }) =>
   const [minTimeElapsed, setMinTimeElapsed] = React.useState(false);
 
   useEffect(() => {
-    // Анимация пульсации текста - более мягкая
-    const pulseAnimation = Animated.loop(
+    // Анимация пульсации текста - рекурсивная
+    const startPulse = () => {
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.05,
@@ -29,27 +29,25 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isReady, onComplete }) =>
           duration: 2000,
           useNativeDriver: true,
         }),
-      ]),
-    );
+      ]).start(({ finished }) => {
+        if (finished) startPulse();
+      });
+    };
 
-    // Анимация появления текста
-    const textAnimation = Animated.timing(textOpacity, {
-      toValue: 1,
-      duration: 1500,
-      useNativeDriver: true,
-    });
-
-    // Анимация звезд
-    const starsAnimation = Animated.loop(
+    // Анимация звезд - рекурсивная
+    const startStars = () => {
+      starsAnim.setValue(0);
       Animated.timing(starsAnim, {
         toValue: 1,
         duration: 12000,
         useNativeDriver: true,
-      }),
-    );
+      }).start(({ finished }) => {
+        if (finished) startStars();
+      });
+    };
 
-    // Анимация мерцания звезд
-    const starsTwinkleAnimation = Animated.loop(
+    // Анимация мерцания звезд - рекурсивная
+    const startTwinkle = () => {
       Animated.sequence([
         Animated.timing(starsTwinkle, {
           toValue: 1,
@@ -61,14 +59,22 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isReady, onComplete }) =>
           duration: 2000,
           useNativeDriver: true,
         }),
-      ]),
-    );
+      ]).start(({ finished }) => {
+        if (finished) startTwinkle();
+      });
+    };
+
+    // Анимация появления текста
+    Animated.timing(textOpacity, {
+      toValue: 1,
+      duration: 1500,
+      useNativeDriver: true,
+    }).start();
 
     // Запуск анимаций
-    pulseAnimation.start();
-    textAnimation.start();
-    starsAnimation.start();
-    starsTwinkleAnimation.start();
+    startPulse();
+    startStars();
+    startTwinkle();
 
     // Минимальное время анимации для UX (например, 2.5 секунды)
     const timer = setTimeout(() => {
@@ -76,8 +82,9 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isReady, onComplete }) =>
     }, 2500);
 
     return () => {
-      pulseAnimation.stop();
-      starsTwinkleAnimation.stop();
+      pulseAnim.stopAnimation();
+      starsTwinkle.stopAnimation();
+      starsAnim.stopAnimation();
       clearTimeout(timer);
     };
   }, [pulseAnim, starsAnim, starsTwinkle, textOpacity]);

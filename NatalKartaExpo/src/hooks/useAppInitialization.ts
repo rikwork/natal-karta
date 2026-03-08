@@ -50,23 +50,25 @@ export const useAppInitialization = () => {
 
   const startPulseAnimation = useCallback(() => {
     pulseAnim.setValue(0);
-    pulseAnimationRef.current = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1500,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 0,
-          duration: 1500,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    pulseAnimationRef.current.start();
+    const animation = Animated.sequence([
+      Animated.timing(pulseAnim, {
+        toValue: 1,
+        duration: 1500,
+        easing: Easing.inOut(Easing.sin),
+        useNativeDriver: true,
+      }),
+      Animated.timing(pulseAnim, {
+        toValue: 0,
+        duration: 1500,
+        easing: Easing.inOut(Easing.sin),
+        useNativeDriver: true,
+      }),
+    ]);
+
+    animation.start(({ finished }) => {
+      if (finished) startPulseAnimation();
+    });
+    pulseAnimationRef.current = animation;
   }, [pulseAnim]);
 
   const stopPulseAnimation = useCallback(() => {

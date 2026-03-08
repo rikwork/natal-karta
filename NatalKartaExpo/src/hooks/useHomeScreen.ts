@@ -14,45 +14,50 @@ export const useHomeScreen = (user: User | null) => {
   const spinValue = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    // Вращение колеса (и орбиты) - цикл 30с
-    const spinLoop = Animated.loop(
-      Animated.timing(spinValue, {
+  const startSpinAnimation = useCallback(() => {
+    spinValue.setValue(0);
+    Animated.timing(spinValue, {
+      toValue: 1,
+      duration: 60000,
+      easing: Easing.linear,
+      useNativeDriver: true,
+      isInteraction: false,
+    }).start(({ finished }) => {
+      if (finished) startSpinAnimation();
+    });
+  }, [spinValue]);
+
+  const startPulseAnimation = useCallback(() => {
+    pulseAnim.setValue(0);
+    Animated.sequence([
+      Animated.timing(pulseAnim, {
         toValue: 1,
-        duration: 60000,
-        easing: Easing.linear,
+        duration: 3000,
+        easing: Easing.inOut(Easing.ease),
         useNativeDriver: true,
         isInteraction: false,
-      })
-    );
-    spinLoop.start();
+      }),
+      Animated.timing(pulseAnim, {
+        toValue: 0,
+        duration: 3000,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+        isInteraction: false,
+      }),
+    ]).start(({ finished }) => {
+      if (finished) startPulseAnimation();
+    });
+  }, [pulseAnim]);
 
-    // Фоновая пульсация (медленная)
-    const pulseLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 3000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-          isInteraction: false,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 0,
-          duration: 3000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-          isInteraction: false,
-        }),
-      ])
-    );
-    pulseLoop.start();
+  useEffect(() => {
+    startSpinAnimation();
+    startPulseAnimation();
 
     return () => {
-      spinLoop.stop();
-      pulseLoop.stop();
+      spinValue.stopAnimation();
+      pulseAnim.stopAnimation();
     };
-  }, [spinValue, pulseAnim]);
+  }, [startSpinAnimation, startPulseAnimation, spinValue, pulseAnim]);
 
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
