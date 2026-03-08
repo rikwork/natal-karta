@@ -21,6 +21,7 @@ import EditProfileScreen from './src/screens/EditProfileScreen';
 import HoroscopeDetailScreen from './src/screens/HoroscopeDetailScreen';
 import AppBackground from './src/components/App/AppBackground';
 import FadeScreen from './src/components/App/FadeScreen';
+import { getZodiacIcon } from './src/utils/zodiacIcons';
 
 // Setup global error handling
 setupErrorHandlers();
@@ -226,8 +227,8 @@ const App: React.FC = () => {
         <FadeScreen active={currentScreen === 'HoroscopeDetail'}>
           {user && (
             <HoroscopeDetailScreen
-              sign="Скорпион"
-              signImage={require('./assets/images/zodiac/scorpio_icon.png')}
+              sign={user.zodiac_sign || 'Овен'}
+              signImage={getZodiacIcon(user.zodiac_sign || 'Овен')}
               onBack={() => setCurrentScreen('Home')}
             />
           )}

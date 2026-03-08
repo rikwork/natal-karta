@@ -5,6 +5,7 @@ export interface User {
   subscription_type: 'free' | 'premium';
   subscription_expires_at?: string;
   birth_data_updated_at?: string;
+  zodiac_sign?: string;
   created_at: string;
   updated_at: string;
 }

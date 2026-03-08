@@ -4,7 +4,8 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HoroscopePeriod } from '../../../hooks/useHomeScreen';
 
-const SCORPIO_ICON = require('../../../../assets/images/zodiac/scorpio_icon.png');
+import { getZodiacIcon } from '../../../utils/zodiacIcons';
+
 const { width } = Dimensions.get('window');
 
 interface HoroscopeCardProps {
@@ -12,9 +13,10 @@ interface HoroscopeCardProps {
   content: string;
   period: HoroscopePeriod;
   onPeriodChange: (period: HoroscopePeriod) => void;
+  sign?: string;
 }
 
-const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ onPress, content, period }) => {
+const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ onPress, content, period, sign }) => {
   const getPeriodTitle = () => {
     switch (period) {
       case 'today': return 'СЕГОДНЯ';
@@ -24,6 +26,8 @@ const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ onPress, content, period 
       default: return 'ГОРОСКОП';
     }
   };
+
+  const zodiacIcon = getZodiacIcon(sign || 'Овен');
 
   return (
     <TouchableOpacity style={styles.horoscopeCardWrapper} onPress={onPress} activeOpacity={1}>
@@ -37,12 +41,12 @@ const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ onPress, content, period 
 
         <View style={styles.cardHeader}>
           <Text style={styles.cardSmallTitle}>{getPeriodTitle()}:</Text>
-          <Text style={styles.signTitle}>СКОРПИОН</Text>
+          <Text style={styles.signTitle}>{sign?.toUpperCase() || 'ОВЕН'}</Text>
         </View>
 
         <View style={styles.iconContainer}>
           <View style={styles.glowEffect} />
-          <Image source={SCORPIO_ICON} style={styles.scorpioImage} resizeMode="contain" />
+          <Image source={zodiacIcon} style={styles.scorpioImage} resizeMode="contain" />
         </View>
 
         <View style={styles.cardFooter}>

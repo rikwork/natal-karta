@@ -110,6 +110,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               content={parsedContent?.recommendations?.[0] || ''}
               period={period}
               onPeriodChange={setPeriod}
+              sign={user?.zodiac_sign}
             />
             <TarotCard />
           </View>
