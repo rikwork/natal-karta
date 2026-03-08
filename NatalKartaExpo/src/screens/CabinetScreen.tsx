@@ -39,9 +39,10 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
   const [isLoadingData, setIsLoadingData] = React.useState(true);
 
   const fetchUserChart = React.useCallback(async () => {
+    if (!user?.id) return;
     setIsLoadingData(true);
     try {
-      const response = await ApiService.getNatalCharts(user!.id);
+      const response = await ApiService.getNatalCharts(user.id);
       if (response.data && response.data.length > 0) {
         setUserChart(response.data[0]);
       }
@@ -50,13 +51,11 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
     } finally {
       setIsLoadingData(false);
     }
-  }, [user]);
+  }, [user?.id]);
 
   React.useEffect(() => {
-    if (user) {
-      fetchUserChart();
-    }
-  }, [user, fetchUserChart]);
+    fetchUserChart();
+  }, [fetchUserChart]);
 
   return (
     <View style={styles.mainContainer}>

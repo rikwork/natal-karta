@@ -106,28 +106,18 @@ const App: React.FC = () => {
             longitude: data.longitude,
           };
 
-          // ВРЕМЕННАЯ ЗАГЛУШКА: вместо реального запроса ставим мок-данные через 1 сек
-          setTimeout(() => {
-            setChartResult({
-              chart: { id: Date.now(), ...chartData, chart_data: "{}" },
-              sun: 'Скорпион',
-              moon: 'Весы',
-              ascendant: 'Близнецы',
-            });
-          }, 1000);
-
-          /* 
           const response = await ApiService.createNatalChart(newUserObj.id, chartData);
           if (response.data) {
-            await ApiService.generateNatalChart(newUserObj.id, response.data.id);
-            setChartResult({
-              chart: response.data,
-              sun: 'Скорпион',
-              moon: 'Весы',
-              ascendant: 'Близнецы',
-            });
+            const genResponse = await ApiService.generateNatalChart(newUserObj.id, response.data.id);
+            if (genResponse.data) {
+              setChartResult({
+                chart: genResponse.data,
+                sun: 'Расчет...', // Эти данные должны приходить из genResponse или парситься из chart_data
+                moon: 'Расчет...',
+                ascendant: 'Расчет...',
+              });
+            }
           }
-          */
         } catch (_e) {
           console.error('Parallel generation failed:', _e);
           setChartResult({ sun: 'Скорпион', moon: 'Весы', ascendant: 'Близнецы' });

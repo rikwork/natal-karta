@@ -37,7 +37,12 @@ const AstralButton: React.FC<AstralButtonProps> = ({
         <TouchableOpacity
             style={[
                 styles.buttonWrapper,
-                { height, borderRadius },
+                {
+                    height,
+                    borderRadius,
+                    shadowRadius: typeof height === 'number' ? height * 0.18 : 10,
+                    shadowOpacity: typeof height === 'number' ? Math.min(0.4, 0.2 + (height / 200)) : 0.4
+                },
                 disabled && styles.disabled,
                 style
             ]}
