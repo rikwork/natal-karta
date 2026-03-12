@@ -4,10 +4,12 @@ import g4f
 
 def generate_completion(prompt):
     providers = [
-        g4f.Provider.AIBadgr,
-        g4f.Provider.BlackboxPro,
+        g4f.Provider.OperaAria,
+        g4f.Provider.Perplexity,
+        g4f.Provider.DeepInfra,
         g4f.Provider.GeminiPro,
-        g4f.Provider.DeepSeek
+        g4f.Provider.Groq,
+        g4f.Provider.Qwen_Qwen_3
     ]
     
     for provider in providers:
