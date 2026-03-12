@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   },
   editButton: {
     marginTop: 15,
-    height: 36,
+    height: 44,
     borderRadius: 12,
     paddingHorizontal: 16,
   },

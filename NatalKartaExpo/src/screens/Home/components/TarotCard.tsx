@@ -1,11 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Vibration } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const TarotCard: React.FC = () => {
   return (
-    <TouchableOpacity style={styles.tarotCardWrapper} activeOpacity={1}>
+    <TouchableOpacity
+      style={styles.tarotCardWrapper}
+      activeOpacity={0.9}
+      onPress={() => Vibration.vibrate(5)}
+    >
       <BlurView intensity={40} tint="dark" style={styles.glassCard}>
         <LinearGradient
           colors={['rgba(157,101,255,0.15)', 'transparent'] as const}
@@ -15,8 +19,8 @@ const TarotCard: React.FC = () => {
         />
 
         <View style={styles.cardHeader}>
-          <Text style={styles.cardSmallTitle}>КАРТА ДНЯ:</Text>
-          <Text style={styles.tarotTitle}>ЗВЕЗДА</Text>
+          <Text style={styles.cardSmallTitle} allowFontScaling={true}>КАРТА ДНЯ:</Text>
+          <Text style={styles.tarotTitle} allowFontScaling={true}>ЗВЕЗДА</Text>
         </View>
 
         <View style={styles.tarotImageContainer}>
@@ -32,8 +36,8 @@ const TarotCard: React.FC = () => {
         </View>
 
         <View style={styles.tarotFooter}>
-          <Text style={styles.tarotStatus}>Звезда (Прямое)</Text>
-          <Text style={styles.tarotDesc} numberOfLines={2}>
+          <Text style={styles.tarotStatus} allowFontScaling={true}>Звезда (Прямое)</Text>
+          <Text style={styles.tarotDesc} numberOfLines={2} allowFontScaling={true}>
             Надежда, вдохновение, обновление. День исцеления и ясности.
           </Text>
         </View>

@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
+  Vibration,
 } from 'react-native';
 import { NatalChart } from '../types';
 import ApiService from '../services/api';
@@ -51,7 +52,9 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({ userId, onChartPress, onBac
 
   const handleGenerateChart = async (chart: NatalChart) => {
     try {
+      Vibration.vibrate(10);
       await ApiService.generateNatalChart(userId, chart.id);
+      Vibration.vibrate(50);
       Alert.alert('Успех', 'Натальная карта сгенерирована!');
       loadCharts(); // Обновляем список
     } catch (_error) {
@@ -59,33 +62,16 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({ userId, onChartPress, onBac
     }
   };
 
-  const renderChartItem = ({ item }: { item: NatalChart }) => (
-    <TouchableOpacity style={styles.chartCard} onPress={() => onChartPress(item)}>
-      <View style={styles.chartHeader}>
-        <Text style={styles.chartName}>{item.name}</Text>
-        <Text style={styles.chartDate}>
-          {new Date(item.birth_date).toLocaleDateString('ru-RU')}
-        </Text>
-      </View>
-
-      <View style={styles.chartDetails}>
-        <Text style={styles.chartDetail}>Время: {item.birth_time}</Text>
-        <Text style={styles.chartDetail}>Место: {item.birth_place}</Text>
-      </View>
-
-      <View style={styles.chartActions}>
-        {item.chart_data ? (
-          <View style={styles.generatedBadge}>
-            <Text style={styles.generatedText}>Сгенерирована</Text>
-          </View>
-        ) : (
-          <TouchableOpacity style={styles.generateButton} onPress={() => handleGenerateChart(item)}>
-            <Text style={styles.generateButtonText}>Сгенерировать</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+  const renderChartItem = useCallback(({ item }: { item: NatalChart }) => (
+    <ChartItem
+      item={item}
+      onPress={() => {
+        Vibration.vibrate(10);
+        onChartPress(item);
+      }}
+      onGenerate={() => handleGenerateChart(item)}
+    />
+  ), [onChartPress, handleGenerateChart]);
 
   if (loading) {
     return (
@@ -245,5 +231,50 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+// Memoized list item for better performance
+const ChartItem = React.memo(({
+  item,
+  onPress,
+  onGenerate
+}: {
+  item: NatalChart;
+  onPress: () => void;
+  onGenerate: () => void;
+}) => (
+  <TouchableOpacity
+    style={styles.chartCard}
+    onPress={onPress}
+    activeOpacity={0.7}
+  >
+    <View style={styles.chartHeader}>
+      <Text style={styles.chartName} allowFontScaling={true}>{item.name}</Text>
+      <Text style={styles.chartDate} allowFontScaling={true}>
+        {new Date(item.birth_date).toLocaleDateString('ru-RU')}
+      </Text>
+    </View>
+
+    <View style={styles.chartDetails}>
+      <Text style={styles.chartDetail} allowFontScaling={true}>Время: {item.birth_time}</Text>
+      <Text style={styles.chartDetail} allowFontScaling={true}>Место: {item.birth_place}</Text>
+    </View>
+
+    <View style={styles.chartActions}>
+      {item.chart_data ? (
+        <View style={styles.generatedBadge}>
+          <Text style={styles.generatedText} allowFontScaling={true}>Сгенерирована</Text>
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={styles.generateButton}
+          onPress={onGenerate}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.generateButtonText} allowFontScaling={true}>Сгенерировать</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  </TouchableOpacity>
+));
 
 export default ChartsScreen;

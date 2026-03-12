@@ -136,9 +136,9 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onStepC
         <View style={styles.dotsProgressContainer}>
           <View style={styles.progressLine} />
           <View style={styles.dotsRow}>
-            {steps.map((_, index) => (
+            {steps.map((item, index) => (
               <View
-                key={index}
+                key={item.id}
                 style={[
                   styles.dot,
                   currentStep === index ? styles.activeDot : styles.inactiveDot,

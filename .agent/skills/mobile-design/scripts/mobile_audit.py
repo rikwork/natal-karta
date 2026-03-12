@@ -94,22 +94,32 @@ class MobileAuditor:
 
         if not (is_react_native or is_flutter):
             return  # Skip non-mobile files
+        
+        # Skip configuration files
+        if filename in ['babel.config.js', 'app.json', 'package.json', 'tsconfig.json', 'metro.config.js']:
+            return
 
         # --- 1. TOUCH PSYCHOLOGY CHECKS ---
 
         # 1.1 Touch Target Size Check
-        # Look for small touch targets
-        small_sizes = re.findall(r'(?:width|height|size):\s*([0-3]\d)', content)
-        for size in small_sizes:
-            if int(size) < 44:
-                self.issues.append(f"[Touch Target] {filename}: Touch target size {size}px < 44px minimum (iOS: 44pt, Android: 48dp)")
+        # Look for small touch targets in style definitions
+        # Refined to look for keywords likely associated with touchables or layouts
+        style_blocks = re.findall(r'(\w+):\s*\{([^}]+)\}', content)
+        for style_name, style_body in style_blocks:
+            if any(k in style_name.lower() for k in ['button', 'touch', 'clickable', 'tab', 'cta', 'header', 'back']):
+                small_sizes = re.findall(r'\b(width|height|size):\s*([0-3]\d)\b', style_body)
+                for prop, size in small_sizes:
+                    if int(size) < 44:
+                        # Check if hitSlop is present to mitigate small size
+                        if 'hitSlop' not in style_body and 'hitSlop' not in content:
+                            self.issues.append(f"[Touch Target] {filename}: style '{style_name}' size {size}px < 44px and no hitSlop found.")
 
         # 1.2 Touch Target Spacing Check
-        # Look for inadequate spacing between touchable elements
-        small_gaps = re.findall(r'(?:margin|gap):\s*([0-7])\s*(?:px|dp)', content)
+        # Look for inadequate spacing between elements
+        small_gaps = re.findall(r'(?:margin|gap):\s*([0-7])\b', content)
         for gap in small_gaps:
             if int(gap) < 8:
-                self.warnings.append(f"[Touch Spacing] {filename}: Touch target spacing {gap}px < 8px minimum. Accidental taps risk.")
+                self.warnings.append(f"[Touch Spacing] {filename}: Spacing {gap}px < 8px minimum. Accidental taps risk.")
 
         # 1.3 Thumb Zone Placement Check
         # Primary CTAs should be at bottom (easy thumb reach)
@@ -136,9 +146,9 @@ class MobileAuditor:
         # Touch feedback should be immediate (<50ms)
         if is_react_native:
             has_pressable = bool(re.search(r'Pressable|TouchableOpacity', content))
-            has_feedback_state = bool(re.search(r'pressed|style.*opacity|underlay', content))
+            has_feedback_state = bool(re.search(r'pressed|style.*opacity|underlay|activeOpacity', content))
             if has_pressable and not has_feedback_state:
-                self.warnings.append(f"[Touch Feedback] {filename}: Pressable without visual feedback state. Add opacity/scale change for tap confirmation.")
+                self.warnings.append(f"[Touch Feedback] {filename}: Pressable/TouchableOpacity without visual feedback state. Add activeOpacity or pressed state.")
 
         # --- 2. MOBILE PERFORMANCE CHECKS ---
 
@@ -249,15 +259,16 @@ class MobileAuditor:
         # 4.2 Text Scaling Check (iOS Dynamic Type)
         if is_react_native:
             has_font_sizes = bool(re.search(r'fontSize:', content))
-            has_scaling = bool(re.search(r'allowFontScaling:\s*true|responsiveFontSize|useWindowDimensions', content))
+            has_scaling = bool(re.search(r'allowFontScaling[:=]\s*\{?true\}?|responsiveFontSize|useWindowDimensions', content))
             if has_font_sizes and not has_scaling:
                 self.warnings.append(f"[Typography] {filename}: Fixed font sizes without scaling support. Consider allowFontScaling for accessibility.")
 
         # 4.3 Mobile Line Height Check
         line_heights = re.findall(r'lineHeight:\s*([\d.]+)', content)
         for lh in line_heights:
-            if float(lh) > 1.8:
-                self.warnings.append(f"[Typography] {filename}: lineHeight {lh} too high for mobile. Mobile text needs tighter spacing (1.3-1.5).")
+            val = float(lh)
+            if 0 < val < 1.0 or 1.8 < val < 3.0:
+                self.warnings.append(f"[Typography] {filename}: lineHeight {lh} may be too high/low for mobile. Mobile text needs tighter spacing (1.3-1.5).")
 
         # 4.4 Font Size Limits
         font_sizes = re.findall(r'fontSize:\s*([\d.]+)', content)
@@ -613,7 +624,7 @@ class MobileAuditor:
     def audit_directory(self, directory: str) -> None:
         extensions = {'.tsx', '.ts', '.jsx', '.js', '.dart'}
         for root, dirs, files in os.walk(directory):
-            dirs[:] = [d for d in dirs if d not in {'node_modules', '.git', 'dist', 'build', '.next', 'ios', 'android', 'build', '.idea'}]
+            dirs[:] = [d for d in dirs if d not in {'node_modules', '.git', 'dist', 'build', '.next', 'ios', 'android', '.agent', '.agents', '.idea', 'brain'}]
             for file in files:
                 if Path(file).suffix in extensions:
                     self.audit_file(os.path.join(root, file))

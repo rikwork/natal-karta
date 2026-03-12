@@ -128,8 +128,8 @@ const HoroscopeDetailScreen: React.FC<HoroscopeDetailScreenProps> = ({
 
                                 <View style={styles.predictionSection}>
                                     <Text style={styles.sectionTitle}>Рекомендации</Text>
-                                    {currentPrediction?.recommendations?.map((rec: string, index: number) => (
-                                        <View key={index} style={styles.bulletRow}>
+                                    {currentPrediction?.recommendations?.map((rec: string) => (
+                                        <View key={rec} style={styles.bulletRow}>
                                             <Text style={styles.bullet}>✨</Text>
                                             <Text style={styles.bulletText}>{rec}</Text>
                                         </View>
@@ -140,8 +140,8 @@ const HoroscopeDetailScreen: React.FC<HoroscopeDetailScreenProps> = ({
 
                                 <View style={styles.predictionSection}>
                                     <Text style={styles.sectionTitle}>Предупреждения</Text>
-                                    {currentPrediction?.warnings?.map((warn: string, index: number) => (
-                                        <View key={index} style={styles.bulletRow}>
+                                    {currentPrediction?.warnings?.map((warn: string) => (
+                                        <View key={warn} style={styles.bulletRow}>
                                             <Text style={styles.bullet}>⚠️</Text>
                                             <Text style={styles.bulletText}>{warn}</Text>
                                         </View>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Vibration } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface ResultScreenProps {
@@ -85,7 +85,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onContinue }) => {
         ]}
       >
         {/* Заголовок */}
-        <Text style={styles.title}>Твоя натальная карта готова!</Text>
+        <Text style={styles.title} allowFontScaling={true}>Твоя натальная карта готова!</Text>
 
         {/* Результат */}
         <View style={styles.resultContainer}>
@@ -130,15 +130,22 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onContinue }) => {
         </View>
 
         {/* Описание */}
-        <Text style={styles.description}>
+        <Text style={styles.description} allowFontScaling={true}>
           Это основа твоей астрологической личности. Теперь ты можешь узнать больше о себе и своём
           будущем.
         </Text>
 
         {/* Кнопка продолжения */}
-        <TouchableOpacity style={styles.continueButton} onPress={onContinue}>
+        <TouchableOpacity
+          style={styles.continueButton}
+          onPress={() => {
+            Vibration.vibrate(10);
+            onContinue();
+          }}
+          activeOpacity={0.8}
+        >
           <LinearGradient colors={['#ff6b6b', '#ee5a52']} style={styles.buttonGradient}>
-            <Text style={styles.buttonText}>Продолжить</Text>
+            <Text style={styles.buttonText} allowFontScaling={true}>Продолжить</Text>
           </LinearGradient>
         </TouchableOpacity>
       </Animated.View>
