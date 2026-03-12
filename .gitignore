@@ -119,3 +119,6 @@ web-build/
 *.orig.*
 expo-debug.log
 .agent/workspaces/
+
+# Generated media artifacts
+generated_media/
