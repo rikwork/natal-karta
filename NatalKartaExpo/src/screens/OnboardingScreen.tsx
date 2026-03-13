@@ -165,7 +165,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onStepC
 
         <View style={styles.navigationContainer}>
           <AstralButton
-            title={currentStep === steps.length - 1 ? 'Завершить' : 'Continue'}
+            title={currentStep === steps.length - 1 ? 'Завершить' : 'Продолжить'}
             onPress={handleNext}
             disabled={!isStepValid}
             style={styles.nextButton}
