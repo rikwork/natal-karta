@@ -14,6 +14,14 @@ class User < ApplicationRecord
     calculate_zodiac_sign(chart.birth_date)
   end
 
+  def has_active_subscription?
+    subscription_type == "premium" && subscription_expires_at&.future?
+  end
+
+  def can_update_birth_data?
+    birth_data_updated_at.nil? || birth_data_updated_at < 24.hours.ago
+  end
+
   private
 
   def calculate_zodiac_sign(date)
@@ -34,13 +42,5 @@ class User < ApplicationRecord
     when 11 then day >= 22 ? "Стрелец" : "Скорпион"
     when 12 then day >= 22 ? "Козерог" : "Стрелец"
     end
-  end
-
-  def has_active_subscription?
-    subscription_type == "premium" && subscription_expires_at&.future?
-  end
-
-  def can_update_birth_data?
-    birth_data_updated_at.nil? || birth_data_updated_at < 24.hours.ago
   end
 end

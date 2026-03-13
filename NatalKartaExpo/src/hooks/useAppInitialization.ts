@@ -104,14 +104,7 @@ export const useAppInitialization = () => {
       return userData;
     } catch (error) {
       console.error('Error creating user:', error);
-      return {
-        id: Date.now(),
-        name: data?.name || 'Пользователь',
-        email: 'error@example.com',
-        subscription_type: 'free',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      throw new Error('Failed to create complete user profile on the server.');
     }
   }, []);
 
@@ -131,8 +124,18 @@ export const useAppInitialization = () => {
       }
 
       if (savedUser && hasCompletedOnboarding) {
-        setUser(JSON.parse(savedUser));
-        setCurrentScreen('Home');
+        const parsedUser = JSON.parse(savedUser);
+        
+        // Remove ghost users
+        if (parsedUser && parsedUser.id && parsedUser.id > 10000000) {
+          console.log('Ghost user detected. Clearing storage to force new onboarding.');
+          await AsyncStorage.removeItem('user');
+          await AsyncStorage.removeItem('onboarding_completed');
+          setCurrentScreen('Onboarding');
+        } else {
+          setUser(parsedUser);
+          setCurrentScreen('Home');
+        }
       } else {
         setCurrentScreen('Onboarding');
       }

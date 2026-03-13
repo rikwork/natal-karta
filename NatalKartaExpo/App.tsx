@@ -99,29 +99,59 @@ const App: React.FC = () => {
       // Start generation immediately in parallel
       if (newUserObj) {
         try {
-          const chartData = {
-            name: `${newUserObj.name} - Натальная карта`,
-            birth_date: data.birthDate,
-            birth_time: data.birthTime,
-            birth_place: data.birthPlace,
-            latitude: data.latitude,
-            longitude: data.longitude,
-          };
+          // First check if the user already has a natal chart (from a previous session)
+          const chartsResponse = await ApiService.getNatalCharts(newUserObj.id);
 
-          const response = await ApiService.createNatalChart(newUserObj.id, chartData);
-          if (response.data) {
-            const genResponse = await ApiService.generateNatalChart(newUserObj.id, response.data.id);
-            if (genResponse.data) {
+          if (chartsResponse.data && chartsResponse.data.length > 0) {
+            console.log('User already has a chart, skipping creation to avoid 429');
+            const existingChart = chartsResponse.data[0];
+
+            // If it doesn't have chart_data, we might need to generate it
+            if (!existingChart.chart_data) {
+              const genResponse = await ApiService.generateNatalChart(newUserObj.id, existingChart.id);
+              if (genResponse.data) {
+                setChartResult({
+                  chart: genResponse.data,
+                  sun: 'Расчет...',
+                  moon: 'Расчет...',
+                  ascendant: 'Расчет...',
+                });
+              }
+            } else {
               setChartResult({
-                chart: genResponse.data,
-                sun: 'Расчет...', // Эти данные должны приходить из genResponse или парситься из chart_data
-                moon: 'Расчет...',
-                ascendant: 'Расчет...',
+                chart: existingChart,
+                sun: 'Готово',
+                moon: 'Готово',
+                ascendant: 'Готово',
               });
+            }
+          } else {
+            // Create a new chart for a truly new user
+            const chartData = {
+              name: `${newUserObj.name} - Натальная карта`,
+              birth_date: data.birthDate,
+              birth_time: data.birthTime,
+              birth_place: data.birthPlace,
+              latitude: data.latitude,
+              longitude: data.longitude,
+            };
+
+            const response = await ApiService.createNatalChart(newUserObj.id, chartData);
+            if (response.data) {
+              const genResponse = await ApiService.generateNatalChart(newUserObj.id, response.data.id);
+              if (genResponse.data) {
+                setChartResult({
+                  chart: genResponse.data,
+                  sun: 'Расчет...', // Эти данные должны приходить из genResponse или парситься из chart_data
+                  moon: 'Расчет...',
+                  ascendant: 'Расчет...',
+                });
+              }
             }
           }
         } catch (_e) {
           console.error('Parallel generation failed:', _e);
+          // Unblock the loading screen so the user can at least proceed to Home
           setChartResult({ sun: 'Скорпион', moon: 'Весы', ascendant: 'Близнецы' });
         }
       }

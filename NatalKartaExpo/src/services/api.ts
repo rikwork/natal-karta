@@ -1,7 +1,8 @@
 import { User, NatalChart, DailyPrediction, BirthData, City, ApiResponse } from '../types';
 import errorReporter from './errorReporter';
+import { ENV } from '../config/api';
 
-const API_BASE_URL = 'http://localhost:3000/api/v1';
+const API_BASE_URL = ENV.API_BASE_URL;
 
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {

@@ -1,7 +1,9 @@
+import { ENV } from '../config/api';
+
 // Простая система отправки ошибок на сервер
 class ErrorReporter {
   private static instance: ErrorReporter;
-  private apiUrl = 'http://192.168.1.5:3000/api/v1/error_logs';
+  private apiUrl = `${ENV.API_BASE_URL}/error_logs`;
 
   static getInstance(): ErrorReporter {
     if (!ErrorReporter.instance) {
