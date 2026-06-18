@@ -9,9 +9,12 @@ import {
   ActivityIndicator,
   RefreshControl,
   Vibration,
+  SafeAreaView,
 } from 'react-native';
 import { NatalChart } from '../types';
 import ApiService from '../services/api';
+import AstralHeader from '../components/AstralHeader';
+import AstralGlassCard from '../components/AstralGlassCard';
 
 interface ChartsScreenProps {
   userId: number;
@@ -84,35 +87,32 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({ userId, onChartPress, onBac
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← Назад</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Мои натальные карты</Text>
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <AstralHeader title="Мои натальные карты" onBack={onBack} />
 
-      {charts.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>Нет натальных карт</Text>
-          <Text style={styles.emptyText}>
-            Создайте свою первую натальную карту, чтобы начать изучение астрологии
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={charts}
-          renderItem={renderChartItem}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContainer}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              colors={['#6B46C1']}
-            />
-          }
-        />
-      )}
+        {charts.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>Нет натальных карт</Text>
+            <Text style={styles.emptyText}>
+              Создайте свою первую натальную карту, чтобы начать изучение астрологии
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={charts}
+            renderItem={renderChartItem}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.listContainer}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={['#6B46C1']}
+              />
+            }
+          />
+        )}
+      </SafeAreaView>
     </View>
   );
 };
@@ -122,25 +122,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 24,
-    paddingTop: 60,
-    backgroundColor: 'transparent',
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+  safeArea: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -175,12 +158,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   chartCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     padding: 16,
-    borderRadius: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   chartHeader: {
     marginBottom: 12,
@@ -243,37 +221,39 @@ const ChartItem = React.memo(({
   onGenerate: () => void;
 }) => (
   <TouchableOpacity
-    style={styles.chartCard}
     onPress={onPress}
     activeOpacity={0.7}
+    style={{ marginBottom: 16 }}
   >
-    <View style={styles.chartHeader}>
-      <Text style={styles.chartName} allowFontScaling={true}>{item.name}</Text>
-      <Text style={styles.chartDate} allowFontScaling={true}>
-        {new Date(item.birth_date).toLocaleDateString('ru-RU')}
-      </Text>
-    </View>
+    <AstralGlassCard style={styles.chartCard}>
+      <View style={styles.chartHeader}>
+        <Text style={styles.chartName} allowFontScaling={true}>{item.name}</Text>
+        <Text style={styles.chartDate} allowFontScaling={true}>
+          {new Date(item.birth_date).toLocaleDateString('ru-RU')}
+        </Text>
+      </View>
 
-    <View style={styles.chartDetails}>
-      <Text style={styles.chartDetail} allowFontScaling={true}>Время: {item.birth_time}</Text>
-      <Text style={styles.chartDetail} allowFontScaling={true}>Место: {item.birth_place}</Text>
-    </View>
+      <View style={styles.chartDetails}>
+        <Text style={styles.chartDetail} allowFontScaling={true}>Время: {item.birth_time}</Text>
+        <Text style={styles.chartDetail} allowFontScaling={true}>Место: {item.birth_place}</Text>
+      </View>
 
-    <View style={styles.chartActions}>
-      {item.chart_data ? (
-        <View style={styles.generatedBadge}>
-          <Text style={styles.generatedText} allowFontScaling={true}>Сгенерирована</Text>
-        </View>
-      ) : (
-        <TouchableOpacity
-          style={styles.generateButton}
-          onPress={onGenerate}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.generateButtonText} allowFontScaling={true}>Сгенерировать</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+      <View style={styles.chartActions}>
+        {item.chart_data ? (
+          <View style={styles.generatedBadge}>
+            <Text style={styles.generatedText} allowFontScaling={true}>Сгенерирована</Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.generateButton}
+            onPress={onGenerate}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.generateButtonText} allowFontScaling={true}>Сгенерировать</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </AstralGlassCard>
   </TouchableOpacity>
 ));
 

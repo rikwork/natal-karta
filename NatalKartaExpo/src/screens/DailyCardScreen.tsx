@@ -90,9 +90,9 @@ const DailyCardScreen: React.FC<DailyCardScreenProps> = ({ cardId, onClose, isMa
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill}>
+      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
         <LinearGradient
-          colors={['rgba(10,10,35,0.8)', 'rgba(25,10,50,0.9)'] as const}
+          colors={['rgba(10, 10, 35, 0.4)', 'rgba(25, 10, 50, 0.5)'] as const}
           style={StyleSheet.absoluteFill}
         />
         

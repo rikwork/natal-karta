@@ -12,7 +12,6 @@ import {
     KeyboardAvoidingView,
     SafeAreaView,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { User, City } from '../types';
 import ApiService from '../services/api';
@@ -20,6 +19,8 @@ import BirthDateStep from '../screens/Onboarding/steps/BirthDateStep';
 import BirthTimeStep from '../screens/Onboarding/steps/BirthTimeStep';
 import BirthPlaceStep from '../screens/Onboarding/steps/BirthPlaceStep';
 import AstralButton from '../components/AstralButton';
+import AstralHeader from '../components/AstralHeader';
+import AstralGlassCard from '../components/AstralGlassCard';
 import { formatBirthTime } from '../utils/dateFormatter';
 import { theme } from '../theme';
 
@@ -212,13 +213,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={{ flex: 1 }}
                 >
-                    <View style={styles.header}>
-                        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-                            <Text style={styles.backButtonText}>← Назад</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.headerTitle}>Редактировать профиль</Text>
-                        <View style={{ width: 40 }} />
-                    </View>
+                    <AstralHeader title="Редактировать профиль" onBack={onBack} />
 
                     {isFetchingChart ? (
                         <View style={styles.centerContainer}>
@@ -232,7 +227,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                             >
                                 <View style={styles.section}>
                                     <Text style={styles.sectionTitle}>Личные данные</Text>
-                                    <BlurView intensity={20} tint="light" style={styles.inputCard}>
+                                    <AstralGlassCard style={styles.inputCard}>
                                         <Text style={styles.inputLabel}>Имя</Text>
                                         <TextInput
                                             style={styles.textInput}
@@ -241,7 +236,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                                             placeholder="Ваше имя"
                                             placeholderTextColor="rgba(255,255,255,0.3)"
                                         />
-                                    </BlurView>
+                                    </AstralGlassCard>
                                 </View>
 
                                 <View style={styles.section}>
@@ -261,9 +256,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                                         </Text>
                                     )}
 
-                                    <BlurView
-                                        intensity={15}
-                                        tint="light"
+                                    <AstralGlassCard
                                         style={[styles.inputCard, isBirthDataLocked && styles.lockedCard]}
                                     >
                                         <View pointerEvents={isBirthDataLocked ? 'none' : 'auto'}>
@@ -302,7 +295,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                                                 />
                                             </View>
                                         </View>
-                                    </BlurView>
+                                    </AstralGlassCard>
                                 </View>
                             </ScrollView>
 
@@ -326,31 +319,6 @@ const styles = StyleSheet.create({
     mainContainer: {
         flex: 1,
         backgroundColor: 'transparent',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-    },
-    backButton: {
-        padding: 8,
-    },
-    backButtonText: {
-        color: '#FFD700',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    headerTitle: {
-        flex: 1,
-        textAlign: 'center',
-        color: '#F0E6D2',
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginRight: 40,
-        fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
     },
     centerContainer: {
         flex: 1,
@@ -379,12 +347,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     inputCard: {
-        borderRadius: 24,
         padding: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.03)',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        overflow: 'hidden',
     },
     fieldGroup: {
         marginBottom: 20,

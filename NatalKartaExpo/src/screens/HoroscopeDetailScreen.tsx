@@ -11,11 +11,13 @@ import {
     Image,
     ActivityIndicator,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { DailyPredictionContent } from '../types';
 import ApiService from '../services/api';
+import AstralHeader from '../components/AstralHeader';
+import AstralGlassCard from '../components/AstralGlassCard';
+import { BlurView } from 'expo-blur';
 
 const { width, height } = Dimensions.get('window');
 
@@ -68,13 +70,7 @@ const HoroscopeDetailScreen: React.FC<HoroscopeDetailScreenProps> = ({
 
 
             <SafeAreaView style={styles.safeArea}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={onBack} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={28} color="#FFD700" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>{sign.toUpperCase()}</Text>
-                    <View style={{ width: 40 }} />
-                </View>
+                <AstralHeader title={sign} onBack={onBack} />
 
                 {loading ? (
                     <View style={styles.loaderContainer}>
@@ -116,7 +112,7 @@ const HoroscopeDetailScreen: React.FC<HoroscopeDetailScreenProps> = ({
                         </View>
 
                         <View style={styles.contentSection}>
-                            <BlurView intensity={20} tint="light" style={styles.predictionCard}>
+                            <AstralGlassCard style={styles.predictionCard}>
                                 <View style={styles.predictionSection}>
                                     <Text style={styles.sectionTitle}>Энергетика</Text>
                                     <Text style={styles.predictionText}>
@@ -158,7 +154,7 @@ const HoroscopeDetailScreen: React.FC<HoroscopeDetailScreenProps> = ({
                                         <Text style={styles.luckyValue}>{currentPrediction?.color || currentPrediction?.lucky_color || '-'}</Text>
                                     </View>
                                 </View>
-                            </BlurView>
+                            </AstralGlassCard>
                         </View>
 
                         <View style={{ height: 40 }} />

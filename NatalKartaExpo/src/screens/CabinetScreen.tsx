@@ -10,11 +10,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { User, NatalChart } from '../types';
 import ApiService from '../services/api';
 import { formatBirthTime } from '../utils/dateFormatter';
+import AstralHeader from '../components/AstralHeader';
+import AstralGlassCard from '../components/AstralGlassCard';
 
 interface CabinetScreenProps {
   user: User | null;
@@ -62,12 +63,7 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
       />
 
       <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton} activeOpacity={0.7}>
-            <Ionicons name="chevron-back" size={24} color="#FFD700" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Личный кабинет</Text>
-        </View>
+        <AstralHeader title="Личный кабинет" onBack={onBack} />
 
         <View style={styles.content}>
           <View style={styles.profileSection}>
@@ -114,13 +110,7 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
 
           <View style={styles.dataSection}>
             <Text style={styles.sectionTitle}>Астрологический профиль</Text>
-            <BlurView intensity={40} tint="dark" style={styles.dataCard}>
-              <LinearGradient
-                colors={['rgba(157, 101, 255, 0.08)', 'transparent'] as const}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={StyleSheet.absoluteFillObject}
-              />
+            <AstralGlassCard style={styles.dataCard}>
               <View style={styles.dataRow}>
                 <View style={styles.iconCircle}>
                   <Ionicons name="calendar-outline" size={18} color="#FFD700" />
@@ -161,19 +151,13 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
                   )}
                 </View>
               </View>
-            </BlurView>
+            </AstralGlassCard>
           </View>
 
           <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>Настройки</Text>
 
-            <BlurView intensity={40} tint="dark" style={styles.settingItem}>
-              <LinearGradient
-                colors={['rgba(157, 101, 255, 0.08)', 'transparent'] as const}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={StyleSheet.absoluteFillObject}
-              />
+            <AstralGlassCard style={styles.settingItem}>
               <View style={styles.settingInfo}>
                 <Text style={styles.settingLabel}>Видео-фон</Text>
                 <Text style={styles.settingDescription}>
@@ -187,7 +171,7 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
                 thumbColor={isVideoEnabled ? '#FFFFFF' : '#8E8E93'}
                 ios_backgroundColor="rgba(255, 255, 255, 0.1)"
               />
-            </BlurView>
+            </AstralGlassCard>
           </View>
         </View>
       </SafeAreaView>

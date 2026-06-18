@@ -7,11 +7,14 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import { BirthData } from '../types';
 import ApiService from '../services/api';
 import AstralButton from '../components/AstralButton';
+import AstralHeader from '../components/AstralHeader';
+import AstralGlassCard from '../components/AstralGlassCard';
 
 interface CreateChartScreenProps {
   userId: number;
@@ -96,62 +99,58 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← Назад</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Создать натальную карту</Text>
-      </View>
+    <SafeAreaView style={styles.container}>
+      <AstralHeader title="Создать натальную карту" onBack={onBack} />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <AstralGlassCard style={styles.formCard}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Имя *</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.name}
+              onChangeText={(value) => handleInputChange('name', value)}
+              placeholder="Введите ваше имя"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
 
-      <View style={styles.form}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Имя *</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.name}
-            onChangeText={(value) => handleInputChange('name', value)}
-            placeholder="Введите ваше имя"
-            placeholderTextColor="#9CA3AF"
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Дата рождения *</Text>
+            <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
+              <Text style={[styles.inputText, !formData.birth_date && styles.placeholder]}>
+                {formData.birth_date || 'Выберите дату'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Время рождения *</Text>
+            <TouchableOpacity style={styles.input} onPress={() => setShowTimePicker(true)}>
+              <Text style={[styles.inputText, !formData.birth_time && styles.placeholder]}>
+                {formData.birth_time || 'Выберите время'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Место рождения *</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.birth_place}
+              onChangeText={(value) => handleInputChange('birth_place', value)}
+              placeholder="Город, страна"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+
+          <AstralButton
+            title={loading ? 'Загрузка...' : 'Создать натальную карту'}
+            onPress={handleSubmit}
+            disabled={loading}
+            style={styles.submitButton}
           />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Дата рождения *</Text>
-          <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
-            <Text style={[styles.inputText, !formData.birth_date && styles.placeholder]}>
-              {formData.birth_date || 'Выберите дату'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Время рождения *</Text>
-          <TouchableOpacity style={styles.input} onPress={() => setShowTimePicker(true)}>
-            <Text style={[styles.inputText, !formData.birth_time && styles.placeholder]}>
-              {formData.birth_time || 'Выберите время'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Место рождения *</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.birth_place}
-            onChangeText={(value) => handleInputChange('birth_place', value)}
-            placeholder="Город, страна"
-            placeholderTextColor="#9CA3AF"
-          />
-        </View>
-
-        <AstralButton
-          title={loading ? 'Загрузка...' : 'Создать натальную карту'}
-          onPress={handleSubmit}
-          disabled={loading}
-          style={styles.submitButton}
-        />
-      </View>
+        </AstralGlassCard>
+      </ScrollView>
 
       <DatePicker
         modal
@@ -171,7 +170,7 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
         onConfirm={handleTimeChange}
         onCancel={() => setShowTimePicker(false)}
       />
-    </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -180,29 +179,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 24,
-    paddingTop: 60,
-    backgroundColor: 'transparent',
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  form: {
-    padding: 20,
+  scrollContent: {
     paddingBottom: 40,
+  },
+  formCard: {
+    padding: 20,
+    margin: 20,
   },
   inputGroup: {
     marginBottom: 20,
@@ -222,6 +204,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     fontSize: 16,
+    color: '#F0E6D2',
   },
   inputText: {
     fontSize: 16,

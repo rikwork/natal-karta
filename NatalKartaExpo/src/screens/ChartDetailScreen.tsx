@@ -7,12 +7,15 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { NatalChart, NatalChartData } from '../types';
 import ApiService from '../services/api';
 import { formatBirthTime } from '../utils/dateFormatter';
+import AstralHeader from '../components/AstralHeader';
+import AstralGlassCard from '../components/AstralGlassCard';
+import { BlurView } from 'expo-blur';
 
 // Removed unused width Dimensions
 
@@ -101,22 +104,18 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← Назад</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Ваша Карта</Text>
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <AstralHeader title="Ваша Карта" onBack={onBack} />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Info Header Card */}
-        <BlurView intensity={20} tint="light" style={styles.infoCard}>
-          <Text style={styles.chartName}>{chart.name}</Text>
-          <Text style={styles.detailText}>
-            {formatDate(chart.birth_date)} в {formatBirthTime(chart.birth_time)}
-          </Text>
-          <Text style={styles.detailText}>{chart.birth_place}</Text>
-        </BlurView>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Info Header Card */}
+          <AstralGlassCard style={styles.infoCard}>
+            <Text style={styles.chartName}>{chart.name}</Text>
+            <Text style={styles.detailText}>
+              {formatDate(chart.birth_date)} в {formatBirthTime(chart.birth_time)}
+            </Text>
+            <Text style={styles.detailText}>{chart.birth_place}</Text>
+          </AstralGlassCard>
 
         {!chartData ? (
           <View style={styles.noDataContainer}>
@@ -137,7 +136,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
           <View style={styles.cardsContainer}>
             {/* Short Summary Card (Free) */}
             {chartData.short_summary && (
-              <BlurView intensity={40} tint="dark" style={styles.glimmerCard}>
+              <AstralGlassCard>
                 <LinearGradient
                   colors={['rgba(255,215,0,0.15)', 'rgba(255,255,255,0.0)']}
                   style={styles.cardGradient}
@@ -147,11 +146,11 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
                     {chartData.short_summary}
                   </Text>
                 </LinearGradient>
-              </BlurView>
+              </AstralGlassCard>
             )}
 
             {/* Identity Card (Free) */}
-            <BlurView intensity={40} tint="dark" style={styles.glimmerCard}>
+            <AstralGlassCard>
               <LinearGradient
                 colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.0)']}
                 style={styles.cardGradient}
@@ -159,11 +158,11 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
                 <Text style={styles.cardTitle}>✨ Личность и Карма</Text>
                 <Text style={styles.cardBody}>{chartData.identity}</Text>
               </LinearGradient>
-            </BlurView>
+            </AstralGlassCard>
 
             {/* Emotions Card (Free) */}
             {chartData.emotions && (
-              <BlurView intensity={40} tint="dark" style={styles.glimmerCard}>
+              <AstralGlassCard>
                 <LinearGradient
                   colors={['rgba(135,206,235,0.15)', 'rgba(255,255,255,0.0)']}
                   style={styles.cardGradient}
@@ -171,11 +170,11 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
                   <Text style={styles.cardTitle}>🌊 Эмоции и Внутренний мир</Text>
                   <Text style={styles.cardBody}>{chartData.emotions}</Text>
                 </LinearGradient>
-              </BlurView>
+              </AstralGlassCard>
             )}
 
             {/* Love Card (Ad Locked) */}
-            <BlurView intensity={40} tint="dark" style={styles.glimmerCard}>
+            <AstralGlassCard>
               <LinearGradient
                 colors={['rgba(255,105,180,0.15)', 'rgba(255,255,255,0.0)']}
                 style={styles.cardGradient}
@@ -196,10 +195,10 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
                   </View>
                 )}
               </LinearGradient>
-            </BlurView>
+            </AstralGlassCard>
 
             {/* Career Card (Ad Locked) */}
-            <BlurView intensity={40} tint="dark" style={styles.glimmerCard}>
+            <AstralGlassCard>
               <LinearGradient
                 colors={['rgba(0,255,255,0.15)', 'rgba(255,255,255,0.0)']}
                 style={styles.cardGradient}
@@ -222,11 +221,12 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
                   </View>
                 )}
               </LinearGradient>
-            </BlurView>
+            </AstralGlassCard>
           </View>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
+  </View>
   );
 };
 
@@ -235,40 +235,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 24,
-    paddingTop: 60, // approximate notch height
-    backgroundColor: 'rgba(107, 70, 193, 0.4)',
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  backButtonText: {
-    color: '#D8B4FE',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(255, 255, 255, 0.4)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+  safeArea: {
+    flex: 1,
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
   },
   infoCard: {
-    borderRadius: 20,
     padding: 20,
     marginBottom: 24,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
   },
   chartName: {
     fontSize: 26,
@@ -311,12 +287,6 @@ const styles = StyleSheet.create({
   },
   cardsContainer: {
     gap: 20,
-  },
-  glimmerCard: {
-    borderRadius: 24,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
   },
   cardGradient: {
     padding: 24,
