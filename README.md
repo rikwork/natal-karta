@@ -59,19 +59,19 @@ rails db:migrate
 rails server -p 3000
 ```
 
-### 3. Настройка мобильного приложения
+### 3. Настройка мобильного приложения (Expo)
 
 ```bash
-cd NatalKartaApp/NatalKartaApp
+cd NatalKartaExpo
 
 # Установка зависимостей
 npm install
 
-# Для Android
-npx react-native run-android
+# Запуск Metro Bundler
+npm start
 
-# Для iOS (требует macOS)
-npx react-native run-ios
+# Запуск в браузере (веб-версия)
+npm run web
 ```
 
 ## 📁 Структура проекта
@@ -86,7 +86,7 @@ natal_karta/
 │   └── config/
 │       ├── routes.rb             # API маршруты
 │       └── initializers/cors.rb  # CORS настройки
-└── NatalKartaApp/                # React Native приложение
+└── NatalKartaExpo/               # React Native Expo приложение
     ├── src/
     │   ├── screens/              # Экраны приложения
     │   ├── services/             # API сервисы
@@ -149,14 +149,13 @@ rails assets:precompile
 rails db:migrate
 ```
 
-### Mobile App
+### Mobile App (Expo EAS)
 ```bash
-# Сборка для Android
-cd android
-./gradlew assembleRelease
+# Локальный экспорт сборки
+npx expo export
 
-# Сборка для iOS
-npx react-native run-ios --configuration Release
+# Сборка через EAS Build
+eas build --platform all
 ```
 
 ## 🤝 Вклад в проект

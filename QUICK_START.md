@@ -12,17 +12,17 @@ rails db:migrate
 rails server -p 3000
 ```
 
-### 2. Запуск мобильного приложения
+### 2. Запуск мобильного приложения (Expo)
 
 ```bash
-cd NatalKartaApp/NatalKartaApp
+cd NatalKartaExpo
 npm install
 
-# Для Android
-npx react-native run-android
+# Запуск Metro Bundler (откроет панель запуска)
+npm start
 
-# Для iOS (macOS)
-npx react-native run-ios
+# Для запуска в браузере (веб-версия)
+npm run web
 ```
 
 ### 3. Тестирование API
@@ -44,15 +44,17 @@ npx react-native run-ios
 
 ### Изменение URL API
 
-В файле `NatalKartaApp/NatalKartaApp/src/services/api.ts`:
+В файле `NatalKartaExpo/src/config/api.ts`:
 
 ```typescript
-const API_BASE_URL = 'http://YOUR_IP:3000/api/v1';
+export const ENV = {
+  API_BASE_URL: 'http://YOUR_IP:3000/api/v1',
+};
 ```
 
-### Добавление реальной интеграции с GPT
+### Интеграция с GPT4Free
 
-В файле `natal_karta_backend/app/services/gpt_service.rb` замените заглушку на реальный вызов GPT4Free.
+Интеграция с GPT4Free уже настроена и работает через системный Python-мост в [gpt_service.rb](file:///Users/nikita/projects/natal_karta/natal_karta_backend/app/services/gpt_service.rb). Для работы требуется установленная библиотека `g4f` (`pip install g4f`), которая вызывается через системный Python.
 
 ## 🎯 Следующие шаги
 
@@ -71,11 +73,11 @@ rails db:create
 rails db:migrate
 ```
 
-### React Native не компилируется
+### Expo / React Native не компилируется
 ```bash
-cd NatalKartaApp/NatalKartaApp
+cd NatalKartaExpo
 npm install
-npx react-native start --reset-cache
+npx expo start -c
 ```
 
 ### API не отвечает
