@@ -8,13 +8,11 @@ import {
   Platform,
   SafeAreaView,
   ActivityIndicator,
-  ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { User, NatalChart } from '../types';
-import AstralButton from '../components/AstralButton';
 import ApiService from '../services/api';
 import { formatBirthTime } from '../utils/dateFormatter';
 
@@ -65,51 +63,64 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
 
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← Назад</Text>
+          <TouchableOpacity onPress={onBack} style={styles.backButton} activeOpacity={0.7}>
+            <Ionicons name="chevron-back" size={24} color="#FFD700" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Личный кабинет</Text>
         </View>
 
         <View style={styles.content}>
           <View style={styles.profileSection}>
-            <View style={styles.avatarBorder}>
-              <LinearGradient
-                colors={['#FFD700', '#9D50BB'] as const}
-                style={styles.avatarPlaceholder}
-              >
-                <Text style={styles.avatarText}>{(user?.name || 'E').charAt(0)}</Text>
-              </LinearGradient>
-            </View>
+            <LinearGradient
+              colors={['#9D65FF', '#FFD700'] as const}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.avatarBorderGradient}
+            >
+              <View style={styles.avatarInnerContainer}>
+                <Text style={styles.avatarText}>{(user?.name || 'E').charAt(0).toUpperCase()}</Text>
+              </View>
+            </LinearGradient>
+            
             <Text style={styles.userName}>{user?.name || 'Исследователь'}</Text>
             <Text style={styles.userEmail}>{user?.email}</Text>
 
-            <AstralButton
-              title="Изменить данные"
-              onPress={onNavigateToEditProfile}
+            <TouchableOpacity
               style={styles.editButton}
-              textStyle={styles.editButtonText}
-            />
+              onPress={onNavigateToEditProfile}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.editButtonText}>Изменить данные</Text>
+            </TouchableOpacity>
 
             <View style={styles.badgeContainer}>
-              <LinearGradient
-                colors={
-                  user?.subscription_type === 'premium'
-                    ? ['#FFD700', '#FFA500']
-                    : ['#4B4B4B', '#2F2F2F']
-                }
-                style={styles.badge}
-              >
-                <Text style={styles.badgeText}>
-                  {user?.subscription_type === 'premium' ? 'PREMIUM' : 'FREE'}
-                </Text>
-              </LinearGradient>
+              {user?.subscription_type === 'premium' ? (
+                <LinearGradient
+                  colors={['#FFD700', '#FFA500'] as const}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.premiumBadge}
+                >
+                  <Ionicons name="star" size={10} color="#0F0E17" style={{ marginRight: 4 }} />
+                  <Text style={styles.premiumBadgeText}>PREMIUM</Text>
+                </LinearGradient>
+              ) : (
+                <View style={styles.freeBadge}>
+                  <Text style={styles.freeBadgeText}>FREE ACCESS</Text>
+                </View>
+              )}
             </View>
           </View>
 
           <View style={styles.dataSection}>
             <Text style={styles.sectionTitle}>Астрологический профиль</Text>
-            <BlurView intensity={20} tint="light" style={styles.dataCard}>
+            <BlurView intensity={40} tint="dark" style={styles.dataCard}>
+              <LinearGradient
+                colors={['rgba(157, 101, 255, 0.08)', 'transparent'] as const}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={StyleSheet.absoluteFillObject}
+              />
               <View style={styles.dataRow}>
                 <View style={styles.iconCircle}>
                   <Ionicons name="calendar-outline" size={18} color="#FFD700" />
@@ -156,7 +167,13 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
           <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>Настройки</Text>
 
-            <BlurView intensity={20} tint="light" style={styles.settingItem}>
+            <BlurView intensity={40} tint="dark" style={styles.settingItem}>
+              <LinearGradient
+                colors={['rgba(157, 101, 255, 0.08)', 'transparent'] as const}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={StyleSheet.absoluteFillObject}
+              />
               <View style={styles.settingInfo}>
                 <Text style={styles.settingLabel}>Видео-фон</Text>
                 <Text style={styles.settingDescription}>
@@ -166,9 +183,9 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
               <Switch
                 value={isVideoEnabled}
                 onValueChange={onToggleVideo}
-                trackColor={{ false: '#3e3e3e', true: '#9D50BB' }}
-                thumbColor={isVideoEnabled ? '#FFD700' : '#f4f3f4'}
-                ios_backgroundColor="#3e3e3e"
+                trackColor={{ false: 'rgba(255, 255, 255, 0.1)', true: '#9D65FF' }}
+                thumbColor={isVideoEnabled ? '#FFFFFF' : '#8E8E93'}
+                ios_backgroundColor="rgba(255, 255, 255, 0.1)"
               />
             </BlurView>
           </View>
@@ -189,10 +206,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: 'rgba(157, 101, 255, 0.15)',
   },
   backButton: {
     padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   backButtonText: {
     color: '#FFD700',
@@ -203,10 +222,11 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     color: '#F0E6D2',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '700',
     marginRight: 40,
-    fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   content: {
     flex: 1,
@@ -216,26 +236,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
-  avatarBorder: {
+  avatarBorderGradient: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 215, 0, 0.4)',
-    padding: 5,
+    padding: 2,
     marginBottom: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#9D65FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
   },
-  avatarPlaceholder: {
+  avatarInnerContainer: {
     width: '100%',
     height: '100%',
-    borderRadius: 45,
+    borderRadius: 48,
+    backgroundColor: '#0F0E17',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
     color: '#FFF',
-    fontSize: 40,
+    fontSize: 38,
     fontWeight: 'bold',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   userName: {
     fontSize: 24,
@@ -251,16 +278,37 @@ const styles = StyleSheet.create({
   badgeContainer: {
     marginTop: 5,
   },
-  badge: {
-    paddingHorizontal: 15,
-    paddingVertical: 4,
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderRadius: 12,
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  badgeText: {
-    color: '#FFF',
+  premiumBadgeText: {
+    color: '#0F0E17',
     fontSize: 10,
     fontWeight: '900',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
+  },
+  freeBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  freeBadgeText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.5,
   },
   settingsSection: {
     marginTop: 10,
@@ -278,10 +326,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 20,
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(157, 101, 255, 0.25)',
+    backgroundColor: 'rgba(15, 14, 23, 0.4)',
   },
   settingInfo: {
     flex: 1,
@@ -300,13 +349,21 @@ const styles = StyleSheet.create({
   },
   editButton: {
     marginTop: 15,
-    height: 44,
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 22,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(157, 101, 255, 0.4)',
+    backgroundColor: 'rgba(157, 101, 255, 0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   editButtonText: {
-    fontSize: 13,
-    letterSpacing: 0.5,
+    color: '#9D65FF',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
   dataSection: {
     marginBottom: 30,
@@ -314,10 +371,11 @@ const styles = StyleSheet.create({
   dataCard: {
     borderRadius: 24,
     padding: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: 'rgba(15, 14, 23, 0.4)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(157, 101, 255, 0.25)',
     gap: 20,
+    overflow: 'hidden',
   },
   dataRow: {
     flexDirection: 'row',
@@ -325,12 +383,14 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(157, 101, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(157, 101, 255, 0.25)',
   },
   dataLabel: {
     color: 'rgba(255, 255, 255, 0.4)',
