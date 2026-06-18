@@ -4,25 +4,30 @@ require 'open3'
 require 'json'
 
 class GptService
-  def self.generate_natal_chart(natal_chart)
-    prompt = build_natal_chart_prompt(natal_chart)
+  def self.generate_natal_chart(natal_chart, locale = 'ru')
+    prompt = build_natal_chart_prompt(natal_chart, locale)
     generate_content(prompt)
   end
 
-  def self.generate_daily_prediction(user, date)
-    prompt = build_daily_prediction_prompt(user, date)
+  def self.generate_daily_prediction(user, date, locale = 'ru')
+    prompt = build_daily_prediction_prompt(user, date, locale)
     generate_content(prompt)
   end
 
-  def self.generate_zodiac_prediction(sign, date, period = 'today')
-    prompt = build_zodiac_prediction_prompt(sign, date, period)
+  def self.generate_zodiac_prediction(sign, date, period = 'today', locale = 'ru')
+    prompt = build_zodiac_prediction_prompt(sign, date, period, locale)
     generate_content(prompt)
   end
 
   class << self
     private
 
-    def build_natal_chart_prompt(natal_chart)
+    def language_name_for(locale)
+      locale.to_s == 'en' ? 'английский' : 'русский'
+    end
+
+    def build_natal_chart_prompt(natal_chart, locale)
+      locale_name = language_name_for(locale)
       <<~PROMPT
         Создай подробную астрологическую натальную карту для человека. ДУМАЙ ПОШАГОВО (think step by step), будь профессиональным астрологом. Вчитывайся в каждую деталь и давай максимально глубокий и подробный анализ.
         Имя: #{natal_chart.name}
@@ -49,10 +54,12 @@ class GptService
         Опиши предрасположенности к профессиям, отношения с деньгами. Объемный анализ. Также разбей на абзацы (через \\n\\n), где первый - это "тизер".
 
         Отвечай ТОЛЬКО валидным JSON. Разметка markdown вокруг JSON запрещена.
+        Все значения в JSON (тексты предсказаний и разборов) должны быть строго на языке: #{locale_name}.
       PROMPT
     end
 
-    def build_zodiac_prediction_prompt(sign, date, period)
+    def build_zodiac_prediction_prompt(sign, date, period, locale)
+      locale_name = language_name_for(locale)
       duration = case period
                  when 'today' then "день #{date.strftime('%d.%m.%Y')}"
                  when 'tomorrow' then "день #{(date + 1.day).strftime('%d.%m.%Y')}"
@@ -74,12 +81,14 @@ class GptService
         6. Число удачи
 
         Ответ должен быть СТРОГО в формате JSON с ключами: "energy", "recommendations", "warnings", "lucky_hours", "color", "number".
-        "recommendations" и "warnings" должны быть массивами строк.
+        "recommendations" and "warnings" должны быть массивами строк.
         Никакого текста кроме валидного JSON (разметка markdown вокруг JSON запрещена).
+        Все значения в JSON должны быть строго на языке: #{locale_name}.
       PROMPT
     end
 
-    def build_daily_prediction_prompt(user, date)
+    def build_daily_prediction_prompt(user, date, locale)
+      locale_name = language_name_for(locale)
       natal_chart = user.natal_charts.first
       return 'Нет данных о натальной карте' unless natal_chart
 
@@ -98,6 +107,7 @@ class GptService
 
         Ответ должен быть СТРОГО в формате JSON с ключами: "energy", "recommendations", "warnings", "lucky_hours", "color", "number".
         Никакого текста кроме валидного JSON (разметка markdown вокруг JSON запрещена).
+        Все значения в JSON должны быть строго на языке: #{locale_name}.
       PROMPT
     end
 
@@ -123,7 +133,7 @@ class GptService
 
     def generate_content(prompt)
       script_path = Rails.root.join('lib', 'g4f_bridge.py')
-      stdout, stderr, status = Open3.capture3('python3', script_path.to_s, prompt)
+      stdout, stderr, status = Open3.capture3('/usr/bin/python3', script_path.to_s, prompt)
       return { error: "Python script failed: #{stderr}" }.to_json unless status.success?
 
       parse_gpt_response(stdout)

@@ -22,6 +22,7 @@ Rails.application.routes.draw do
             post :generate_today
           end
         end
+        resource :daily_card, only: [:show]
       end
 
       resources :error_logs do

@@ -9,7 +9,7 @@ def generate_completion(prompt):
         g4f.Provider.DeepInfra,
         g4f.Provider.GeminiPro,
         g4f.Provider.Groq,
-        g4f.Provider.Qwen_Qwen_3
+        g4f.Provider.Qwen
     ]
     
     for provider in providers:

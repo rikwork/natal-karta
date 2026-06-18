@@ -42,7 +42,7 @@ class Api::V1::NatalChartsController < ApplicationController
   end
 
   def generate
-    result = NatalCharts::Generate.call(@user, @natal_chart)
+    result = NatalCharts::Generate.call(@user, @natal_chart, user_locale)
 
     if result[:success]
       render json: NatalChartSerializer.new(@natal_chart).as_json

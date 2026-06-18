@@ -1,16 +1,20 @@
 import { User, NatalChart, DailyPrediction, BirthData, City, ApiResponse } from '../types';
 import errorReporter from './errorReporter';
 import { ENV } from '../config/api';
+import * as Localization from 'expo-localization';
 
 const API_BASE_URL = ENV.API_BASE_URL;
 
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const url = `${API_BASE_URL}${endpoint}`;
+    const locales = Localization.getLocales();
+    const languageCode = locales && locales[0] ? locales[0].languageCode : 'ru';
 
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        'Accept-Language': languageCode || 'ru',
         ...options.headers,
       },
       ...options,

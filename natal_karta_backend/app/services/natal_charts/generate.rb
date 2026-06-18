@@ -1,17 +1,18 @@
 # frozen_string_literal: true
 
 class NatalCharts::Generate
-  def self.call(user, natal_chart)
-    new(user, natal_chart).call
+  def self.call(user, natal_chart, locale = 'ru')
+    new(user, natal_chart, locale).call
   end
 
-  def initialize(user, natal_chart)
+  def initialize(user, natal_chart, locale = 'ru')
     @user = user
     @natal_chart = natal_chart
+    @locale = locale
   end
 
   def call
-    chart_data_string = GptService.generate_natal_chart(@natal_chart)
+    chart_data_string = GptService.generate_natal_chart(@natal_chart, @locale)
     
     begin
       parsed = JSON.parse(chart_data_string)

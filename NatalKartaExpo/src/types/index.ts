@@ -6,6 +6,7 @@ export interface User {
   subscription_expires_at?: string;
   birth_data_updated_at?: string;
   zodiac_sign?: string;
+  gender?: 'male' | 'female' | 'other';
   created_at: string;
   updated_at: string;
 }

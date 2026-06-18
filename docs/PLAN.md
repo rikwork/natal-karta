@@ -1,21 +1,23 @@
-# PLAN: Удаление входа
+# Orchestration Plan: Update Onboarding Button Text
 
 ## Objective
-Remove the "already have an account" (уже есть аккаунт) text and the corresponding login (Войти) button from all screens in the application.
+Change the "Continue" button text to "Продолжить" during the onboarding flow.
 
-## Mapped Affected Areas
-Based on the codebase analysis, the login link is only present in one file:
-- `NatalKartaExpo/src/screens/OnboardingScreen.tsx` (around line 777)
-  ```tsx
-  Уже есть аккаунт? <Text style={styles.signInLink} onPress={() => { }}>Войти</Text>
-  ```
+## Affected Areas
+- `/Users/nikita/projects/natal_karta/NatalKartaExpo/src/screens/OnboardingScreen.tsx` (Line 168)
 
-## Proposed Changes
-1. **OnboardingScreen:** Remove the text "Уже есть аккаунт?" and the `<Text>` component for "Войти" from the render method.
-2. **Cleanup:** Ensure that any unused styles (like `signInLink`) or unused imports related to this button are also removed to adhere to clean code principles.
+## Execution Phases
+**Phase 1: Planning**
+- [x] Create this PLAN.md
+- [ ] Receive user approval
 
-## Next Steps
-Upon user approval, the Orchestrator will:
-1. Setup a worktree environment for the `frontend-specialist` (or `mobile-developer` since it's an Expo app).
-2. Execute the changes in isolation.
-3. Merge and verify the changes.
+**Phase 2: Preparation**
+- [ ] Run `.agent/scripts/workspace_manager.py gc` to set up isolated workspace (if user approves full orchestration).
+
+**Phase 3: Execution**
+- [ ] Delegate the `mobile-developer` agent to update the text in `OnboardingScreen.tsx` inside the isolated workspace.
+
+**Phase 4 & 5: Consolidation & Roadmap Sync**
+- [ ] Merge changes back to root and sync `ROADMAP.md`
+
+> **Note to User:** Since this is a very simple change (one word in one file), a full isolated `git worktree` orchestration might be overkill and slow down execution. Would you still like to proceed with the full isolated `/orchestrate` workflow, or should we execute this directly in the current directory?

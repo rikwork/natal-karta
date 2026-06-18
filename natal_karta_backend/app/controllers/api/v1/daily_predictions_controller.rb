@@ -29,7 +29,7 @@ class Api::V1::DailyPredictionsController < ApplicationController
       return
     end
 
-    content = GptService.generate_daily_prediction(@user, date)
+    content = GptService.generate_daily_prediction(@user, date, user_locale)
     @prediction.content = content
 
     if @prediction.save
@@ -40,7 +40,7 @@ class Api::V1::DailyPredictionsController < ApplicationController
   end
 
   def generate_today
-    result = DailyPredictions::GenerateToday.call(@user)
+    result = DailyPredictions::GenerateToday.call(@user, user_locale)
 
     if result[:success]
       render json: DailyPredictionSerializer.new(result[:data]).as_json

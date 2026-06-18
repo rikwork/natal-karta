@@ -12,9 +12,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { User } from '../types';
 import { useHomeScreen } from '../hooks/useHomeScreen';
 import HoroscopeCard from './Home/components/HoroscopeCard';
-import TarotCard from './Home/components/TarotCard';
 import CelestialAlignments from './Home/components/CelestialAlignments';
 import AstralButton from '../components/AstralButton';
+import DailyCardWidget from './Home/components/DailyCardWidget';
+import DailyCardScreen from './DailyCardScreen';
+import { useDailyCard } from '../hooks/useDailyCard';
 
 interface HomeScreenProps {
   user: User | null;
@@ -38,6 +40,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     period,
     setPeriod
   } = useHomeScreen(user);
+
+  const {
+    isModalVisible,
+    selectedCardId,
+    openDailyCard,
+    closeModal,
+  } = useDailyCard(user?.id);
 
   const fadeInAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -112,7 +121,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               onPeriodChange={setPeriod}
               sign={user?.zodiac_sign}
             />
-            <TarotCard />
+            <DailyCardWidget userId={user?.id} onPress={openDailyCard} />
           </View>
 
           <CelestialAlignments />
@@ -145,8 +154,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             />
           </View>
         </View>
-        <View style={{ height: 120 }} />
       </Animated.ScrollView >
+
+      {isModalVisible && selectedCardId && (
+        <DailyCardScreen 
+          cardId={selectedCardId} 
+          onClose={closeModal} 
+          isMale={user?.gender === 'male' || true}
+        />
+      )}
     </View >
 
   );

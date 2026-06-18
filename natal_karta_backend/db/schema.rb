@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_07_233742) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_13_203516) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -50,6 +50,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_07_233742) do
     t.index ["user_id"], name: "index_natal_charts_on_user_id"
   end
 
+  create_table "user_daily_cards", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.integer "tarot_card_id"
+    t.date "drawn_on"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["drawn_on"], name: "index_user_daily_cards_on_drawn_on"
+    t.index ["user_id"], name: "index_user_daily_cards_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -74,4 +84,5 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_07_233742) do
 
   add_foreign_key "daily_predictions", "users"
   add_foreign_key "natal_charts", "users"
+  add_foreign_key "user_daily_cards", "users"
 end
