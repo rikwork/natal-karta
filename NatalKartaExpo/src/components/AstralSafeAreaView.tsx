@@ -3,10 +3,7 @@ import { SafeAreaView, StyleSheet, Platform, StatusBar, ViewProps } from 'react-
 
 const AstralSafeAreaView: React.FC<ViewProps> = ({ style, children, ...props }) => {
   return (
-    <SafeAreaView 
-      style={[styles.safeArea, style]} 
-      {...props}
-    >
+    <SafeAreaView style={[styles.safeArea, style]} {...props}>
       {children}
     </SafeAreaView>
   );
@@ -15,7 +12,7 @@ const AstralSafeAreaView: React.FC<ViewProps> = ({ style, children, ...props }) 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 0,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 0,
   },
 });
 

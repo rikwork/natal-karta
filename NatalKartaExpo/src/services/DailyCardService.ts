@@ -16,7 +16,7 @@ export const DailyCardService = {
     try {
       const response = await fetch(`${API_BASE_URL}/users/${userId}/daily_card`);
       const data = await response.json();
-      
+
       // Ensure we match the expected format
       if (data && data.success) {
         return { success: true, data: data.data };
@@ -26,5 +26,5 @@ export const DailyCardService = {
       console.error('Error fetching daily card:', error);
       return { success: false, error: 'Failed to fetch daily card' };
     }
-  }
+  },
 };

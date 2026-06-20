@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Switch,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { User, NatalChart } from '../types';
@@ -58,9 +51,7 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
 
   return (
     <View style={styles.mainContainer}>
-      <View
-        style={[StyleSheet.absoluteFillObject, { backgroundColor: 'transparent' }]}
-      />
+      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'transparent' }]} />
 
       <AstralSafeAreaView style={styles.safeArea}>
         <AstralHeader title="Личный кабинет" onBack={onBack} />
@@ -76,7 +67,7 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
                 <Text style={styles.avatarText}>{(user?.name || 'E').charAt(0).toUpperCase()}</Text>
               </View>
             </LinearGradient>
-            
+
             <Text style={styles.userName}>{user?.name || 'Исследователь'}</Text>
             <Text style={styles.userEmail}>{user?.email}</Text>
 

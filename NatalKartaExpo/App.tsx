@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Text, Alert, StyleSheet, Animated } from 'react-native';
+import { View, Text, Alert, StyleSheet, BackHandler } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useAppInitialization } from './src/hooks/useAppInitialization';
@@ -33,6 +33,7 @@ import HoroscopeDetailScreen from './src/screens/HoroscopeDetailScreen';
 import AppBackground from './src/components/App/AppBackground';
 import FadeScreen from './src/components/App/FadeScreen';
 import { getZodiacIcon } from './src/utils/zodiacIcons';
+import AstralSwipeBack from './src/components/AstralSwipeBack';
 
 // Setup global error handling
 setupErrorHandlers();
@@ -68,6 +69,63 @@ const App: React.FC = () => {
     isVideoEnabled,
     toggleVideoBackground,
   } = useAppInitialization();
+
+  const [screenHistory, setScreenHistory] = React.useState<string[]>(['Onboarding']);
+  const canGoBack = screenHistory.length > 1;
+
+  const navigateTo = useCallback(
+    (screen: string) => {
+      setScreenHistory((prev) => {
+        if (screen === 'Onboarding' || screen === 'Loading' || screen === 'Home') {
+          return [screen];
+        }
+        if (prev[prev.length - 1] === screen) return prev;
+        return [...prev, screen];
+      });
+      setCurrentScreen(screen);
+    },
+    [setCurrentScreen],
+  );
+
+  const navigateBack = useCallback(() => {
+    setScreenHistory((prev) => {
+      if (prev.length <= 1) return prev;
+      const nextHistory = prev.slice(0, -1);
+      const targetScreen = nextHistory[nextHistory.length - 1];
+      setCurrentScreen(targetScreen);
+      return nextHistory;
+    });
+  }, [setCurrentScreen]);
+
+  React.useEffect(() => {
+    setScreenHistory((prev) => {
+      const last = prev[prev.length - 1];
+      if (last !== currentScreen) {
+        if (
+          currentScreen === 'Onboarding' ||
+          currentScreen === 'Loading' ||
+          currentScreen === 'Home'
+        ) {
+          return [currentScreen];
+        }
+        return [...prev, currentScreen];
+      }
+      return prev;
+    });
+  }, [currentScreen]);
+
+  React.useEffect(() => {
+    const backAction = () => {
+      if (screenHistory.length > 1) {
+        navigateBack();
+        return true; // Intercept gesture / button press
+      }
+      return false; // Exit app if on root screen (Home/Onboarding)
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [screenHistory, navigateBack]);
 
   const handleWatchAd = useCallback(() => {
     AdService.showRewardedAd(
@@ -112,7 +170,6 @@ const App: React.FC = () => {
     setCurrentScreen('Onboarding');
   }, [setUser, setCurrentScreen, setOnboardingData, setChartResult, setSelectedChart]);
 
-
   const handleOnboardingComplete = useCallback(
     async (data: any) => {
       setOnboardingData(data);
@@ -139,7 +196,10 @@ const App: React.FC = () => {
 
             // If it doesn't have chart_data, we might need to generate it
             if (!existingChart.chart_data) {
-              const genResponse = await ApiService.generateNatalChart(newUserObj.id, existingChart.id);
+              const genResponse = await ApiService.generateNatalChart(
+                newUserObj.id,
+                existingChart.id,
+              );
               if (genResponse.data) {
                 setChartResult({
                   chart: genResponse.data,
@@ -169,7 +229,10 @@ const App: React.FC = () => {
 
             const response = await ApiService.createNatalChart(newUserObj.id, chartData);
             if (response.data) {
-              const genResponse = await ApiService.generateNatalChart(newUserObj.id, response.data.id);
+              const genResponse = await ApiService.generateNatalChart(
+                newUserObj.id,
+                response.data.id,
+              );
               if (genResponse.data) {
                 setChartResult({
                   chart: genResponse.data,
@@ -186,7 +249,6 @@ const App: React.FC = () => {
           setChartResult({ sun: 'Скорпион', moon: 'Весы', ascendant: 'Близнецы' });
         }
       }
-
     },
     [user, createNewUser, setUser, setOnboardingData, setCurrentScreen, setChartResult],
   );
@@ -215,84 +277,93 @@ const App: React.FC = () => {
         </FadeScreen>
 
         <FadeScreen active={currentScreen === 'Loading'}>
-          <LoadingScreen
-            isReady={!!chartResult}
-            onComplete={handleLoadingComplete}
-          />
+          <LoadingScreen isReady={!!chartResult} onComplete={handleLoadingComplete} />
         </FadeScreen>
 
         <FadeScreen active={currentScreen === 'Result'}>
           {chartResult && (
-            <ResultScreen result={chartResult} onContinue={() => setCurrentScreen('Home')} />
+            <ResultScreen result={chartResult} onContinue={() => navigateTo('Home')} />
           )}
         </FadeScreen>
 
         <FadeScreen active={currentScreen === 'CreateChart'}>
           {user && (
-            <CreateChartScreen
-              userId={user.id}
-              onChartCreated={() => setCurrentScreen('Charts')}
-              onBack={() => setCurrentScreen('Home')}
-            />
+            <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
+              <CreateChartScreen
+                userId={user.id}
+                onChartCreated={() => navigateTo('Charts')}
+                onBack={navigateBack}
+              />
+            </AstralSwipeBack>
           )}
         </FadeScreen>
 
         <FadeScreen active={currentScreen === 'Charts'}>
           {user && (
-            <ChartsScreen
-              userId={user.id}
-              onChartPress={(chart) => {
-                setSelectedChart(chart);
-                setCurrentScreen('ChartDetail');
-              }}
-              onBack={() => setCurrentScreen('Home')}
-            />
+            <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
+              <ChartsScreen
+                userId={user.id}
+                onChartPress={(chart) => {
+                  setSelectedChart(chart);
+                  navigateTo('ChartDetail');
+                }}
+                onBack={navigateBack}
+              />
+            </AstralSwipeBack>
           )}
         </FadeScreen>
 
         <FadeScreen active={currentScreen === 'ChartDetail'}>
           {selectedChart && user && (
-            <ChartDetailScreen
-              chart={selectedChart}
-              userId={user.id}
-              onBack={() => setCurrentScreen('Home')}
-              onWatchAd={handleWatchAd}
-              hasSubscription={user.subscription_type === 'premium'}
-            />
+            <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
+              <ChartDetailScreen
+                chart={selectedChart}
+                userId={user.id}
+                onBack={navigateBack}
+                onWatchAd={handleWatchAd}
+                hasSubscription={user.subscription_type === 'premium'}
+              />
+            </AstralSwipeBack>
           )}
         </FadeScreen>
 
         <FadeScreen active={currentScreen === 'Cabinet'}>
           {user && (
-            <CabinetScreen
-              user={user}
-              isVideoEnabled={isVideoEnabled}
-              onToggleVideo={toggleVideoBackground}
-              onBack={() => setCurrentScreen('Home')}
-              onUpdateUser={handleUpdateUser}
-              onNavigateToEditProfile={() => setCurrentScreen('EditProfile')}
-            />
+            <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
+              <CabinetScreen
+                user={user}
+                isVideoEnabled={isVideoEnabled}
+                onToggleVideo={toggleVideoBackground}
+                onBack={navigateBack}
+                onUpdateUser={handleUpdateUser}
+                onNavigateToEditProfile={() => navigateTo('EditProfile')}
+              />
+            </AstralSwipeBack>
           )}
         </FadeScreen>
 
         <FadeScreen active={currentScreen === 'EditProfile'}>
           {user && (
-            <EditProfileScreen
-              user={user}
-              onUpdateUser={handleUpdateUser}
-              onBack={() => setCurrentScreen('Cabinet')}
-              onDeleteProfile={handleDeleteProfile}
-            />
+            <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
+              <EditProfileScreen
+                user={user}
+                onUpdateUser={handleUpdateUser}
+                onBack={navigateBack}
+                onDeleteProfile={handleDeleteProfile}
+              />
+            </AstralSwipeBack>
           )}
         </FadeScreen>
 
         <FadeScreen active={currentScreen === 'HoroscopeDetail'}>
           {user && (
-            <HoroscopeDetailScreen
-              sign={user.zodiac_sign || 'Овен'}
-              signImage={getZodiacIcon(user.zodiac_sign || 'Овен')}
-              onBack={() => setCurrentScreen('Home')}
-            />
+            <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
+              <HoroscopeDetailScreen
+                sign={user.zodiac_sign || 'Овен'}
+                signImage={getZodiacIcon(user.zodiac_sign || 'Овен')}
+                onBack={navigateBack}
+              />
+            </AstralSwipeBack>
           )}
         </FadeScreen>
 
@@ -300,10 +371,10 @@ const App: React.FC = () => {
           {user && (
             <HomeScreen
               user={user}
-              onNavigateToCharts={() => setCurrentScreen('Charts')}
-              onNavigateToCreateChart={() => setCurrentScreen('CreateChart')}
-              onNavigateToCabinet={() => setCurrentScreen('Cabinet')}
-              onNavigateToHoroscope={() => setCurrentScreen('HoroscopeDetail')}
+              onNavigateToCharts={() => navigateTo('Charts')}
+              onNavigateToCreateChart={() => navigateTo('CreateChart')}
+              onNavigateToCabinet={() => navigateTo('Cabinet')}
+              onNavigateToHoroscope={() => navigateTo('HoroscopeDetail')}
               onWatchAd={handleWatchAd}
             />
           )}

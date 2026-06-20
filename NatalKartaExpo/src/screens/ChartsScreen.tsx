@@ -65,16 +65,19 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({ userId, onChartPress, onBac
     }
   };
 
-  const renderChartItem = useCallback(({ item }: { item: NatalChart }) => (
-    <ChartItem
-      item={item}
-      onPress={() => {
-        Vibration.vibrate(10);
-        onChartPress(item);
-      }}
-      onGenerate={() => handleGenerateChart(item)}
-    />
-  ), [onChartPress, handleGenerateChart]);
+  const renderChartItem = useCallback(
+    ({ item }: { item: NatalChart }) => (
+      <ChartItem
+        item={item}
+        onPress={() => {
+          Vibration.vibrate(10);
+          onChartPress(item);
+        }}
+        onGenerate={() => handleGenerateChart(item)}
+      />
+    ),
+    [onChartPress, handleGenerateChart],
+  );
 
   if (loading) {
     return (
@@ -211,51 +214,59 @@ const styles = StyleSheet.create({
 });
 
 // Memoized list item for better performance
-const ChartItem = React.memo(({
-  item,
-  onPress,
-  onGenerate
-}: {
-  item: NatalChart;
-  onPress: () => void;
-  onGenerate: () => void;
-}) => (
-  <TouchableOpacity
-    onPress={onPress}
-    activeOpacity={0.7}
-    style={{ marginBottom: 16 }}
-  >
-    <AstralGlassCard style={styles.chartCard}>
-      <View style={styles.chartHeader}>
-        <Text style={styles.chartName} allowFontScaling={true}>{item.name}</Text>
-        <Text style={styles.chartDate} allowFontScaling={true}>
-          {new Date(item.birth_date).toLocaleDateString('ru-RU')}
-        </Text>
-      </View>
+const ChartItem = React.memo(
+  ({
+    item,
+    onPress,
+    onGenerate,
+  }: {
+    item: NatalChart;
+    onPress: () => void;
+    onGenerate: () => void;
+  }) => (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={{ marginBottom: 16 }}>
+      <AstralGlassCard style={styles.chartCard}>
+        <View style={styles.chartHeader}>
+          <Text style={styles.chartName} allowFontScaling={true}>
+            {item.name}
+          </Text>
+          <Text style={styles.chartDate} allowFontScaling={true}>
+            {new Date(item.birth_date).toLocaleDateString('ru-RU')}
+          </Text>
+        </View>
 
-      <View style={styles.chartDetails}>
-        <Text style={styles.chartDetail} allowFontScaling={true}>Время: {item.birth_time}</Text>
-        <Text style={styles.chartDetail} allowFontScaling={true}>Место: {item.birth_place}</Text>
-      </View>
+        <View style={styles.chartDetails}>
+          <Text style={styles.chartDetail} allowFontScaling={true}>
+            Время: {item.birth_time}
+          </Text>
+          <Text style={styles.chartDetail} allowFontScaling={true}>
+            Место: {item.birth_place}
+          </Text>
+        </View>
 
-      <View style={styles.chartActions}>
-        {item.chart_data ? (
-          <View style={styles.generatedBadge}>
-            <Text style={styles.generatedText} allowFontScaling={true}>Сгенерирована</Text>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={styles.generateButton}
-            onPress={onGenerate}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.generateButtonText} allowFontScaling={true}>Сгенерировать</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </AstralGlassCard>
-  </TouchableOpacity>
-));
+        <View style={styles.chartActions}>
+          {item.chart_data ? (
+            <View style={styles.generatedBadge}>
+              <Text style={styles.generatedText} allowFontScaling={true}>
+                Сгенерирована
+              </Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.generateButton}
+              onPress={onGenerate}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.generateButtonText} allowFontScaling={true}>
+                Сгенерировать
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </AstralGlassCard>
+    </TouchableOpacity>
+  ),
+);
 
 ChartItem.displayName = 'ChartItem';
 

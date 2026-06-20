@@ -8,6 +8,7 @@ import {
   Dimensions,
   Image,
   Vibration,
+  BackHandler,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,6 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tarotImages } from '../constants/tarotImages';
 import tarotData from '../constants/tarotDescriptions.json';
 import AstralButton from '../components/AstralButton';
+import AstralSwipeBack from '../components/AstralSwipeBack';
 
 const { width, height } = Dimensions.get('window');
 
@@ -30,7 +32,7 @@ const DailyCardScreen: React.FC<DailyCardScreenProps> = ({ cardId, onClose, isMa
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const contentFadeAnim = useRef(new Animated.Value(0)).current;
 
-  const cardInfo = tarotData.find(c => c.id === cardId);
+  const cardInfo = tarotData.find((c) => c.id === cardId);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -56,9 +58,19 @@ const DailyCardScreen: React.FC<DailyCardScreenProps> = ({ cardId, onClose, isMa
     checkOpenedToday();
   }, [fadeAnim, contentFadeAnim, flipAnim]);
 
+  useEffect(() => {
+    const backAction = () => {
+      onClose();
+      return true; // Intercept gesture / button press
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [onClose]);
+
   const handleFlip = () => {
     if (flipped) return;
-    
+
     Vibration.vibrate([0, 10, 50, 10]);
 
     Animated.spring(flipAnim, {
@@ -122,77 +134,73 @@ const DailyCardScreen: React.FC<DailyCardScreenProps> = ({ cardId, onClose, isMa
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
-        <LinearGradient
-          colors={['rgba(10, 10, 35, 0.4)', 'rgba(25, 10, 50, 0.5)'] as const}
-          style={StyleSheet.absoluteFill}
-        />
-        
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Text style={styles.closeText}>✕</Text>
-        </TouchableOpacity>
+        <AstralSwipeBack onSwipeBack={onClose}>
+          <LinearGradient
+            colors={['rgba(10, 10, 35, 0.4)', 'rgba(25, 10, 50, 0.5)'] as const}
+            style={StyleSheet.absoluteFill}
+          />
 
-        <Animated.View style={[styles.cardWrapper, { transform: [{ translateY: cardTranslateY }] }]}>
-          <TouchableOpacity activeOpacity={1} onPress={handleFlip}>
-            <View style={styles.flipCard}>
-              {/* Back side (visible initially) */}
-              <Animated.View style={[styles.cardSide, styles.cardBack, frontAnimatedStyle]}>
-                <Image
-                  source={tarotImages.default}
-                  style={styles.fullImage}
-                  resizeMode="cover"
-                />
-                <LinearGradient
-                  colors={['rgba(157,101,255,0.2)', 'transparent'] as const}
-                  style={StyleSheet.absoluteFill}
-                />
-                {!flipped && (
-                  <View style={styles.revealHint}>
-                    <Text style={styles.revealHintText}>Нажми, чтобы открыть</Text>
-                  </View>
-                )}
-              </Animated.View>
-
-              {/* Front side (revealed) */}
-              <Animated.View style={[styles.cardSide, styles.cardFront, backAnimatedStyle]}>
-                <Image
-                  source={cardId ? tarotImages[cardId] : tarotImages.default}
-                  style={styles.fullImage}
-                  resizeMode="cover"
-                />
-                <LinearGradient
-                  colors={['transparent', 'rgba(0,0,0,0.8)'] as const}
-                  style={StyleSheet.absoluteFill}
-                />
-                <View style={styles.cardLabelContainer}>
-                  <Text style={styles.cardNameLabel}>{cardInfo?.name.toUpperCase()}</Text>
-                </View>
-              </Animated.View>
-            </View>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeText}>✕</Text>
           </TouchableOpacity>
-        </Animated.View>
 
-        {flipped && (
-          <Animated.ScrollView 
-            style={[styles.contentScroll, { opacity: contentFadeAnim }]}
-            contentContainerStyle={styles.scrollContent}
+          <Animated.View
+            style={[styles.cardWrapper, { transform: [{ translateY: cardTranslateY }] }]}
           >
-            <Text style={styles.cardName}>{cardInfo?.name}</Text>
-            
-            <View style={styles.descriptionBox}>
-              <Text style={styles.sectionTitle}>ПРЕДСКАЗАНИЕ:</Text>
-              <Text style={styles.descriptionText}>
-                {isMale ? cardInfo?.description_male : cardInfo?.description_female}
-              </Text>
-            </View>
-            
-            <AstralButton
-              title="ПРИНЯТЬ"
-              onPress={onClose}
-              style={styles.fineButton}
-            />
-            <View style={{ height: 40 }} />
-          </Animated.ScrollView>
-        )}
+            <TouchableOpacity activeOpacity={1} onPress={handleFlip}>
+              <View style={styles.flipCard}>
+                {/* Back side (visible initially) */}
+                <Animated.View style={[styles.cardSide, styles.cardBack, frontAnimatedStyle]}>
+                  <Image source={tarotImages.default} style={styles.fullImage} resizeMode="cover" />
+                  <LinearGradient
+                    colors={['rgba(157,101,255,0.2)', 'transparent'] as const}
+                    style={StyleSheet.absoluteFill}
+                  />
+                  {!flipped && (
+                    <View style={styles.revealHint}>
+                      <Text style={styles.revealHintText}>Нажми, чтобы открыть</Text>
+                    </View>
+                  )}
+                </Animated.View>
+
+                {/* Front side (revealed) */}
+                <Animated.View style={[styles.cardSide, styles.cardFront, backAnimatedStyle]}>
+                  <Image
+                    source={cardId ? tarotImages[cardId] : tarotImages.default}
+                    style={styles.fullImage}
+                    resizeMode="cover"
+                  />
+                  <LinearGradient
+                    colors={['transparent', 'rgba(0,0,0,0.8)'] as const}
+                    style={StyleSheet.absoluteFill}
+                  />
+                  <View style={styles.cardLabelContainer}>
+                    <Text style={styles.cardNameLabel}>{cardInfo?.name.toUpperCase()}</Text>
+                  </View>
+                </Animated.View>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+
+          {flipped && (
+            <Animated.ScrollView
+              style={[styles.contentScroll, { opacity: contentFadeAnim }]}
+              contentContainerStyle={styles.scrollContent}
+            >
+              <Text style={styles.cardName}>{cardInfo?.name}</Text>
+
+              <View style={styles.descriptionBox}>
+                <Text style={styles.sectionTitle}>ПРЕДСКАЗАНИЕ:</Text>
+                <Text style={styles.descriptionText}>
+                  {isMale ? cardInfo?.description_male : cardInfo?.description_female}
+                </Text>
+              </View>
+
+              <AstralButton title="ПРИНЯТЬ" onPress={onClose} style={styles.fineButton} />
+              <View style={{ height: 40 }} />
+            </Animated.ScrollView>
+          )}
+        </AstralSwipeBack>
       </BlurView>
     </Animated.View>
   );

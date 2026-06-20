@@ -19,7 +19,6 @@ const AppBackground: React.FC<AppBackgroundProps> = ({
   pulseAnim,
   isVideoEnabled,
 }) => {
-
   useWindowDimensions();
   const showBackground = true;
 
@@ -58,7 +57,6 @@ const AppBackground: React.FC<AppBackgroundProps> = ({
               opacity: wheelOpacity,
               transform: [{ translateY: wheelTranslateY }],
             },
-
           ]}
         >
           <ZodiacWheel spin={spin} opacity={1} pulseAnim={pulseAnim} />

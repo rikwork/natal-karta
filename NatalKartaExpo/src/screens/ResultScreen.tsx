@@ -85,7 +85,9 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onContinue }) => {
         ]}
       >
         {/* Заголовок */}
-        <Text style={styles.title} allowFontScaling={true}>Твоя натальная карта готова!</Text>
+        <Text style={styles.title} allowFontScaling={true}>
+          Твоя натальная карта готова!
+        </Text>
 
         {/* Результат */}
         <View style={styles.resultContainer}>
@@ -145,7 +147,9 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onContinue }) => {
           activeOpacity={0.8}
         >
           <LinearGradient colors={['#ff6b6b', '#ee5a52']} style={styles.buttonGradient}>
-            <Text style={styles.buttonText} allowFontScaling={true}>Продолжить</Text>
+            <Text style={styles.buttonText} allowFontScaling={true}>
+              Продолжить
+            </Text>
           </LinearGradient>
         </TouchableOpacity>
       </Animated.View>

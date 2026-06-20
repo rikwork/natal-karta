@@ -17,7 +17,7 @@ if (Platform.OS === 'web') {
   // Web: Use standard JS SDK
   const { initializeApp, getApps, getApp } = require('firebase/app');
   const { getAuth, signInAnonymously: signInWeb } = require('firebase/auth');
-  
+
   const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   auth = getAuth(app);
   signInAnonymously = () => signInWeb(auth);

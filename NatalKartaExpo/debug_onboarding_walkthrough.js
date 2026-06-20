@@ -5,38 +5,56 @@ const fs = require('fs');
 // Advanced helper to click React Native Web elements using native Puppeteer mouse coordinates
 async function clickReactNativeElement(page, text, tag = 'div') {
   console.log(`🖱️ Clicking React Native element with text: "${text}"`);
-  
+
   // Find the element in the page context and return its handle
-  const elementHandle = await page.evaluateHandle((txt, tagName) => {
-    const elements = Array.from(document.querySelectorAll(tagName));
-    
-    // Find the element containing the text
-    let el = elements.find(e => e.innerText && e.innerText.toLowerCase().trim() === txt.toLowerCase().trim());
-    if (!el) {
-      el = elements.find(e => e.innerText && e.innerText.toLowerCase().includes(txt.toLowerCase()));
-    }
-    
-    // Fallback to buttons or other tags
-    if (!el && tagName !== 'button') {
-      const buttons = Array.from(document.querySelectorAll('button'));
-      el = buttons.find(b => b.innerText && (b.innerText.toLowerCase().includes(txt.toLowerCase()) || b.innerText.toLowerCase().trim() === txt.toLowerCase().trim()));
-    }
+  const elementHandle = await page.evaluateHandle(
+    (txt, tagName) => {
+      const elements = Array.from(document.querySelectorAll(tagName));
 
-    if (!el) return null;
-
-    // Traverse up to find the closest clickable wrapper
-    let target = el;
-    while (target && target.parentElement) {
-      if (target.getAttribute('tabindex') === '0' || target.tagName === 'BUTTON' || target.style.cursor === 'pointer' || target.onclick) {
-        break;
+      // Find the element containing the text
+      let el = elements.find(
+        (e) => e.innerText && e.innerText.toLowerCase().trim() === txt.toLowerCase().trim(),
+      );
+      if (!el) {
+        el = elements.find(
+          (e) => e.innerText && e.innerText.toLowerCase().includes(txt.toLowerCase()),
+        );
       }
-      target = target.parentElement;
-    }
-    return target || el;
-  }, text, tag);
+
+      // Fallback to buttons or other tags
+      if (!el && tagName !== 'button') {
+        const buttons = Array.from(document.querySelectorAll('button'));
+        el = buttons.find(
+          (b) =>
+            b.innerText &&
+            (b.innerText.toLowerCase().includes(txt.toLowerCase()) ||
+              b.innerText.toLowerCase().trim() === txt.toLowerCase().trim()),
+        );
+      }
+
+      if (!el) return null;
+
+      // Traverse up to find the closest clickable wrapper
+      let target = el;
+      while (target && target.parentElement) {
+        if (
+          target.getAttribute('tabindex') === '0' ||
+          target.tagName === 'BUTTON' ||
+          target.style.cursor === 'pointer' ||
+          target.onclick
+        ) {
+          break;
+        }
+        target = target.parentElement;
+      }
+      return target || el;
+    },
+    text,
+    tag,
+  );
 
   // Check if handle is null
-  const isNull = await page.evaluate(h => h === null, elementHandle);
+  const isNull = await page.evaluate((h) => h === null, elementHandle);
   if (isNull) {
     throw new Error(`Element with text "${text}" not found`);
   }
@@ -45,8 +63,11 @@ async function clickReactNativeElement(page, text, tag = 'div') {
   const box = await elementHandle.boundingBox();
   if (!box) {
     // If not visible, try to scroll into view
-    await page.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'center' }), elementHandle);
-    await new Promise(r => setTimeout(r, 500));
+    await page.evaluate(
+      (el) => el.scrollIntoView({ block: 'center', inline: 'center' }),
+      elementHandle,
+    );
+    await new Promise((r) => setTimeout(r, 500));
     const boxRetry = await elementHandle.boundingBox();
     if (!boxRetry) {
       throw new Error(`Element with text "${text}" is not visible (no bounding box)`);
@@ -64,7 +85,8 @@ async function clickReactNativeElement(page, text, tag = 'div') {
 }
 
 (async () => {
-  const artifactDir = '/Users/nikita/.gemini/antigravity/brain/3cc7e2ae-740b-4cd1-922a-792ecd47da82';
+  const artifactDir =
+    '/Users/nikita/.gemini/antigravity/brain/3cc7e2ae-740b-4cd1-922a-792ecd47da82';
   if (!fs.existsSync(artifactDir)) {
     fs.mkdirSync(artifactDir, { recursive: true });
   }
@@ -74,7 +96,7 @@ async function clickReactNativeElement(page, text, tag = 'div') {
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   const page = await browser.newPage();
-  
+
   // Emulate phone viewport
   await page.setViewport({ width: 390, height: 844 });
 
@@ -90,7 +112,7 @@ async function clickReactNativeElement(page, text, tag = 'div') {
       localStorage.clear();
       window.location.reload();
     });
-    
+
     // Wait for reload and page load
     await new Promise((r) => setTimeout(r, 3000));
     console.log('🧹 Cleared localStorage and reloaded.');
@@ -109,19 +131,22 @@ async function clickReactNativeElement(page, text, tag = 'div') {
     console.log('☑️ Clicking legal checkbox...');
     const checkboxHandle = await page.evaluateHandle(() => {
       const touchables = Array.from(document.querySelectorAll('div[tabindex="0"]'));
-      const container = touchables.find(t => t.innerText && t.innerText.includes('Я принимаю'));
+      const container = touchables.find((t) => t.innerText && t.innerText.includes('Я принимаю'));
       if (!container) return null;
       return container.querySelector('div'); // The first inner div is the checkbox square!
     });
-    
-    const isNullCheckbox = await page.evaluate(h => h === null, checkboxHandle);
+
+    const isNullCheckbox = await page.evaluate((h) => h === null, checkboxHandle);
     if (isNullCheckbox) {
-      throw new Error("Checkbox container not found");
+      throw new Error('Checkbox container not found');
     }
-    
+
     const checkboxBox = await checkboxHandle.boundingBox();
     // Simulate real physical click inside the checkbox square
-    await page.mouse.click(checkboxBox.x + checkboxBox.width / 2, checkboxBox.y + checkboxBox.height / 2);
+    await page.mouse.click(
+      checkboxBox.x + checkboxBox.width / 2,
+      checkboxBox.y + checkboxBox.height / 2,
+    );
     await checkboxHandle.dispose();
     console.log('✅ Clicked checkbox square.');
 
@@ -168,7 +193,9 @@ async function clickReactNativeElement(page, text, tag = 'div') {
     // Wait for city list suggestions to appear and load
     console.log('⏳ Waiting for city suggestions from Rails API & DaData...');
     await new Promise((r) => setTimeout(r, 3000));
-    await page.screenshot({ path: path.join(artifactDir, 'onboarding_step_4_place_suggestions.png') });
+    await page.screenshot({
+      path: path.join(artifactDir, 'onboarding_step_4_place_suggestions.png'),
+    });
 
     // Select the first suggestion
     await clickReactNativeElement(page, 'Москва, Россия');

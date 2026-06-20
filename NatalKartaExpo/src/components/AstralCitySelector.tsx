@@ -23,17 +23,19 @@ interface AstralCitySelectorProps {
 }
 
 // Optimized list item component to avoid re-renders
-const CityListItem = React.memo(({ item, onSelect }: { item: City; onSelect: (city: City) => void }) => {
-  return (
-    <TouchableOpacity style={styles.cityItem} onPress={() => onSelect(item)} activeOpacity={0.7}>
-      <View style={styles.cityTextRow}>
-        <Text style={styles.cityName}>{item.name}</Text>
-        <Text style={styles.cityCountry}>{item.country}</Text>
-      </View>
-      {item.admin_name1 && <Text style={styles.cityRegion}>{item.admin_name1}</Text>}
-    </TouchableOpacity>
-  );
-});
+const CityListItem = React.memo(
+  ({ item, onSelect }: { item: City; onSelect: (city: City) => void }) => {
+    return (
+      <TouchableOpacity style={styles.cityItem} onPress={() => onSelect(item)} activeOpacity={0.7}>
+        <View style={styles.cityTextRow}>
+          <Text style={styles.cityName}>{item.name}</Text>
+          <Text style={styles.cityCountry}>{item.country}</Text>
+        </View>
+        {item.admin_name1 && <Text style={styles.cityRegion}>{item.admin_name1}</Text>}
+      </TouchableOpacity>
+    );
+  },
+);
 
 CityListItem.displayName = 'CityListItem';
 
@@ -50,12 +52,13 @@ const AstralCitySelector: React.FC<AstralCitySelectorProps> = ({
   // Memoized renderItem to prevent re-creation on every render
   const renderItem = useCallback(
     ({ item }: { item: City }) => <CityListItem item={item} onSelect={onSelectCity} />,
-    [onSelectCity]
+    [onSelectCity],
   );
 
   const keyExtractor = useCallback(
-    (item: City, index: number) => `${item.name}-${item.country}-${item.latitude}-${item.longitude}-${index}`,
-    []
+    (item: City, index: number) =>
+      `${item.name}-${item.country}-${item.latitude}-${item.longitude}-${index}`,
+    [],
   );
 
   return (

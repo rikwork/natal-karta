@@ -19,8 +19,12 @@ const TarotCard: React.FC = () => {
         />
 
         <View style={styles.cardHeader}>
-          <Text style={styles.cardSmallTitle} allowFontScaling={true}>КАРТА ДНЯ:</Text>
-          <Text style={styles.tarotTitle} allowFontScaling={true}>ЗВЕЗДА</Text>
+          <Text style={styles.cardSmallTitle} allowFontScaling={true}>
+            КАРТА ДНЯ:
+          </Text>
+          <Text style={styles.tarotTitle} allowFontScaling={true}>
+            ЗВЕЗДА
+          </Text>
         </View>
 
         <View style={styles.tarotImageContainer}>
@@ -36,7 +40,9 @@ const TarotCard: React.FC = () => {
         </View>
 
         <View style={styles.tarotFooter}>
-          <Text style={styles.tarotStatus} allowFontScaling={true}>Звезда (Прямое)</Text>
+          <Text style={styles.tarotStatus} allowFontScaling={true}>
+            Звезда (Прямое)
+          </Text>
           <Text style={styles.tarotDesc} numberOfLines={2} allowFontScaling={true}>
             Надежда, вдохновение, обновление. День исцеления и ясности.
           </Text>

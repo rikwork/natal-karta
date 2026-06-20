@@ -75,39 +75,46 @@ export const useHomeScreen = (user: User | null) => {
     }
   }, [dailyPrediction]);
 
-  const loadPrediction = useCallback(async (selectedPeriod: HoroscopePeriod) => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      if (user.zodiac_sign) {
-        const response = await ApiService.getZodiacPredictions(user.zodiac_sign);
-        if (response.data) {
-          // В новом формате бэкенд возвращает объект с ключами периодов
-          // Превращаем его в формат DailyPrediction для совместимости
-          const periodKey = selectedPeriod === 'today' || selectedPeriod === 'tomorrow' ? selectedPeriod :
-            selectedPeriod === 'week' ? 'week' : 'month';
+  const loadPrediction = useCallback(
+    async (selectedPeriod: HoroscopePeriod) => {
+      if (!user) return;
+      setLoading(true);
+      try {
+        if (user.zodiac_sign) {
+          const response = await ApiService.getZodiacPredictions(user.zodiac_sign);
+          if (response.data) {
+            // В новом формате бэкенд возвращает объект с ключами периодов
+            // Превращаем его в формат DailyPrediction для совместимости
+            const periodKey =
+              selectedPeriod === 'today' || selectedPeriod === 'tomorrow'
+                ? selectedPeriod
+                : selectedPeriod === 'week'
+                  ? 'week'
+                  : 'month';
 
-          if (response.data[periodKey]) {
-            setDailyPrediction({
-              id: 0,
-              user_id: user.id,
-              prediction_date: new Date().toISOString(),
-              content: response.data[periodKey],
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            });
+            if (response.data[periodKey]) {
+              setDailyPrediction({
+                id: 0,
+                user_id: user.id,
+                prediction_date: new Date().toISOString(),
+                content: response.data[periodKey],
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              });
+            }
           }
+        } else {
+          const response = await ApiService.getDailyPrediction(user.id);
+          if (response.data) setDailyPrediction(response.data);
         }
-      } else {
-        const response = await ApiService.getDailyPrediction(user.id);
-        if (response.data) setDailyPrediction(response.data);
+      } catch {
+        // Silent error
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      // Silent error
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+    },
+    [user],
+  );
 
   useEffect(() => {
     if (user) loadPrediction(period);
@@ -139,6 +146,6 @@ export const useHomeScreen = (user: User | null) => {
     spin,
     pulseAnim,
     period,
-    setPeriod
+    setPeriod,
   };
 };

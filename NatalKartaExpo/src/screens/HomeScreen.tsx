@@ -35,20 +35,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigateToCabinet,
   onNavigateToHoroscope,
 }) => {
-  const {
-    parsedContent,
-    spin,
-    pulseAnim,
-    period,
-    setPeriod
-  } = useHomeScreen(user);
+  const { parsedContent, spin, pulseAnim, period, setPeriod } = useHomeScreen(user);
 
-  const {
-    isModalVisible,
-    selectedCardId,
-    openDailyCard,
-    closeModal,
-  } = useDailyCard(user?.id);
+  const { isModalVisible, selectedCardId, openDailyCard, closeModal } = useDailyCard(user?.id);
 
   const fadeInAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -98,22 +87,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           </View>
 
           <LinearGradient
-            colors={[
-              '#050514',
-              'rgba(5,5,20,0.8)',
-              'rgba(5,5,20,0.4)',
-              'rgba(5,5,20,0)'
-            ] as const}
+            colors={['#050514', 'rgba(5,5,20,0.8)', 'rgba(5,5,20,0.4)', 'rgba(5,5,20,0)'] as const}
             locations={[0, 0.3, 0.7, 1]}
             style={styles.heroGradient}
           />
         </View>
 
         <View style={styles.contentPadding}>
-
-          <Text style={styles.mainTitleSection}>
-            ВАША ПЕРСОНАЛЬНАЯ АСТРОЛОГИЯ
-          </Text>
+          <Text style={styles.mainTitleSection}>ВАША ПЕРСОНАЛЬНАЯ АСТРОЛОГИЯ</Text>
 
           <View style={styles.mainCardsRow}>
             <HoroscopeCard
@@ -129,20 +110,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           <CelestialAlignments />
 
           <View style={styles.navButtonWrapper}>
-            <Animated.View style={[
-              styles.orbBackgroundContainer,
-              {
-                transform: [
-                  { rotate: spin },
-                  {
-                    scale: pulseAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [1, 1.05]
-                    })
-                  }
-                ]
-              }
-            ]}>
+            <Animated.View
+              style={[
+                styles.orbBackgroundContainer,
+                {
+                  transform: [
+                    { rotate: spin },
+                    {
+                      scale: pulseAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1, 1.05],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
               <Image
                 source={require('../../assets/images/cosmic_orb.png')}
                 style={styles.orbBackground}
@@ -156,20 +139,18 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             />
           </View>
         </View>
-      </Animated.ScrollView >
+      </Animated.ScrollView>
 
       {isModalVisible && selectedCardId && (
-        <DailyCardScreen 
-          cardId={selectedCardId} 
-          onClose={closeModal} 
+        <DailyCardScreen
+          cardId={selectedCardId}
+          onClose={closeModal}
           isMale={user?.gender === 'male' || true}
         />
       )}
-    </View >
-
+    </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   mainContainer: { flex: 1, backgroundColor: 'transparent' },
@@ -272,6 +253,5 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
 });
-
 
 export default HomeScreen;

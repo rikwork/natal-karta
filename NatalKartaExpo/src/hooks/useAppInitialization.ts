@@ -125,7 +125,7 @@ export const useAppInitialization = () => {
 
       if (savedUser && hasCompletedOnboarding) {
         const parsedUser = JSON.parse(savedUser);
-        
+
         // Remove ghost users
         if (parsedUser && parsedUser.id && parsedUser.id > 10000000) {
           console.log('Ghost user detected. Clearing storage to force new onboarding.');
@@ -201,5 +201,4 @@ export const useAppInitialization = () => {
     isVideoEnabled,
     toggleVideoBackground,
   };
-
 };

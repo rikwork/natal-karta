@@ -31,7 +31,13 @@ class ApiService {
       // Normalize response: if the backend didn't wrap the payload in { data: ... }, we do it here.
       // Some endpoints (like cities) return { data: [], message: '...' }.
       // Others (like GET /users/:id) return the raw JSON object { id: 1, name: '...' }.
-      if (data && typeof data === 'object' && !Array.isArray(data) && ('data' in data || 'message' in data || 'error' in data) && Object.keys(data).length <= 3) {
+      if (
+        data &&
+        typeof data === 'object' &&
+        !Array.isArray(data) &&
+        ('data' in data || 'message' in data || 'error' in data) &&
+        Object.keys(data).length <= 3
+      ) {
         return data;
       }
 
@@ -74,7 +80,6 @@ class ApiService {
       method: 'DELETE',
     });
   }
-
 
   // Natal Chart methods
   async createNatalChart(userId: number, chartData: BirthData): Promise<ApiResponse<NatalChart>> {

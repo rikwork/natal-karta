@@ -20,11 +20,16 @@ interface HoroscopeCardProps {
 const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ onPress, content, period, sign }) => {
   const getPeriodTitle = () => {
     switch (period) {
-      case 'today': return 'СЕГОДНЯ';
-      case 'tomorrow': return 'ЗАВТРА';
-      case 'week': return 'НЕДЕЛЯ';
-      case 'month': return 'МЕСЯЦ';
-      default: return 'ГОРОСКОП';
+      case 'today':
+        return 'СЕГОДНЯ';
+      case 'tomorrow':
+        return 'ЗАВТРА';
+      case 'week':
+        return 'НЕДЕЛЯ';
+      case 'month':
+        return 'МЕСЯЦ';
+      default:
+        return 'ГОРОСКОП';
     }
   };
 
@@ -52,7 +57,8 @@ const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ onPress, content, period,
 
         <View style={styles.cardFooter}>
           <Text style={styles.cardDescription} numberOfLines={3}>
-            {content || 'Звезды сулят вам необычайный прилив творческой энергии. Прислушайтесь к интуиции.'}
+            {content ||
+              'Звезды сулят вам необычайный прилив творческой энергии. Прислушайтесь к интуиции.'}
           </Text>
           <View style={styles.actionPrompt}>
             <Text style={styles.actionText}>Подробнее →</Text>
@@ -141,4 +147,3 @@ const styles = StyleSheet.create({
 });
 
 export default HoroscopeCard;
-
