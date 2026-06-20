@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  SafeAreaView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NatalChart, NatalChartData } from '../types';
@@ -16,6 +15,7 @@ import { formatBirthTime } from '../utils/dateFormatter';
 import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
 import { BlurView } from 'expo-blur';
+import AstralSafeAreaView from '../components/AstralSafeAreaView';
 
 // Removed unused width Dimensions
 
@@ -104,7 +104,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
+      <AstralSafeAreaView style={styles.safeArea}>
         <AstralHeader title="Ваша Карта" onBack={onBack} />
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -225,8 +225,8 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
-  </View>
+      </AstralSafeAreaView>
+    </View>
   );
 };
 

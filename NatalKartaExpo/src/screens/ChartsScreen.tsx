@@ -9,12 +9,12 @@ import {
   ActivityIndicator,
   RefreshControl,
   Vibration,
-  SafeAreaView,
 } from 'react-native';
 import { NatalChart } from '../types';
 import ApiService from '../services/api';
 import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
+import AstralSafeAreaView from '../components/AstralSafeAreaView';
 
 interface ChartsScreenProps {
   userId: number;
@@ -87,7 +87,7 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({ userId, onChartPress, onBac
 
   return (
     <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
+      <AstralSafeAreaView style={styles.safeArea}>
         <AstralHeader title="Мои натальные карты" onBack={onBack} />
 
         {charts.length === 0 ? (
@@ -112,7 +112,7 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({ userId, onChartPress, onBac
             }
           />
         )}
-      </SafeAreaView>
+      </AstralSafeAreaView>
     </View>
   );
 };

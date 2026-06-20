@@ -7,6 +7,7 @@ import {
   Platform,
   Animated,
   Image,
+  StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { User } from '../types';
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 25,
-    paddingTop: Platform.OS === 'ios' ? 45 : 25,
+    paddingTop: Platform.OS === 'ios' ? 45 : (StatusBar.currentHeight || 24) + 10,
     zIndex: 10,
   },
   greetingText: {

@@ -4,12 +4,11 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    SafeAreaView,
-    ScrollView,
     Platform,
     Dimensions,
     Image,
     ActivityIndicator,
+    ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +17,7 @@ import ApiService from '../services/api';
 import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
 import { BlurView } from 'expo-blur';
+import AstralSafeAreaView from '../components/AstralSafeAreaView';
 
 const { width, height } = Dimensions.get('window');
 
@@ -69,7 +69,7 @@ const HoroscopeDetailScreen: React.FC<HoroscopeDetailScreenProps> = ({
         <View style={styles.container}>
 
 
-            <SafeAreaView style={styles.safeArea}>
+            <AstralSafeAreaView style={styles.safeArea}>
                 <AstralHeader title={sign} onBack={onBack} />
 
                 {loading ? (
@@ -160,7 +160,7 @@ const HoroscopeDetailScreen: React.FC<HoroscopeDetailScreenProps> = ({
                         <View style={{ height: 40 }} />
                     </ScrollView>
                 )}
-            </SafeAreaView>
+            </AstralSafeAreaView>
         </View>
     );
 };

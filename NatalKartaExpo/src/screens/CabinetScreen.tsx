@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Switch,
   Platform,
-  SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,6 +15,7 @@ import ApiService from '../services/api';
 import { formatBirthTime } from '../utils/dateFormatter';
 import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
+import AstralSafeAreaView from '../components/AstralSafeAreaView';
 
 interface CabinetScreenProps {
   user: User | null;
@@ -62,9 +62,8 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
         style={[StyleSheet.absoluteFillObject, { backgroundColor: 'transparent' }]}
       />
 
-      <SafeAreaView style={{ flex: 1 }}>
+      <AstralSafeAreaView style={styles.safeArea}>
         <AstralHeader title="Личный кабинет" onBack={onBack} />
-
         <View style={styles.content}>
           <View style={styles.profileSection}>
             <LinearGradient
@@ -174,7 +173,7 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
             </AstralGlassCard>
           </View>
         </View>
-      </SafeAreaView>
+      </AstralSafeAreaView>
     </View>
   );
 };
@@ -183,6 +182,9 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: 'transparent',
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

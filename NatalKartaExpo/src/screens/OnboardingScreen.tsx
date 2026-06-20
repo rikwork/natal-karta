@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Animated,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -184,13 +185,13 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   header: {
-    paddingTop: 60,
+    paddingTop: Platform.OS === 'ios' ? 60 : (StatusBar.currentHeight || 24) + 15,
     alignItems: 'center',
     marginBottom: 20,
   },
   topBackButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 55 : 45,
+    top: Platform.OS === 'ios' ? 55 : (StatusBar.currentHeight || 24) + 10,
     left: 15,
     zIndex: 100,
     width: 44,

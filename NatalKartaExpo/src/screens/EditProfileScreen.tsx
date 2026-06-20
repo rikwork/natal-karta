@@ -10,7 +10,6 @@ import {
     ActivityIndicator,
     Platform,
     KeyboardAvoidingView,
-    SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { User, City } from '../types';
@@ -18,6 +17,7 @@ import ApiService from '../services/api';
 import BirthDateStep from '../screens/Onboarding/steps/BirthDateStep';
 import BirthTimeStep from '../screens/Onboarding/steps/BirthTimeStep';
 import BirthPlaceStep from '../screens/Onboarding/steps/BirthPlaceStep';
+import AstralSafeAreaView from '../components/AstralSafeAreaView';
 import AstralButton from '../components/AstralButton';
 import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
@@ -248,7 +248,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
 
     return (
         <View style={styles.mainContainer}>
-            <SafeAreaView style={{ flex: 1 }}>
+            <AstralSafeAreaView style={{ flex: 1 }}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={{ flex: 1 }}
@@ -373,7 +373,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                         </>
                     )}
                 </KeyboardAvoidingView>
-            </SafeAreaView>
+            </AstralSafeAreaView>
         </View>
     );
 };

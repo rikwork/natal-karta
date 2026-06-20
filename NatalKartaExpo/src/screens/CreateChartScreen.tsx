@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  SafeAreaView,
 } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import { BirthData } from '../types';
 import ApiService from '../services/api';
 import AstralButton from '../components/AstralButton';
 import AstralHeader from '../components/AstralHeader';
+import AstralSafeAreaView from '../components/AstralSafeAreaView';
 import AstralGlassCard from '../components/AstralGlassCard';
 
 interface CreateChartScreenProps {
@@ -99,7 +99,7 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <AstralSafeAreaView style={styles.container}>
       <AstralHeader title="Создать натальную карту" onBack={onBack} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <AstralGlassCard style={styles.formCard}>
@@ -170,7 +170,7 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
         onConfirm={handleTimeChange}
         onCancel={() => setShowTimePicker(false)}
       />
-    </SafeAreaView>
+    </AstralSafeAreaView>
   );
 };
 
