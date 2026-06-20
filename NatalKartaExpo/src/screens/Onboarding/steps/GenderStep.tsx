@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { theme } from '../../../theme';
 
 interface GenderStepProps {
   gender: 'male' | 'female' | 'other' | '';
@@ -74,8 +75,7 @@ const styles = StyleSheet.create({
   genderLabel: {
     color: '#FFF',
     fontSize: 18,
-    fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: theme.fonts.heading,
     letterSpacing: 2,
     textTransform: 'uppercase',
   },

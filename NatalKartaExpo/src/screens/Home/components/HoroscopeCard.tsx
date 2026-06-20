@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HoroscopePeriod } from '../../../hooks/useHomeScreen';
+import { theme } from '../../../theme';
 
 import { getZodiacIcon } from '../../../utils/zodiacIcons';
 
@@ -85,17 +86,16 @@ const styles = StyleSheet.create({
   cardSmallTitle: {
     fontSize: 9,
     color: 'rgba(255,255,255,0.5)',
-    fontWeight: '700',
+    fontFamily: theme.fonts.bodyBold,
     letterSpacing: 1.5,
     marginBottom: 4,
     textTransform: 'uppercase',
   },
   signTitle: {
     fontSize: 20,
-    fontWeight: '800',
     color: '#FFD700',
     letterSpacing: 1,
-    fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
+    fontFamily: theme.fonts.heading,
   },
   iconContainer: {
     flex: 1,
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'rgba(255,255,255,0.8)',
     lineHeight: 16,
-    fontWeight: '400',
+    fontFamily: theme.fonts.body,
     fontStyle: 'italic',
     marginBottom: 8,
   },
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 12,
     color: '#FFD700',
-    fontWeight: '700',
+    fontFamily: theme.fonts.bodyBold,
     letterSpacing: 1,
   },
 });

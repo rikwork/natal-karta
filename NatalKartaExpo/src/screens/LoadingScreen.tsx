@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Animated, Dimensions, StyleSheet } from 'react-native';
+import { theme } from '../theme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -182,8 +183,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 32,
-    fontWeight: '500',
-    fontFamily: 'serif',
+    fontFamily: theme.fonts.heading,
     color: '#F0E6D2',
     marginBottom: 8,
     textAlign: 'center',
@@ -194,6 +194,7 @@ const styles = StyleSheet.create({
   },
   subText: {
     fontSize: 14,
+    fontFamily: theme.fonts.body,
     color: '#B0B0B0',
     textAlign: 'center',
     lineHeight: 20,

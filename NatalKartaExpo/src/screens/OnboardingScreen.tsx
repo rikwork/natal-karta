@@ -17,6 +17,7 @@ import BirthDateStep from './Onboarding/steps/BirthDateStep';
 import BirthTimeStep from './Onboarding/steps/BirthTimeStep';
 import BirthPlaceStep from './Onboarding/steps/BirthPlaceStep';
 import AstralButton from '../components/AstralButton';
+import { theme } from '../theme';
 
 interface OnboardingScreenProps {
   onComplete: (data: any) => void;
@@ -236,9 +237,9 @@ const styles = StyleSheet.create({
   stepCounterText: {
     color: 'rgba(255,255,255,0.4)',
     fontSize: 11,
+    fontFamily: theme.fonts.body,
     letterSpacing: 3,
     marginTop: 8,
-    fontWeight: '300',
   },
   stepWrapper: {
     flex: 1,
@@ -248,8 +249,7 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     fontSize: 32,
-    fontWeight: '500',
-    fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
+    fontFamily: theme.fonts.heading,
     color: '#F0E6D2',
     textAlign: 'center',
     marginBottom: 8,
@@ -259,6 +259,7 @@ const styles = StyleSheet.create({
   },
   stepSubtitle: {
     fontSize: 14,
+    fontFamily: theme.fonts.body,
     color: '#B0B0B0',
     textAlign: 'center',
     marginBottom: 20,

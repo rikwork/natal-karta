@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 // Общие дизайн-токены для приложения
 export const theme = {
   colors: {
@@ -39,6 +41,15 @@ export const theme = {
     lg: 16,
     xl: 20,
     full: 9999,
+  },
+  fonts: {
+    heading: 'CormorantGaramond_700Bold',
+    headingRegular: 'CormorantGaramond_400Regular',
+    body: 'Montserrat_400Regular',
+    bodyMedium: 'Montserrat_500Medium',
+    bodySemiBold: 'Montserrat_600SemiBold',
+    bodyBold: 'Montserrat_700Bold',
+    mono: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   fontSize: {
     xs: 12,

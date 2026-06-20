@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { theme } from '../theme';
 
 interface PickerItem {
   label: string;
@@ -239,12 +240,11 @@ const styles = StyleSheet.create({
   headerText: {
     color: '#FFF',
     fontSize: 18,
-    fontFamily: 'serif',
+    fontFamily: theme.fonts.heading,
     textAlign: 'center',
     flex: 1,
     letterSpacing: 2,
     opacity: 1,
-    fontWeight: '600',
   },
   pickerContainer: {
     flexDirection: 'row',
@@ -269,14 +269,13 @@ const styles = StyleSheet.create({
   itemText: {
     fontSize: 18,
     color: '#FFFFFF',
-    fontFamily: 'sans-serif',
+    fontFamily: theme.fonts.body,
     opacity: 0.3,
   },
   selectedItemText: {
     color: '#FFD700',
     fontSize: 28,
-    fontFamily: 'serif',
-    fontWeight: 'bold',
+    fontFamily: theme.fonts.heading,
     opacity: 1,
     textShadowColor: 'rgba(255, 215, 0, 1)',
     textShadowOffset: { width: 0, height: 0 },

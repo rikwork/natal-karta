@@ -3,12 +3,11 @@ import {
     TouchableOpacity,
     Text,
     StyleSheet,
-    View,
-    Platform,
     ViewStyle,
     TextStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { theme } from '../theme';
 
 interface AstralButtonProps {
     title: string;
@@ -92,7 +91,7 @@ const styles = StyleSheet.create({
         color: '#F0E6D2',
         fontSize: 16,
         fontWeight: 'bold',
-        fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
+        fontFamily: theme.fonts.bodyBold,
         textAlign: 'center',
         letterSpacing: 1.5,
         textShadowColor: 'rgba(255, 255, 255, 0.5)',

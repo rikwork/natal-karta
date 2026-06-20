@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Switch,
-  Platform,
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,6 +15,7 @@ import { formatBirthTime } from '../utils/dateFormatter';
 import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
 import AstralSafeAreaView from '../components/AstralSafeAreaView';
+import { theme } from '../theme';
 
 interface CabinetScreenProps {
   user: User | null;
@@ -247,18 +247,18 @@ const styles = StyleSheet.create({
   avatarText: {
     color: '#FFF',
     fontSize: 38,
-    fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    fontFamily: theme.fonts.mono,
   },
   userName: {
     fontSize: 24,
-    fontWeight: 'bold',
     color: '#F0E6D2',
+    fontFamily: theme.fonts.heading,
     marginBottom: 5,
   },
   userEmail: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.5)',
+    fontFamily: theme.fonts.body,
     marginBottom: 15,
   },
   badgeContainer: {

@@ -8,6 +8,17 @@ import ErrorBoundary from './src/components/ErrorBoundary';
 import ApiService from './src/services/api';
 import AdService from './src/services/AdService';
 import { theme } from './src/theme';
+import { useFonts } from 'expo-font';
+import {
+  CormorantGaramond_400Regular,
+  CormorantGaramond_700Bold,
+} from '@expo-google-fonts/cormorant-garamond';
+import {
+  Montserrat_400Regular,
+  Montserrat_500Medium,
+  Montserrat_600SemiBold,
+  Montserrat_700Bold,
+} from '@expo-google-fonts/montserrat';
 
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import LoadingScreen from './src/screens/LoadingScreen';
@@ -27,6 +38,15 @@ import { getZodiacIcon } from './src/utils/zodiacIcons';
 setupErrorHandlers();
 
 const App: React.FC = () => {
+  const [fontsLoaded] = useFonts({
+    CormorantGaramond_400Regular,
+    CormorantGaramond_700Bold,
+    Montserrat_400Regular,
+    Montserrat_500Medium,
+    Montserrat_600SemiBold,
+    Montserrat_700Bold,
+  });
+
   const {
     user,
     setUser,
@@ -176,7 +196,7 @@ const App: React.FC = () => {
     setCurrentScreen('Home');
   }, [setCurrentScreen]);
 
-  if (loading) {
+  if (loading || !fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.loadingText}>Загрузка...</Text>

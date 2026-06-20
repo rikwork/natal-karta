@@ -7,9 +7,9 @@ import {
   ActivityIndicator,
   FlatList,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import { City } from '../types';
+import { theme } from '../theme';
 
 interface AstralCitySelectorProps {
   citySearch: string;
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(157, 101, 255, 0.25)',
     textAlign: 'left',
-    fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
+    fontFamily: theme.fonts.body,
   },
   loadingContainer: {
     position: 'absolute',
@@ -153,19 +153,17 @@ const styles = StyleSheet.create({
   cityName: {
     color: '#ffffff',
     fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
+    fontFamily: theme.fonts.bodySemiBold,
   },
   cityCountry: {
     color: '#FFD700',
     fontSize: 13,
-    fontWeight: '500',
-    fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
+    fontFamily: theme.fonts.bodyMedium,
   },
   cityRegion: {
     color: 'rgba(255, 255, 255, 0.5)',
     fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
+    fontFamily: theme.fonts.body,
   },
 });
 

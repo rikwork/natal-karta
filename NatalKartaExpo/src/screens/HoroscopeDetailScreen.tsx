@@ -4,7 +4,6 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    Platform,
     Dimensions,
     Image,
     ActivityIndicator,
@@ -18,6 +17,7 @@ import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
 import { BlurView } from 'expo-blur';
 import AstralSafeAreaView from '../components/AstralSafeAreaView';
+import { theme } from '../theme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -187,9 +187,8 @@ const styles = StyleSheet.create({
     headerTitle: {
         color: '#FFD700',
         fontSize: 20,
-        fontWeight: '800',
         letterSpacing: 2,
-        fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
+        fontFamily: theme.fonts.heading,
     },
     scrollContent: {
         paddingBottom: 20,
@@ -237,7 +236,7 @@ const styles = StyleSheet.create({
     tabText: {
         color: 'rgba(255, 255, 255, 0.5)',
         fontSize: 12,
-        fontWeight: '600',
+        fontFamily: theme.fonts.bodyBold,
     },
     activeTabText: {
         color: '#FFD700',
@@ -258,7 +257,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         color: '#FFD700',
         fontSize: 14,
-        fontWeight: '900',
+        fontFamily: theme.fonts.heading,
         textTransform: 'uppercase',
         letterSpacing: 1.5,
         marginBottom: 12,
@@ -267,6 +266,7 @@ const styles = StyleSheet.create({
         color: 'rgba(255, 255, 255, 0.8)',
         fontSize: 15,
         lineHeight: 22,
+        fontFamily: theme.fonts.body,
         fontStyle: 'italic',
     },
     divider: {
@@ -288,6 +288,7 @@ const styles = StyleSheet.create({
         color: 'rgba(255, 255, 255, 0.8)',
         fontSize: 15,
         lineHeight: 22,
+        fontFamily: theme.fonts.body,
         flex: 1,
     },
     luckyInfoRow: {
@@ -306,6 +307,7 @@ const styles = StyleSheet.create({
     luckyLabel: {
         color: 'rgba(255, 255, 255, 0.4)',
         fontSize: 10,
+        fontFamily: theme.fonts.body,
         textTransform: 'uppercase',
         letterSpacing: 1,
         marginBottom: 5,
@@ -313,7 +315,7 @@ const styles = StyleSheet.create({
     luckyValue: {
         color: '#F0E6D2',
         fontSize: 16,
-        fontWeight: '800',
+        fontFamily: theme.fonts.bodyBold,
     },
     loaderContainer: {
         flex: 1,
@@ -324,6 +326,7 @@ const styles = StyleSheet.create({
     loaderText: {
         color: '#FFD700',
         fontSize: 16,
+        fontFamily: theme.fonts.body,
         fontStyle: 'italic',
         opacity: 0.8,
     },

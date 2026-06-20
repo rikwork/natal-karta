@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { theme } from '../../../theme';
 
 interface BirthTimeStepProps {
   selectedTime: {
@@ -323,8 +324,7 @@ const styles = StyleSheet.create({
   timeDividerText: {
     color: '#FFD700',
     fontSize: 32,
-    fontWeight: '400',
-    fontFamily: 'serif',
+    fontFamily: theme.fonts.heading,
   },
 });
 

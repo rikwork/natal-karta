@@ -18,6 +18,7 @@ import AstralButton from '../components/AstralButton';
 import DailyCardWidget from './Home/components/DailyCardWidget';
 import DailyCardScreen from './DailyCardScreen';
 import { useDailyCard } from '../hooks/useDailyCard';
+import { theme } from '../theme';
 
 interface HomeScreenProps {
   user: User | null;
@@ -205,14 +206,13 @@ const styles = StyleSheet.create({
   greetingText: {
     fontSize: 16,
     color: 'rgba(255,255,255,0.6)',
-    fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
+    fontFamily: theme.fonts.body,
   },
   userName: {
     fontSize: 28,
-    fontWeight: '800',
     color: '#F0E6D2',
     marginTop: 4,
-    fontFamily: Platform.OS === 'ios' ? 'Trebuchet MS' : 'serif',
+    fontFamily: theme.fonts.heading,
   },
   avatarBorder: {
     width: 60,
