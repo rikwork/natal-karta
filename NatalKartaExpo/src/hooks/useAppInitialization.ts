@@ -155,7 +155,7 @@ export const useAppInitialization = () => {
   const wheelTranslateY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (currentScreen === 'Loading' || currentScreen === 'Result') {
+    if (loading || currentScreen === 'Loading' || currentScreen === 'Result') {
       setWheelVisible(true);
       Animated.timing(wheelTranslateY, {
         toValue: 0,
@@ -173,12 +173,12 @@ export const useAppInitialization = () => {
       setWheelVisible(false);
     }
 
-    if (currentScreen === 'Loading') {
+    if (loading || currentScreen === 'Loading') {
       startPulseAnimation();
     } else {
       stopPulseAnimation();
     }
-  }, [currentScreen, setWheelVisible, startPulseAnimation, stopPulseAnimation, wheelTranslateY]);
+  }, [loading, currentScreen, setWheelVisible, startPulseAnimation, stopPulseAnimation, wheelTranslateY]);
 
   return {
     user,

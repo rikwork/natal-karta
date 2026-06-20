@@ -1,15 +1,24 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, Dimensions, StyleSheet } from 'react-native';
+import { View, Text, Animated, Dimensions, StyleSheet, Platform } from 'react-native';
 import { theme } from '../theme';
 
 const { width, height } = Dimensions.get('window');
 
 interface LoadingScreenProps {
-  isReady: boolean;
-  onComplete: () => void;
+  isReady?: boolean;
+  onComplete?: () => void;
+  text?: string;
+  subText?: string;
+  fontsLoaded?: boolean;
 }
 
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ isReady, onComplete }) => {
+const LoadingScreen: React.FC<LoadingScreenProps> = ({
+  isReady = false,
+  onComplete,
+  text = 'Идёт расчёт',
+  subText = 'Создаём вашу натальную карту...',
+  fontsLoaded = true,
+}) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
   const starsAnim = useRef(new Animated.Value(0)).current;
@@ -92,7 +101,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isReady, onComplete }) =>
 
   // Завершаем экран, как только готовы данные И прошло мин. время
   useEffect(() => {
-    if (isReady && minTimeElapsed) {
+    if (isReady && minTimeElapsed && onComplete) {
       onComplete();
     }
   }, [isReady, minTimeElapsed, onComplete]);
@@ -134,6 +143,17 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isReady, onComplete }) =>
     );
   };
 
+  const headingFont = fontsLoaded
+    ? theme.fonts.heading
+    : Platform.OS === 'ios'
+    ? 'Georgia'
+    : 'serif';
+  const bodyFont = fontsLoaded
+    ? theme.fonts.body
+    : Platform.OS === 'ios'
+    ? 'System'
+    : 'sans-serif';
+
   return (
     <View style={styles.container}>
       {renderStars()}
@@ -148,8 +168,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isReady, onComplete }) =>
             },
           ]}
         >
-          <Text style={styles.loadingText}>Идёт расчёт</Text>
-          <Text style={styles.subText}>Создаём вашу натальную карту...</Text>
+          <Text style={[styles.loadingText, { fontFamily: headingFont }]}>{text}</Text>
+          <Text style={[styles.subText, { fontFamily: bodyFont }]}>{subText}</Text>
         </Animated.View>
       </View>
     </View>
@@ -183,7 +203,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 32,
-    fontFamily: theme.fonts.heading,
     color: '#F0E6D2',
     marginBottom: 8,
     textAlign: 'center',
@@ -194,7 +213,6 @@ const styles = StyleSheet.create({
   },
   subText: {
     fontSize: 14,
-    fontFamily: theme.fonts.body,
     color: '#B0B0B0',
     textAlign: 'center',
     lineHeight: 20,

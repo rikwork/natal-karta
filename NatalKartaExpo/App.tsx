@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Text, Alert, StyleSheet, BackHandler } from 'react-native';
+import { View, Alert, StyleSheet, BackHandler } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useAppInitialization } from './src/hooks/useAppInitialization';
@@ -258,35 +258,35 @@ const App: React.FC = () => {
     setCurrentScreen('Home');
   }, [setCurrentScreen]);
 
-  if (loading || !fontsLoaded) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Загрузка...</Text>
-      </View>
-    );
-  }
-
   const renderScreen = () => {
     return (
       <>
-        <FadeScreen active={currentScreen === 'Onboarding'}>
+        <FadeScreen active={loading || !fontsLoaded}>
+          <LoadingScreen
+            text="Загрузка"
+            subText="Инициализация приложения..."
+            fontsLoaded={fontsLoaded}
+          />
+        </FadeScreen>
+
+        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'Onboarding'}>
           <OnboardingScreen
             onComplete={handleOnboardingComplete}
             onStepChange={handleOnboardingStepChange}
           />
         </FadeScreen>
 
-        <FadeScreen active={currentScreen === 'Loading'}>
-          <LoadingScreen isReady={!!chartResult} onComplete={handleLoadingComplete} />
+        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'Loading'}>
+          <LoadingScreen isReady={!!chartResult} onComplete={handleLoadingComplete} fontsLoaded={fontsLoaded} />
         </FadeScreen>
 
-        <FadeScreen active={currentScreen === 'Result'}>
+        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'Result'}>
           {chartResult && (
             <ResultScreen result={chartResult} onContinue={() => navigateTo('Home')} />
           )}
         </FadeScreen>
 
-        <FadeScreen active={currentScreen === 'CreateChart'}>
+        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'CreateChart'}>
           {user && (
             <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
               <CreateChartScreen
@@ -298,7 +298,7 @@ const App: React.FC = () => {
           )}
         </FadeScreen>
 
-        <FadeScreen active={currentScreen === 'Charts'}>
+        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'Charts'}>
           {user && (
             <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
               <ChartsScreen
@@ -313,7 +313,7 @@ const App: React.FC = () => {
           )}
         </FadeScreen>
 
-        <FadeScreen active={currentScreen === 'ChartDetail'}>
+        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'ChartDetail'}>
           {selectedChart && user && (
             <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
               <ChartDetailScreen
@@ -327,7 +327,7 @@ const App: React.FC = () => {
           )}
         </FadeScreen>
 
-        <FadeScreen active={currentScreen === 'Cabinet'}>
+        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'Cabinet'}>
           {user && (
             <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
               <CabinetScreen
@@ -342,7 +342,7 @@ const App: React.FC = () => {
           )}
         </FadeScreen>
 
-        <FadeScreen active={currentScreen === 'EditProfile'}>
+        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'EditProfile'}>
           {user && (
             <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
               <EditProfileScreen
@@ -355,7 +355,7 @@ const App: React.FC = () => {
           )}
         </FadeScreen>
 
-        <FadeScreen active={currentScreen === 'HoroscopeDetail'}>
+        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'HoroscopeDetail'}>
           {user && (
             <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
               <HoroscopeDetailScreen
@@ -367,7 +367,7 @@ const App: React.FC = () => {
           )}
         </FadeScreen>
 
-        <FadeScreen active={currentScreen === 'Home'}>
+        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'Home'}>
           {user && (
             <HomeScreen
               user={user}

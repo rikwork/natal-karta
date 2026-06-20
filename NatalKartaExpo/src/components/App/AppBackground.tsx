@@ -26,7 +26,15 @@ const AppBackground: React.FC<AppBackgroundProps> = ({
 
   return (
     <View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#050514' }]}>
-      {isVideoEnabled ? (
+      {/* Статичный фон-плейсхолдер, отображаемый мгновенно */}
+      <Image
+        source={require('../../../assets/images/app_background.png')}
+        style={StyleSheet.absoluteFill}
+        resizeMode="cover"
+      />
+
+      {/* Видео-фон, воспроизводимый поверх картинки после загрузки */}
+      {isVideoEnabled && (
         <Video
           source={require('../../../assets/videos/background_video.mp4')}
           style={StyleSheet.absoluteFill}
@@ -34,12 +42,6 @@ const AppBackground: React.FC<AppBackgroundProps> = ({
           isLooping
           shouldPlay
           isMuted
-        />
-      ) : (
-        <Image
-          source={require('../../../assets/images/app_background.png')}
-          style={StyleSheet.absoluteFill}
-          resizeMode="cover"
         />
       )}
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.75)' }]} />
