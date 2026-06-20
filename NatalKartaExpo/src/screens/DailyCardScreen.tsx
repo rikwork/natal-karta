@@ -11,8 +11,10 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tarotImages } from '../constants/tarotImages';
 import tarotData from '../constants/tarotDescriptions.json';
+import AstralButton from '../components/AstralButton';
 
 const { width, height } = Dimensions.get('window');
 
@@ -36,7 +38,23 @@ const DailyCardScreen: React.FC<DailyCardScreenProps> = ({ cardId, onClose, isMa
       duration: 500,
       useNativeDriver: true,
     }).start();
-  }, [fadeAnim]);
+
+    const checkOpenedToday = async () => {
+      try {
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const savedDate = await AsyncStorage.getItem('daily_card_opened_date');
+        if (savedDate === todayStr) {
+          setFlipped(true);
+          flipAnim.setValue(1);
+          contentFadeAnim.setValue(1);
+        }
+      } catch (err) {
+        console.error('Error reading daily card open state:', err);
+      }
+    };
+    checkOpenedToday();
+  }, [fadeAnim, contentFadeAnim, flipAnim]);
 
   const handleFlip = () => {
     if (flipped) return;
@@ -48,13 +66,21 @@ const DailyCardScreen: React.FC<DailyCardScreenProps> = ({ cardId, onClose, isMa
       friction: 8,
       tension: 10,
       useNativeDriver: true,
-    }).start(() => {
+    }).start(async () => {
       setFlipped(true);
       Animated.timing(contentFadeAnim, {
         toValue: 1,
         duration: 800,
         useNativeDriver: true,
       }).start();
+
+      try {
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        await AsyncStorage.setItem('daily_card_opened_date', todayStr);
+      } catch (err) {
+        console.error('Error saving daily card open state:', err);
+      }
     });
   };
 
@@ -88,6 +114,11 @@ const DailyCardScreen: React.FC<DailyCardScreenProps> = ({ cardId, onClose, isMa
     opacity: backOpacity,
   };
 
+  const cardTranslateY = flipAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [height * 0.15, 0],
+  });
+
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill}>
@@ -100,7 +131,7 @@ const DailyCardScreen: React.FC<DailyCardScreenProps> = ({ cardId, onClose, isMa
           <Text style={styles.closeText}>✕</Text>
         </TouchableOpacity>
 
-        <View style={styles.cardWrapper}>
+        <Animated.View style={[styles.cardWrapper, { transform: [{ translateY: cardTranslateY }] }]}>
           <TouchableOpacity activeOpacity={1} onPress={handleFlip}>
             <View style={styles.flipCard}>
               {/* Back side (visible initially) */}
@@ -138,7 +169,7 @@ const DailyCardScreen: React.FC<DailyCardScreenProps> = ({ cardId, onClose, isMa
               </Animated.View>
             </View>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
         {flipped && (
           <Animated.ScrollView 
@@ -154,9 +185,11 @@ const DailyCardScreen: React.FC<DailyCardScreenProps> = ({ cardId, onClose, isMa
               </Text>
             </View>
             
-            <TouchableOpacity style={styles.fineButton} onPress={onClose}>
-              <Text style={styles.fineButtonText}>ПРИНЯТЬ</Text>
-            </TouchableOpacity>
+            <AstralButton
+              title="ПРИНЯТЬ"
+              onPress={onClose}
+              style={styles.fineButton}
+            />
             <View style={{ height: 40 }} />
           </Animated.ScrollView>
         )}
@@ -275,12 +308,16 @@ const styles = StyleSheet.create({
   },
   descriptionBox: {
     width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
-    borderLeftWidth: 3,
-    borderLeftColor: '#9D65FF',
+    backgroundColor: 'rgba(20, 15, 38, 0.75)',
+    borderRadius: 24,
+    padding: 22,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(157, 101, 255, 0.25)',
+    shadowColor: '#9D65FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
   },
   adviceBox: {
     width: '100%',
@@ -292,15 +329,15 @@ const styles = StyleSheet.create({
     borderLeftColor: '#FFD700',
   },
   sectionTitle: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '900',
-    color: 'rgba(255,255,255,0.4)',
-    marginBottom: 8,
+    color: '#FFD700',
+    marginBottom: 10,
     letterSpacing: 2,
   },
   descriptionText: {
     fontSize: 16,
-    color: '#ECECEC',
+    color: '#F0E6D2',
     lineHeight: 24,
   },
   adviceText: {
@@ -311,22 +348,8 @@ const styles = StyleSheet.create({
   },
   fineButton: {
     width: '100%',
-    height: 55,
-    borderRadius: 28,
-    backgroundColor: '#9D65FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 10,
-    shadowColor: '#9D65FF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  fineButtonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 2,
+    marginTop: 15,
+    marginBottom: 10,
   },
 });
 
