@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   Animated,
   Platform,
 } from 'react-native';
@@ -153,7 +152,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onStepC
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.scrollContainer}>
         <Animated.View style={[styles.stepWrapper, { opacity: fadeAnim }]}>
           <Text style={styles.stepTitle}>{steps[currentStep].title}</Text>
           <Text style={styles.stepSubtitle}>{steps[currentStep].subtitle}</Text>
@@ -171,7 +170,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onStepC
             style={styles.nextButton}
           />
         </View>
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -179,7 +178,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onStepC
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContainer: {
-    flexGrow: 1,
+    flex: 1,
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 40,

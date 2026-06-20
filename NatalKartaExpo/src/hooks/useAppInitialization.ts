@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Animated, Easing, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { auth, signInAnonymously } from '../config/firebase';
+import { signInAnonymously } from '../config/firebase';
 import ApiService from '../services/api';
 import AdService from '../services/AdService';
 import { User, NatalChart } from '../types';
@@ -85,7 +85,7 @@ export const useAppInitialization = () => {
 
   const createNewUser = useCallback(async (data: any): Promise<User> => {
     try {
-      const userCredential = await signInAnonymously(auth);
+      const userCredential = await signInAnonymously();
       const uid = userCredential.user.uid;
 
       const response = await ApiService.createUser({
