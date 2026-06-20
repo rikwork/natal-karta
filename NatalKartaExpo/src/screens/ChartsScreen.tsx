@@ -257,4 +257,6 @@ const ChartItem = React.memo(({
   </TouchableOpacity>
 ));
 
+ChartItem.displayName = 'ChartItem';
+
 export default ChartsScreen;

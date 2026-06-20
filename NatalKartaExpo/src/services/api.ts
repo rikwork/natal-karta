@@ -69,6 +69,13 @@ class ApiService {
     });
   }
 
+  async deleteUser(userId: number): Promise<ApiResponse<any>> {
+    return this.request<any>(`/users/${userId}`, {
+      method: 'DELETE',
+    });
+  }
+
+
   // Natal Chart methods
   async createNatalChart(userId: number, chartData: BirthData): Promise<ApiResponse<NatalChart>> {
     return this.request<NatalChart>(`/users/${userId}/natal_charts`, {

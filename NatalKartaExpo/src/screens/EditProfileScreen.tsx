@@ -22,18 +22,20 @@ import AstralButton from '../components/AstralButton';
 import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
 import { formatBirthTime } from '../utils/dateFormatter';
-import { theme } from '../theme';
+
 
 interface EditProfileScreenProps {
     user: User;
     onUpdateUser: (updatedUser: User) => void;
     onBack: () => void;
+    onDeleteProfile: () => void;
 }
 
 const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
     user,
     onUpdateUser,
     onBack,
+    onDeleteProfile,
 }) => {
     const [name, setName] = useState(user.name);
     const [birthData, setBirthData] = useState({
@@ -57,6 +59,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
         longitude: 0,
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [isFetchingChart, setIsFetchingChart] = useState(true);
     const [citySearch, setCitySearch] = useState('');
     const [filteredCities, setFilteredCities] = useState<City[]>([]);
@@ -206,6 +209,43 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
         }
     };
 
+    const handleDeleteAccount = () => {
+        const message = 'Вы уверены, что хотите удалить профиль, все данные будут удалены?';
+        if (Platform.OS === 'web') {
+            const confirmed = window.confirm(message);
+            if (confirmed) {
+                performDeleteAccount();
+            }
+        } else {
+            Alert.alert(
+                'Удаление профиля',
+                message,
+                [
+                    { text: 'Отмена', style: 'cancel' },
+                    {
+                        text: 'Удалить',
+                        style: 'destructive',
+                        onPress: performDeleteAccount,
+                    },
+                ],
+                { cancelable: true }
+            );
+        }
+    };
+
+    const performDeleteAccount = async () => {
+        setIsDeleting(true);
+        try {
+            await ApiService.deleteUser(user.id);
+        } catch (error) {
+            console.error('Error deleting user from API:', error);
+        } finally {
+            setIsDeleting(false);
+            onDeleteProfile();
+        }
+    };
+
+
     return (
         <View style={styles.mainContainer}>
             <SafeAreaView style={{ flex: 1 }}>
@@ -295,6 +335,29 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                                                 />
                                             </View>
                                         </View>
+                                    </AstralGlassCard>
+                                </View>
+
+                                <View style={styles.section}>
+                                    <Text style={styles.sectionTitle}>Опасная зона</Text>
+                                    <AstralGlassCard style={styles.deleteCard}>
+                                        <Text style={styles.deleteDescription}>
+                                            При удалении аккаунта все ваши данные, включая натальные карты и историю предсказаний, будут удалены без возможности восстановления.
+                                        </Text>
+                                        <TouchableOpacity
+                                            style={styles.deleteButton}
+                                            onPress={handleDeleteAccount}
+                                            disabled={isDeleting}
+                                        >
+                                            {isDeleting ? (
+                                                <ActivityIndicator size="small" color="#FF4D4D" />
+                                            ) : (
+                                                <>
+                                                    <Ionicons name="trash-outline" size={18} color="#FF4D4D" />
+                                                    <Text style={styles.deleteButtonText}>Удалить профиль</Text>
+                                                </>
+                                            )}
+                                        </TouchableOpacity>
                                     </AstralGlassCard>
                                 </View>
                             </ScrollView>
@@ -400,6 +463,34 @@ const styles = StyleSheet.create({
     mainSaveButton: {
         height: 60,
         borderRadius: 20,
+    },
+    deleteCard: {
+        padding: 20,
+        borderColor: 'rgba(255, 77, 77, 0.2)',
+        borderWidth: 1,
+    },
+    deleteDescription: {
+        color: 'rgba(255, 255, 255, 0.6)',
+        fontSize: 14,
+        lineHeight: 20,
+        marginBottom: 20,
+    },
+    deleteButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255, 77, 77, 0.1)',
+        borderRadius: 16,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 77, 77, 0.3)',
+        gap: 8,
+        minHeight: 48,
+    },
+    deleteButtonText: {
+        color: '#FF4D4D',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });
 

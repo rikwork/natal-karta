@@ -82,6 +82,17 @@ const App: React.FC = () => {
     [setUser],
   );
 
+  const handleDeleteProfile = useCallback(async () => {
+    setUser(null);
+    setOnboardingData(null);
+    setChartResult(null);
+    setSelectedChart(null);
+    await AsyncStorage.removeItem('user');
+    await AsyncStorage.removeItem('onboarding_completed');
+    setCurrentScreen('Onboarding');
+  }, [setUser, setCurrentScreen, setOnboardingData, setChartResult, setSelectedChart]);
+
+
   const handleOnboardingComplete = useCallback(
     async (data: any) => {
       setOnboardingData(data);
@@ -250,6 +261,7 @@ const App: React.FC = () => {
               user={user}
               onUpdateUser={handleUpdateUser}
               onBack={() => setCurrentScreen('Cabinet')}
+              onDeleteProfile={handleDeleteProfile}
             />
           )}
         </FadeScreen>
