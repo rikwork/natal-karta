@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../theme';
 
@@ -7,6 +7,7 @@ interface AstralButtonProps {
   title: string;
   onPress: () => void;
   disabled?: boolean;
+  loading?: boolean;
   style?: ViewStyle;
   outerStyle?: ViewStyle;
   innerStyle?: ViewStyle;
@@ -17,6 +18,7 @@ const AstralButton: React.FC<AstralButtonProps> = ({
   title,
   onPress,
   disabled = false,
+  loading = false,
   style,
   outerStyle,
   innerStyle,
@@ -37,11 +39,11 @@ const AstralButton: React.FC<AstralButtonProps> = ({
           shadowRadius: typeof height === 'number' ? height * 0.18 : 10,
           shadowOpacity: typeof height === 'number' ? Math.min(0.4, 0.2 + height / 200) : 0.4,
         },
-        disabled && styles.disabled,
+        (disabled || loading) && styles.disabled,
         style,
       ]}
       onPress={onPress}
-      disabled={disabled}
+      disabled={disabled || loading}
       activeOpacity={0.8}
     >
       <LinearGradient
@@ -56,7 +58,11 @@ const AstralButton: React.FC<AstralButtonProps> = ({
           end={{ x: 1, y: 0.5 }}
           style={[styles.inner, { borderRadius: innerBorderRadius }, innerStyle]}
         >
-          <Text style={[styles.text, textStyle]}>{title}</Text>
+          {loading ? (
+            <ActivityIndicator size="small" color="#F0E6D2" />
+          ) : (
+            <Text style={[styles.text, textStyle]}>{title}</Text>
+          )}
         </LinearGradient>
       </LinearGradient>
     </TouchableOpacity>

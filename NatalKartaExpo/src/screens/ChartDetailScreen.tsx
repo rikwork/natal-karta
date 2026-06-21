@@ -16,6 +16,13 @@ import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
 import { BlurView } from 'expo-blur';
 import AstralSafeAreaView from '../components/AstralSafeAreaView';
+import { ENV } from '../config/api';
+
+const getWebSocketUrl = () => {
+  const baseUrl = ENV.API_BASE_URL; // e.g. http://localhost:3000/api/v1
+  const rootUrl = baseUrl.replace('/api/v1', '/cable');
+  return rootUrl.replace(/^http/, 'ws');
+};
 
 // Removed unused width Dimensions
 
@@ -64,27 +71,85 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
     setIsCareerUnlocked(hasSubscription);
   }, [hasSubscription]);
 
-  const handleGenerateChart = async () => {
-    setLoading(true);
-    try {
-      const response = await ApiService.generateNatalChart(userId, chart.id);
-      if (response.data && response.data.chart_data) {
-        let parsedData: NatalChartData;
-        if (typeof response.data.chart_data === 'string') {
-          parsedData = JSON.parse(response.data.chart_data);
-        } else {
-          parsedData = response.data.chart_data;
-        }
-        setChartData(parsedData);
-      } else {
-        Alert.alert('Ошибка', 'Не удалось получить данные натальной карты');
+  useEffect(() => {
+    if (chartData) return;
+
+    let ws: WebSocket | null = null;
+    let isSubscribed = true;
+
+    const connectWebSocket = () => {
+      try {
+        const wsUrl = getWebSocketUrl();
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          if (!isSubscribed) return;
+          const msg = {
+            command: 'subscribe',
+            identifier: JSON.stringify({
+              channel: 'NatalChartChannel',
+              user_id: userId,
+            }),
+          };
+          ws?.send(JSON.stringify(msg));
+        };
+
+        ws.onmessage = (event) => {
+          if (!isSubscribed) return;
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'ping') return;
+
+            if (data.message && data.message.chart_id === chart.id) {
+              if (data.message.status === 'completed') {
+                const rawData = data.message.chart_data;
+                const parsedData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+                setChartData(parsedData);
+                ws?.close();
+              } else if (data.message.status === 'failed') {
+                Alert.alert('Ошибка', data.message.error || 'Не удалось рассчитать карту');
+                ws?.close();
+              }
+            }
+          } catch (e) {
+            console.error('Error parsing WS message:', e);
+          }
+        };
+
+        ws.onerror = (e) => {
+          console.error('WebSocket error:', e);
+        };
+      } catch (err) {
+        console.error('WebSocket connection failed:', err);
       }
-    } catch (_error) {
-      Alert.alert('Ошибка', 'Не удалось сгенерировать натальную карту');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    connectWebSocket();
+
+    // Check status via API to prevent race conditions
+    const checkChartStatus = async () => {
+      try {
+        const response = await ApiService.getNatalChart(userId, chart.id);
+        if (response.data && response.data.chart_data && isSubscribed) {
+          const rawData = response.data.chart_data;
+          const parsedData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+          setChartData(parsedData);
+          ws?.close();
+        }
+      } catch (e) {
+        console.error('Error checking chart status:', e);
+      }
+    };
+
+    checkChartStatus();
+
+    return () => {
+      isSubscribed = false;
+      if (ws) {
+        ws.close();
+      }
+    };
+  }, [chartData, userId, chart.id]);
 
   const handleUnlockLove = () => {
     onWatchAd();
@@ -119,18 +184,11 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
 
           {!chartData ? (
             <View style={styles.noDataContainer}>
-              <Text style={styles.noDataTitle}>Карта не рассчитана</Text>
-              <TouchableOpacity
-                style={[styles.generateButton, loading && styles.generateButtonDisabled]}
-                onPress={handleGenerateChart}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.generateButtonText}>Магический расчет</Text>
-                )}
-              </TouchableOpacity>
+              <ActivityIndicator size="large" color="#FFD700" style={{ marginBottom: 20 }} />
+              <Text style={styles.noDataTitle}>Звезды строят вашу карту...</Text>
+              <Text style={styles.noDataSubtitle}>
+                Астрологический расчет и генерация интерпретации занимают до 1 минуты. Пожалуйста, подождите.
+              </Text>
             </View>
           ) : (
             <View style={styles.cardsContainer}>
@@ -271,28 +329,25 @@ const styles = StyleSheet.create({
   },
   noDataContainer: {
     alignItems: 'center',
-    paddingTop: 40,
+    paddingTop: 60,
+    paddingHorizontal: 20,
   },
   noDataTitle: {
-    fontSize: 20,
-    color: '#FFFFFF',
-    marginBottom: 20,
-  },
-  generateButton: {
-    backgroundColor: 'rgba(147, 51, 234, 0.8)',
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#D8B4FE',
-  },
-  generateButtonDisabled: {
-    opacity: 0.5,
-  },
-  generateButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
+    color: '#FFD700',
+    textAlign: 'center',
+    marginBottom: 12,
+    textShadowColor: 'rgba(255, 215, 0, 0.4)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+  },
+  noDataSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.6)',
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: 20,
   },
   cardsContainer: {
     gap: 20,

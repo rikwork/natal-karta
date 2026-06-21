@@ -11,6 +11,7 @@ class NatalCharts::Create
   end
 
   def call
+    @user.natal_charts.destroy_all
     natal_chart = @user.natal_charts.build(@params)
 
     if natal_chart.save

@@ -178,11 +178,11 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
         await ApiService.updateUser(user.id, { name });
       }
 
-      if (birthDataChanged) {
+      if (nameChanged || birthDataChanged) {
         const updatedBirthDate = `${birthData.year}-${String(birthData.month).padStart(2, '0')}-${String(birthData.day).padStart(2, '0')}`;
         const updatedBirthTime = `${String(birthData.hour).padStart(2, '0')}:${String(birthData.minute).padStart(2, '0')}`;
 
-        const chartResponse = await ApiService.createNatalChart(user.id, {
+        await ApiService.createNatalChart(user.id, {
           name: `${name} - Натальная карта`,
           birth_date: updatedBirthDate,
           birth_time: updatedBirthTime,
@@ -190,10 +190,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
           latitude: birthData.latitude,
           longitude: birthData.longitude,
         });
-
-        if (chartResponse.data) {
-          await ApiService.generateNatalChart(user.id, chartResponse.data.id);
-        }
       }
 
       const userResponse = await ApiService.getUser(user.id);
@@ -368,8 +364,9 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
 
               <View style={styles.footer}>
                 <AstralButton
-                  title={isLoading ? 'Сохранение...' : 'Применить изменения'}
+                  title="Применить изменения"
                   onPress={handleSave}
+                  loading={isLoading}
                   disabled={isLoading || (name === user.name && isBirthDataLocked)}
                   style={styles.mainSaveButton}
                 />

@@ -22,6 +22,7 @@ class Api::V1::NatalChartsController < ApplicationController
 
     if result[:success]
       @user.update!(birth_data_updated_at: Time.current)
+      GenerateNatalChartJob.perform_later(@user.id, result[:data].id, user_locale)
       render json: NatalChartSerializer.new(result[:data]).as_json, status: :created
     else
       render json: { errors: result[:errors] }, status: :unprocessable_entity

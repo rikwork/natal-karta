@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import DatePicker from 'react-native-date-picker';
-import { BirthData } from '../types';
+import { BirthData, NatalChart } from '../types';
 import ApiService from '../services/api';
 import AstralButton from '../components/AstralButton';
 import AstralHeader from '../components/AstralHeader';
@@ -18,7 +18,7 @@ import AstralGlassCard from '../components/AstralGlassCard';
 
 interface CreateChartScreenProps {
   userId: number;
-  onChartCreated: () => void;
+  onChartCreated: (chart: NatalChart) => void;
   onBack: () => void;
 }
 
@@ -89,8 +89,14 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
         longitude: coords.longitude,
       };
 
-      await ApiService.createNatalChart(userId, chartData);
-      Alert.alert('Успех', 'Натальная карта создана!', [{ text: 'OK', onPress: onChartCreated }]);
+      const response = await ApiService.createNatalChart(userId, chartData);
+      if (response.data) {
+        Alert.alert('Успех', 'Натальная карта создана!', [
+          { text: 'OK', onPress: () => onChartCreated(response.data!) },
+        ]);
+      } else {
+        Alert.alert('Ошибка', 'Не удалось получить данные созданной карты');
+      }
     } catch (_error) {
       Alert.alert('Ошибка', 'Не удалось создать натальную карту');
     } finally {
@@ -140,6 +146,7 @@ const CreateChartScreen: React.FC<CreateChartScreenProps> = ({
               onChangeText={(value) => handleInputChange('birth_place', value)}
               placeholder="Город, страна"
               placeholderTextColor="#9CA3AF"
+              multiline={true}
             />
           </View>
 

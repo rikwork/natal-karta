@@ -295,7 +295,11 @@ const App: React.FC = () => {
             <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
               <CreateChartScreen
                 userId={user.id}
-                onChartCreated={() => navigateTo('Charts')}
+                onChartCreated={(newChart) => {
+                  setSelectedChart(newChart);
+                  setScreenHistory(['Home', 'ChartDetail']);
+                  setCurrentScreen('ChartDetail');
+                }}
                 onBack={navigateBack}
               />
             </AstralSwipeBack>
@@ -375,7 +379,19 @@ const App: React.FC = () => {
           {user && (
             <HomeScreen
               user={user}
-              onNavigateToCharts={() => navigateTo('Charts')}
+              onNavigateToCharts={async () => {
+                try {
+                  const response = await ApiService.getNatalCharts(user.id);
+                  if (response.data && response.data.length > 0) {
+                    setSelectedChart(response.data[0]);
+                    navigateTo('ChartDetail');
+                  } else {
+                    navigateTo('CreateChart');
+                  }
+                } catch (e) {
+                  navigateTo('CreateChart');
+                }
+              }}
               onNavigateToCreateChart={() => navigateTo('CreateChart')}
               onNavigateToCabinet={() => navigateTo('Cabinet')}
               onNavigateToHoroscope={() => navigateTo('HoroscopeDetail')}
