@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tarotImages } from '../constants/tarotImages';
 import tarotData from '../constants/tarotDescriptions.json';
 import AstralButton from '../components/AstralButton';
@@ -22,15 +21,23 @@ const { width, height } = Dimensions.get('window');
 
 interface DailyCardScreenProps {
   cardId: number;
+  initialFlipped: boolean;
+  onReveal: () => Promise<void>;
   onClose: () => void;
   isMale: boolean;
 }
 
-const DailyCardScreen: React.FC<DailyCardScreenProps> = ({ cardId, onClose, isMale }) => {
-  const [flipped, setFlipped] = useState(false);
-  const flipAnim = useRef(new Animated.Value(0)).current;
+const DailyCardScreen: React.FC<DailyCardScreenProps> = ({
+  cardId,
+  initialFlipped,
+  onReveal,
+  onClose,
+  isMale,
+}) => {
+  const [flipped, setFlipped] = useState(initialFlipped);
+  const flipAnim = useRef(new Animated.Value(initialFlipped ? 1 : 0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const contentFadeAnim = useRef(new Animated.Value(0)).current;
+  const contentFadeAnim = useRef(new Animated.Value(initialFlipped ? 1 : 0)).current;
 
   const cardInfo = tarotData.find((c) => c.id === cardId);
 
@@ -40,23 +47,7 @@ const DailyCardScreen: React.FC<DailyCardScreenProps> = ({ cardId, onClose, isMa
       duration: 500,
       useNativeDriver: true,
     }).start();
-
-    const checkOpenedToday = async () => {
-      try {
-        const today = new Date();
-        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-        const savedDate = await AsyncStorage.getItem('daily_card_opened_date');
-        if (savedDate === todayStr) {
-          setFlipped(true);
-          flipAnim.setValue(1);
-          contentFadeAnim.setValue(1);
-        }
-      } catch (err) {
-        console.error('Error reading daily card open state:', err);
-      }
-    };
-    checkOpenedToday();
-  }, [fadeAnim, contentFadeAnim, flipAnim]);
+  }, [fadeAnim]);
 
   useEffect(() => {
     const backAction = () => {
@@ -87,11 +78,9 @@ const DailyCardScreen: React.FC<DailyCardScreenProps> = ({ cardId, onClose, isMa
       }).start();
 
       try {
-        const today = new Date();
-        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-        await AsyncStorage.setItem('daily_card_opened_date', todayStr);
+        await onReveal();
       } catch (err) {
-        console.error('Error saving daily card open state:', err);
+        console.error('Error revealing daily card on backend:', err);
       }
     });
   };

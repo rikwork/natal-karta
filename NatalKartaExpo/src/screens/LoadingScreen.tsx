@@ -146,13 +146,9 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   const headingFont = fontsLoaded
     ? theme.fonts.heading
     : Platform.OS === 'ios'
-    ? 'Georgia'
-    : 'serif';
-  const bodyFont = fontsLoaded
-    ? theme.fonts.body
-    : Platform.OS === 'ios'
-    ? 'System'
-    : 'sans-serif';
+      ? 'Georgia'
+      : 'serif';
+  const bodyFont = fontsLoaded ? theme.fonts.body : Platform.OS === 'ios' ? 'System' : 'sans-serif';
 
   return (
     <View style={styles.container}>

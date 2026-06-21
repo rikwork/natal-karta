@@ -1,31 +1,61 @@
-import { useState, useCallback } from 'react';
-import { DailyCardService } from '../services/DailyCardService';
+import { useState, useEffect, useCallback } from 'react';
+import { DailyCardService, DailyCardResponse } from '../services/DailyCardService';
 
 export const useDailyCard = (userId?: number) => {
   const [isModalVisible, setModalVisible] = useState(false);
-  const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [dailyCard, setDailyCard] = useState<DailyCardResponse['data'] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const openDailyCard = useCallback(async () => {
-    if (!userId) return;
+  const fetchDailyCard = useCallback(async () => {
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
-    const res = await DailyCardService.getDailyCard(userId);
-    if (res.success && res.data) {
-      setSelectedCardId(res.data.tarot_card_id);
+    try {
+      const res = await DailyCardService.getDailyCard(userId);
+      if (res.success && res.data) {
+        setDailyCard(res.data);
+      }
+    } catch (err) {
+      console.error('Error fetching daily card:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchDailyCard();
+  }, [fetchDailyCard]);
+
+  const openDailyCard = useCallback(() => {
+    if (dailyCard) {
       setModalVisible(true);
     }
-    setIsLoading(false);
-  }, [userId]);
+  }, [dailyCard]);
 
   const closeModal = useCallback(() => {
     setModalVisible(false);
   }, []);
 
+  const revealDailyCard = useCallback(async () => {
+    if (!userId || !dailyCard) return;
+    try {
+      const res = await DailyCardService.revealDailyCard(userId);
+      if (res.success && res.data) {
+        setDailyCard(res.data);
+      }
+    } catch (err) {
+      console.error('Error revealing daily card:', err);
+    }
+  }, [userId, dailyCard]);
+
   return {
     isModalVisible,
-    selectedCardId,
+    dailyCard,
     isLoading,
     openDailyCard,
     closeModal,
+    revealDailyCard,
   };
 };

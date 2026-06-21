@@ -9,17 +9,16 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { DailyPredictionContent } from '../types';
+
 import ApiService from '../services/api';
 import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
 import { BlurView } from 'expo-blur';
 import AstralSafeAreaView from '../components/AstralSafeAreaView';
 import { theme } from '../theme';
+import Svg, { Defs, RadialGradient, Stop, Mask, Rect, Image as SvgImage } from 'react-native-svg';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 interface HoroscopeDetailScreenProps {
   sign: string;
@@ -64,6 +63,8 @@ const HoroscopeDetailScreen: React.FC<HoroscopeDetailScreenProps> = ({
   ];
 
   const currentPrediction = predictions[selectedPeriod];
+  const resolvedImage =
+    typeof signImage === 'number' ? Image.resolveAssetSource(signImage) : signImage;
 
   return (
     <View style={styles.container}>
@@ -81,11 +82,29 @@ const HoroscopeDetailScreen: React.FC<HoroscopeDetailScreenProps> = ({
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.imageContainer}>
-              <Image source={signImage} style={styles.signImage} resizeMode="contain" />
-              <LinearGradient
-                colors={['transparent', '#050514'] as const}
-                style={styles.imageOverlay}
-              />
+              <View style={styles.maskContainer}>
+                <Svg height="100%" width="100%" viewBox="0 0 100 100">
+                  <Defs>
+                    <RadialGradient id="radialGrad" cx="50%" cy="50%" rx="50%" ry="50%">
+                      <Stop offset="55%" stopColor="#FFFFFF" stopOpacity="1" />
+                      <Stop offset="90%" stopColor="#FFFFFF" stopOpacity="0.25" />
+                      <Stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+                    </RadialGradient>
+                    <Mask id="svgMask">
+                      <Rect x="0" y="0" width="100" height="100" fill="url(#radialGrad)" />
+                    </Mask>
+                  </Defs>
+                  <SvgImage
+                    href={resolvedImage}
+                    x="0"
+                    y="0"
+                    width="100"
+                    height="100"
+                    mask="url(#svgMask)"
+                    preserveAspectRatio="xMidYMid meet"
+                  />
+                </Svg>
+              </View>
             </View>
 
             <View style={styles.tabsContainer}>
@@ -200,17 +219,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  signImage: {
+  maskContainer: {
     width: width * 0.7,
     height: width * 0.7,
   },
-  imageOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 100,
+  signImage: {
+    width: '100%',
+    height: '100%',
   },
+
   tabsContainer: {
     paddingHorizontal: 20,
     marginTop: -20,

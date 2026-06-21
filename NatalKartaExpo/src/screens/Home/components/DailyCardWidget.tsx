@@ -1,48 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-} from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { DailyCardService } from '../../../services/DailyCardService';
 import tarotData from '../../../constants/tarotDescriptions.json';
 import { tarotImages } from '../../../constants/tarotImages';
 import { theme } from '../../../theme';
 
 interface DailyCardWidgetProps {
-  userId?: number;
+  dailyCard: { tarot_card_id: number; drawn_on: string; opened: boolean } | null;
+  loading: boolean;
   onPress: () => void;
 }
 
-const DailyCardWidget: React.FC<DailyCardWidgetProps> = ({ userId, onPress }) => {
-  const [loading, setLoading] = useState(true);
-  const [drawnCardId, setDrawnCardId] = useState<number | null>(null);
-
-  useEffect(() => {
-    const fetchStatus = async () => {
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const res = await DailyCardService.getDailyCard(userId);
-        if (res.success && res.data) {
-          setDrawnCardId(res.data.tarot_card_id);
-        }
-      } catch (err) {
-        console.error('Widget preview fetch error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStatus();
-  }, [userId]);
-
+const DailyCardWidget: React.FC<DailyCardWidgetProps> = ({ dailyCard, loading, onPress }) => {
   if (loading) {
     return (
       <View style={[styles.tarotCardWrapper, styles.loadingCenter]}>
@@ -51,7 +21,11 @@ const DailyCardWidget: React.FC<DailyCardWidgetProps> = ({ userId, onPress }) =>
     );
   }
 
-  const cardInfo = drawnCardId ? (tarotData as any[]).find((c: any) => c.id === drawnCardId) : null;
+  const isOpened = dailyCard?.opened || false;
+  const cardInfo =
+    isOpened && dailyCard
+      ? (tarotData as any[]).find((c: any) => c.id === dailyCard.tarot_card_id)
+      : null;
 
   return (
     <TouchableOpacity style={styles.tarotCardWrapper} activeOpacity={0.9} onPress={onPress}>
@@ -65,7 +39,7 @@ const DailyCardWidget: React.FC<DailyCardWidgetProps> = ({ userId, onPress }) =>
 
         <View style={styles.cardHeader}>
           <Text style={styles.cardSmallTitle}>КАРТА ДНЯ:</Text>
-          <Text style={styles.tarotTitle}>
+          <Text style={[styles.tarotTitle, !cardInfo && styles.unopenedTitle]}>
             {cardInfo ? cardInfo.name.toUpperCase() : 'УЗНАЙ СВОЮ КАРТУ'}
           </Text>
         </View>
@@ -75,7 +49,9 @@ const DailyCardWidget: React.FC<DailyCardWidgetProps> = ({ userId, onPress }) =>
           <View style={styles.tarotImageContainer}>
             <Image
               source={
-                cardInfo && tarotImages[cardInfo.id] ? tarotImages[cardInfo.id] : tarotImages.default
+                cardInfo && tarotImages[cardInfo.id]
+                  ? tarotImages[cardInfo.id]
+                  : tarotImages.default
               }
               style={styles.tarotImage}
               resizeMode="cover"
@@ -88,15 +64,13 @@ const DailyCardWidget: React.FC<DailyCardWidgetProps> = ({ userId, onPress }) =>
         </View>
 
         <View style={styles.tarotFooter}>
-          <Text style={styles.tarotDesc} numberOfLines={3}>
-            {cardInfo
-              ? `${cardInfo.description_male.substring(0, 60)}...`
-              : 'Узнайте предсказание звезд на сегодня через магию Таро.'}
-          </Text>
-          <View style={styles.actionPrompt}>
-            <Text style={styles.actionText}>
-              {cardInfo ? 'Подробнее →' : 'Открыть карту →'}
+          {cardInfo && (
+            <Text style={styles.tarotDesc} numberOfLines={3}>
+              {`${cardInfo.description_male.substring(0, 60)}...`}
             </Text>
+          )}
+          <View style={styles.actionPrompt}>
+            <Text style={styles.actionText}>{cardInfo ? 'Подробнее →' : 'Открыть карту →'}</Text>
           </View>
         </View>
       </BlurView>
@@ -142,6 +116,9 @@ const styles = StyleSheet.create({
     color: '#FFF',
     letterSpacing: 1,
     fontFamily: theme.fonts.heading,
+  },
+  unopenedTitle: {
+    fontSize: 15,
   },
   iconContainer: {
     flex: 1,

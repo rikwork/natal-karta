@@ -178,7 +178,14 @@ export const useAppInitialization = () => {
     } else {
       stopPulseAnimation();
     }
-  }, [loading, currentScreen, setWheelVisible, startPulseAnimation, stopPulseAnimation, wheelTranslateY]);
+  }, [
+    loading,
+    currentScreen,
+    setWheelVisible,
+    startPulseAnimation,
+    stopPulseAnimation,
+    wheelTranslateY,
+  ]);
 
   return {
     user,

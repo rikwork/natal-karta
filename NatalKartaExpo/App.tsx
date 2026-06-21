@@ -277,7 +277,11 @@ const App: React.FC = () => {
         </FadeScreen>
 
         <FadeScreen active={!loading && fontsLoaded && currentScreen === 'Loading'}>
-          <LoadingScreen isReady={!!chartResult} onComplete={handleLoadingComplete} fontsLoaded={fontsLoaded} />
+          <LoadingScreen
+            isReady={!!chartResult}
+            onComplete={handleLoadingComplete}
+            fontsLoaded={fontsLoaded}
+          />
         </FadeScreen>
 
         <FadeScreen active={!loading && fontsLoaded && currentScreen === 'Result'}>

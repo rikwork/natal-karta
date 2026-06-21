@@ -37,7 +37,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 }) => {
   const { parsedContent, spin, pulseAnim, period, setPeriod } = useHomeScreen(user);
 
-  const { isModalVisible, selectedCardId, openDailyCard, closeModal } = useDailyCard(user?.id);
+  const {
+    isModalVisible,
+    dailyCard,
+    isLoading: isDailyCardLoading,
+    openDailyCard,
+    closeModal,
+    revealDailyCard,
+  } = useDailyCard(user?.id);
 
   const fadeInAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -104,7 +111,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               onPeriodChange={setPeriod}
               sign={user?.zodiac_sign}
             />
-            <DailyCardWidget userId={user?.id} onPress={openDailyCard} />
+            <DailyCardWidget
+              dailyCard={dailyCard}
+              loading={isDailyCardLoading}
+              onPress={openDailyCard}
+            />
           </View>
 
           <CelestialAlignments />
@@ -141,11 +152,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         </View>
       </Animated.ScrollView>
 
-      {isModalVisible && selectedCardId && (
+      {isModalVisible && dailyCard && (
         <DailyCardScreen
-          cardId={selectedCardId}
+          cardId={dailyCard.tarot_card_id}
+          initialFlipped={dailyCard.opened}
+          onReveal={revealDailyCard}
           onClose={closeModal}
-          isMale={user?.gender === 'male' || true}
+          isMale={user?.gender !== 'female'}
         />
       )}
     </View>

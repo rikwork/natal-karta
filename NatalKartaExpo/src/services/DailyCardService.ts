@@ -7,6 +7,7 @@ export interface DailyCardResponse {
   data?: {
     tarot_card_id: number;
     drawn_on: string;
+    opened: boolean;
   };
   error?: string;
 }
@@ -25,6 +26,26 @@ export const DailyCardService = {
     } catch (error) {
       console.error('Error fetching daily card:', error);
       return { success: false, error: 'Failed to fetch daily card' };
+    }
+  },
+
+  revealDailyCard: async (userId: number): Promise<DailyCardResponse> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${userId}/daily_card/reveal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+
+      if (data && data.success) {
+        return { success: true, data: data.data };
+      }
+      return { success: false, error: data.error || 'Failed to reveal daily card' };
+    } catch (error) {
+      console.error('Error revealing daily card:', error);
+      return { success: false, error: 'Failed to reveal daily card' };
     }
   },
 };
