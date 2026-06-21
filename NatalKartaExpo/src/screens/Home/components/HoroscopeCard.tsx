@@ -1,13 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HoroscopePeriod } from '../../../hooks/useHomeScreen';
 import { theme } from '../../../theme';
 
 import { getZodiacIcon } from '../../../utils/zodiacIcons';
-
-const { width } = Dimensions.get('window');
 
 interface HoroscopeCardProps {
   onPress: () => void;
@@ -52,7 +50,9 @@ const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ onPress, content, period,
 
         <View style={styles.iconContainer}>
           <View style={styles.glowEffect} />
-          <Image source={zodiacIcon} style={styles.scorpioImage} resizeMode="contain" />
+          <View style={styles.zodiacFrame}>
+            <Image source={zodiacIcon} style={styles.zodiacImage} resizeMode="contain" />
+          </View>
         </View>
 
         <View style={styles.cardFooter}>
@@ -72,7 +72,7 @@ const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ onPress, content, period,
 const styles = StyleSheet.create({
   horoscopeCardWrapper: {
     flex: 1,
-    shadowColor: '#FFD700',
+    shadowColor: theme.colors.secondary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   },
   signTitle: {
     fontSize: 20,
-    color: '#FFD700',
+    color: theme.colors.secondary,
     letterSpacing: 1,
     fontFamily: theme.fonts.heading,
   },
@@ -111,18 +111,34 @@ const styles = StyleSheet.create({
   },
   glowEffect: {
     position: 'absolute',
-    width: 85,
-    height: 85,
-    borderRadius: 42.5,
-    backgroundColor: 'rgba(255, 215, 0, 0.08)',
-    shadowColor: '#FFD700',
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: 'rgba(255, 215, 0, 0.06)',
+    shadowColor: theme.colors.secondary,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
+    shadowOpacity: 0.45,
+    shadowRadius: 20,
   },
-  scorpioImage: {
-    width: 75,
-    height: 75,
+  zodiacFrame: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 215, 0, 0.35)',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  zodiacImage: {
+    width: 120,
+    height: 120,
   },
   cardFooter: {
     marginTop: 6,
@@ -140,7 +156,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 12,
-    color: '#FFD700',
+    color: theme.colors.secondary,
     fontFamily: theme.fonts.bodyBold,
     letterSpacing: 1,
   },
