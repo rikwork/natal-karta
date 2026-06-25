@@ -18,7 +18,10 @@ class NatalChartSerializer
           love_preview: get_first_paragraph(data['love']),
           love_locked: get_remaining_paragraphs(data['love']),
           career_preview: get_first_paragraph(data['career']),
-          career_locked: get_remaining_paragraphs(data['career'])
+          career_locked: get_remaining_paragraphs(data['career']),
+          sun: data['sun'] || @natal_chart.user.zodiac_sign || 'Скорпион',
+          moon: data['moon'] || 'Весы',
+          ascendant: data['ascendant'] || 'Близнецы'
         }
       end
     rescue JSON::ParserError
@@ -27,6 +30,7 @@ class NatalChartSerializer
 
     {
       id: @natal_chart.id,
+      user_id: @natal_chart.user_id,
       name: @natal_chart.name,
       birth_date: @natal_chart.birth_date,
       birth_time: @natal_chart.birth_time,

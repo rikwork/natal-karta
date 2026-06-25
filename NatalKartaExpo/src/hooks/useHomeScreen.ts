@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Alert, Animated, Easing } from 'react-native';
 import ApiService from '../services/api';
-import { User, DailyPrediction, DailyPredictionContent } from '../types';
+import { User, DailyPrediction, DailyPredictionContent, NatalChart } from '../types';
 
 export type HoroscopePeriod = 'today' | 'tomorrow' | 'week' | 'month' | 'year';
 
@@ -9,6 +9,8 @@ export const useHomeScreen = (user: User | null) => {
   const [dailyPrediction, setDailyPrediction] = useState<DailyPrediction | null>(null);
   const [loading, setLoading] = useState(false);
   const [period, setPeriod] = useState<HoroscopePeriod>('today');
+  const [userChart, setUserChart] = useState<NatalChart | null>(null);
+  const [isChartLoading, setIsChartLoading] = useState(false);
 
   // Анимации для ZodiacWheel
   const spinValue = useRef(new Animated.Value(0)).current;
@@ -75,6 +77,23 @@ export const useHomeScreen = (user: User | null) => {
     }
   }, [dailyPrediction]);
 
+  const loadUserChart = useCallback(async () => {
+    if (!user?.id) return;
+    setIsChartLoading(true);
+    try {
+      const response = await ApiService.getNatalCharts(user.id);
+      if (response.data && response.data.length > 0) {
+        setUserChart(response.data[0]);
+      } else {
+        setUserChart(null);
+      }
+    } catch (e) {
+      console.error('Error loading user chart on Home screen:', e);
+    } finally {
+      setIsChartLoading(false);
+    }
+  }, [user?.id]);
+
   const loadPrediction = useCallback(
     async (selectedPeriod: HoroscopePeriod) => {
       if (!user) return;
@@ -117,8 +136,30 @@ export const useHomeScreen = (user: User | null) => {
   );
 
   useEffect(() => {
-    if (user) loadPrediction(period);
-  }, [user, period, loadPrediction]);
+    if (user) {
+      loadPrediction(period);
+      loadUserChart();
+    }
+  }, [user, period, loadPrediction, loadUserChart]);
+
+  // Polling to detect when background chart calculation completes
+  useEffect(() => {
+    if (!userChart || userChart.chart_data || !user?.id) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await ApiService.getNatalChart(user.id, userChart.id);
+        if (response.data && response.data.chart_data) {
+          setUserChart(response.data);
+          clearInterval(interval);
+        }
+      } catch (e) {
+        console.error('Error polling chart status on home:', e);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [userChart, user?.id]);
 
   const generateNewPrediction = useCallback(async () => {
     if (!user) return;
@@ -147,5 +188,8 @@ export const useHomeScreen = (user: User | null) => {
     pulseAnim,
     period,
     setPeriod,
+    userChart,
+    isChartLoading,
+    loadUserChart,
   };
 };

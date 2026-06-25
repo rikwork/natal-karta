@@ -73,6 +73,7 @@ const AstralCitySelector: React.FC<AstralCitySelectorProps> = ({
           onFocus={onFocus}
           autoComplete="off"
           autoCorrect={false}
+          multiline={true}
         />
 
         {isSearchingCities && (
@@ -151,12 +152,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    columnGap: 8,
     marginBottom: 4,
   },
   cityName: {
     color: '#ffffff',
     fontSize: 16,
     fontFamily: theme.fonts.bodySemiBold,
+    flexShrink: 1,
   },
   cityCountry: {
     color: '#FFD700',

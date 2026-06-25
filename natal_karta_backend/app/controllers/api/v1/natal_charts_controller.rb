@@ -43,12 +43,11 @@ class Api::V1::NatalChartsController < ApplicationController
   end
 
   def generate
-    result = NatalCharts::Generate.call(@user, @natal_chart, user_locale)
-
-    if result[:success]
+    if @natal_chart.chart_data.present?
       render json: NatalChartSerializer.new(@natal_chart).as_json
     else
-      render json: { error: result[:error] }, status: :forbidden
+      GenerateNatalChartJob.perform_later(@user.id, @natal_chart.id, user_locale)
+      render json: { status: 'processing', id: @natal_chart.id }, status: :accepted
     end
   end
 

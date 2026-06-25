@@ -105,7 +105,7 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
                 <View style={styles.iconCircle}>
                   <Ionicons name="calendar-outline" size={18} color="#FFD700" />
                 </View>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.dataLabel}>Дата и время рождения</Text>
                   {isLoadingData ? (
                     <ActivityIndicator
@@ -126,7 +126,7 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
                 <View style={styles.iconCircle}>
                   <Ionicons name="location-outline" size={18} color="#FFD700" />
                 </View>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.dataLabel}>Место рождения</Text>
                   {isLoadingData ? (
                     <ActivityIndicator

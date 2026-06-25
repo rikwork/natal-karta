@@ -10,7 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { User } from '../types';
+import { User, NatalChart } from '../types';
 import { useHomeScreen } from '../hooks/useHomeScreen';
 import HoroscopeCard from './Home/components/HoroscopeCard';
 import CelestialAlignments from './Home/components/CelestialAlignments';
@@ -22,7 +22,7 @@ import { theme } from '../theme';
 
 interface HomeScreenProps {
   user: User | null;
-  onNavigateToCharts: () => void;
+  onNavigateToCharts: (chart?: NatalChart) => void;
   onNavigateToCreateChart: () => void;
   onNavigateToCabinet: () => void;
   onNavigateToHoroscope: () => void;
@@ -35,7 +35,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigateToCabinet,
   onNavigateToHoroscope,
 }) => {
-  const { parsedContent, spin, pulseAnim, period, setPeriod } = useHomeScreen(user);
+  const { parsedContent, spin, pulseAnim, period, setPeriod, userChart } = useHomeScreen(user);
 
   const {
     isModalVisible,
@@ -122,6 +122,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
           <View style={styles.navButtonWrapper}>
             <Animated.View
+              pointerEvents="none"
               style={[
                 styles.orbBackgroundContainer,
                 {
@@ -144,8 +145,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               />
             </Animated.View>
             <AstralButton
-              title="ОТКРЫТЬ НАТАЛЬНУЮ КАРТУ"
-              onPress={onNavigateToCharts}
+              title={
+                userChart
+                  ? userChart.chart_data
+                    ? "ОТКРЫТЬ НАТАЛЬНУЮ КАРТУ"
+                    : "РАСЧЕТ НАТАЛЬНОЙ КАРТЫ"
+                  : "СОЗДАТЬ НАТАЛЬНУЮ КАРТУ"
+              }
+              loadingWithText={!!(userChart && !userChart.chart_data)}
+              onPress={() => onNavigateToCharts(userChart || undefined)}
               style={styles.nextButton}
             />
           </View>
@@ -264,6 +272,25 @@ const styles = StyleSheet.create({
   nextButton: {
     width: '90%',
     alignSelf: 'center',
+  },
+  generatingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    width: '90%',
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+    backgroundColor: 'rgba(15, 14, 23, 0.6)',
+  },
+  generatingText: {
+    color: '#F0E6D2',
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: theme.fonts.body,
+    textAlign: 'center',
   },
 });
 

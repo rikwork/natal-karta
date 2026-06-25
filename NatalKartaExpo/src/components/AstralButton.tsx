@@ -2,23 +2,25 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../theme';
-
+ 
 interface AstralButtonProps {
   title: string;
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
+  loadingWithText?: boolean;
   style?: ViewStyle;
   outerStyle?: ViewStyle;
   innerStyle?: ViewStyle;
   textStyle?: TextStyle;
 }
-
+ 
 const AstralButton: React.FC<AstralButtonProps> = ({
   title,
   onPress,
   disabled = false,
   loading = false,
+  loadingWithText = false,
   style,
   outerStyle,
   innerStyle,
@@ -28,7 +30,7 @@ const AstralButton: React.FC<AstralButtonProps> = ({
   const borderRadius =
     (style as any)?.borderRadius ?? (typeof height === 'number' ? height / 2 : 28);
   const innerBorderRadius = borderRadius - 1.5;
-
+ 
   return (
     <TouchableOpacity
       style={[
@@ -39,11 +41,13 @@ const AstralButton: React.FC<AstralButtonProps> = ({
           shadowRadius: typeof height === 'number' ? height * 0.18 : 10,
           shadowOpacity: typeof height === 'number' ? Math.min(0.4, 0.2 + height / 200) : 0.4,
         },
-        (disabled || loading) && styles.disabled,
+        disabled && styles.disabled,
+        loading && styles.disabled,
+        loadingWithText && styles.loadingWithTextDisabled,
         style,
       ]}
       onPress={onPress}
-      disabled={disabled || loading}
+      disabled={disabled || loading || loadingWithText}
       activeOpacity={0.8}
     >
       <LinearGradient
@@ -68,7 +72,7 @@ const AstralButton: React.FC<AstralButtonProps> = ({
     </TouchableOpacity>
   );
 };
-
+ 
 const styles = StyleSheet.create({
   buttonWrapper: {
     shadowColor: '#FFD700',
@@ -101,6 +105,11 @@ const styles = StyleSheet.create({
     opacity: 0.4,
     shadowOpacity: 0,
   },
+  loadingWithTextDisabled: {
+    opacity: 0.9,
+    shadowColor: '#FFD700',
+    shadowOpacity: 0.4,
+  },
 });
-
+ 
 export default AstralButton;

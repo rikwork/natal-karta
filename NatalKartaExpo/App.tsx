@@ -25,7 +25,6 @@ import LoadingScreen from './src/screens/LoadingScreen';
 import ResultScreen from './src/screens/ResultScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import CreateChartScreen from './src/screens/CreateChartScreen';
-import ChartsScreen from './src/screens/ChartsScreen';
 import ChartDetailScreen from './src/screens/ChartDetailScreen';
 import CabinetScreen from './src/screens/CabinetScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
@@ -184,7 +183,7 @@ const App: React.FC = () => {
 
       setCurrentScreen('Loading');
 
-      // Start generation immediately in parallel
+      // Start generation immediately in parallel (asynchronous non-blocking)
       if (newUserObj) {
         try {
           // First check if the user already has a natal chart (from a previous session)
@@ -194,20 +193,17 @@ const App: React.FC = () => {
             console.log('User already has a chart, skipping creation to avoid 429');
             const existingChart = chartsResponse.data[0];
 
-            // If it doesn't have chart_data, we might need to generate it
+            // If it doesn't have chart_data, trigger generation asynchronously in the background
             if (!existingChart.chart_data) {
-              const genResponse = await ApiService.generateNatalChart(
-                newUserObj.id,
-                existingChart.id,
-              );
-              if (genResponse.data) {
-                setChartResult({
-                  chart: genResponse.data,
-                  sun: 'Расчет...',
-                  moon: 'Расчет...',
-                  ascendant: 'Расчет...',
-                });
-              }
+              ApiService.generateNatalChart(newUserObj.id, existingChart.id).catch((err) => {
+                console.error('Async generation failed:', err);
+              });
+              setChartResult({
+                chart: existingChart,
+                sun: 'Расчет...',
+                moon: 'Расчет...',
+                ascendant: 'Расчет...',
+              });
             } else {
               setChartResult({
                 chart: existingChart,
@@ -229,18 +225,16 @@ const App: React.FC = () => {
 
             const response = await ApiService.createNatalChart(newUserObj.id, chartData);
             if (response.data) {
-              const genResponse = await ApiService.generateNatalChart(
-                newUserObj.id,
-                response.data.id,
-              );
-              if (genResponse.data) {
-                setChartResult({
-                  chart: genResponse.data,
-                  sun: 'Расчет...', // Эти данные должны приходить из genResponse или парситься из chart_data
-                  moon: 'Расчет...',
-                  ascendant: 'Расчет...',
-                });
-              }
+              // Trigger generation asynchronously in the background
+              ApiService.generateNatalChart(newUserObj.id, response.data.id).catch((err) => {
+                console.error('Async generation failed:', err);
+              });
+              setChartResult({
+                chart: response.data,
+                sun: 'Расчет...',
+                moon: 'Расчет...',
+                ascendant: 'Расчет...',
+              });
             }
           }
         } catch (_e) {
@@ -306,20 +300,7 @@ const App: React.FC = () => {
           )}
         </FadeScreen>
 
-        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'Charts'}>
-          {user && (
-            <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
-              <ChartsScreen
-                userId={user.id}
-                onChartPress={(chart) => {
-                  setSelectedChart(chart);
-                  navigateTo('ChartDetail');
-                }}
-                onBack={navigateBack}
-              />
-            </AstralSwipeBack>
-          )}
-        </FadeScreen>
+
 
         <FadeScreen active={!loading && fontsLoaded && currentScreen === 'ChartDetail'}>
           {selectedChart && user && (
@@ -379,16 +360,11 @@ const App: React.FC = () => {
           {user && (
             <HomeScreen
               user={user}
-              onNavigateToCharts={async () => {
-                try {
-                  const response = await ApiService.getNatalCharts(user.id);
-                  if (response.data && response.data.length > 0) {
-                    setSelectedChart(response.data[0]);
-                    navigateTo('ChartDetail');
-                  } else {
-                    navigateTo('CreateChart');
-                  }
-                } catch (e) {
+              onNavigateToCharts={(chart) => {
+                if (chart) {
+                  setSelectedChart(chart);
+                  navigateTo('ChartDetail');
+                } else {
                   navigateTo('CreateChart');
                 }
               }}

@@ -86,10 +86,10 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
     startStars();
     startTwinkle();
 
-    // Минимальное время анимации для UX (например, 2.5 секунды)
+    // Минимальное время анимации для UX (3 секунды)
     const timer = setTimeout(() => {
       setMinTimeElapsed(true);
-    }, 2500);
+    }, 3000);
 
     return () => {
       pulseAnim.stopAnimation();

@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: natal_karta_backend
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: natal_karta_backend_production
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U natal_karta_backend -d natal_karta_backend_production"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./natal_karta_backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      RAILS_ENV: production
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      NATAL_KARTA_BACKEND_DATABASE_PASSWORD: ${DB_PASSWORD}
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+    ports:
+      - "3000:80"
+
+volumes:
+  pg_data:

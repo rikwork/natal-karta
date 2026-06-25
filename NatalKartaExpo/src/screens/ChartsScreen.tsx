@@ -56,9 +56,16 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({ userId, onChartPress, onBac
   const handleGenerateChart = async (chart: NatalChart) => {
     try {
       Vibration.vibrate(10);
-      await ApiService.generateNatalChart(userId, chart.id);
+      const response = await ApiService.generateNatalChart(userId, chart.id);
       Vibration.vibrate(50);
-      Alert.alert('Успех', 'Натальная карта сгенерирована!');
+      if (response.data && (response.data as any).status === 'processing') {
+        Alert.alert(
+          'Расчет запущен',
+          'Астрологический расчет и интерпретация запущены в фоновом режиме. Это займет около 1 минуты. Вы можете следить за ходом расчета, открыв карту.',
+        );
+      } else {
+        Alert.alert('Успех', 'Натальная карта сгенерирована!');
+      }
       loadCharts(); // Обновляем список
     } catch (_error) {
       Alert.alert('Ошибка', 'Не удалось сгенерировать натальную карту');

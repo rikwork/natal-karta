@@ -16,14 +16,18 @@ WORKDIR /rails
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client python3 python3-pip python3-venv && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Install python dependencies globally
+RUN pip3 install --break-system-packages g4f
 
 # Set production environment
 ENV RAILS_ENV="production" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development"
+    BUNDLE_WITHOUT="development:test" \
+    SOLID_QUEUE_IN_PUMA="true"
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build
