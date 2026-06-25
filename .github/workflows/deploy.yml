@@ -1,0 +1,74 @@
+name: CD - Deploy Backend to VPS
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'natal_karta_backend/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./natal_karta_backend
+        file: ./natal_karta_backend/Dockerfile
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository_owner }}/natal-karta-backend:latest
+          ghcr.io/${{ github.repository_owner }}/natal-karta-backend:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to VPS
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Copy docker-compose.yml to VPS
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        source: "docker-compose.yml"
+        target: "/home/deployer/natal_karta/"
+        overwrite: true
+
+    - name: Pull image and restart containers via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          cd /home/deployer/natal_karta
+          # Подтягиваем новый образ из GHCR
+          docker compose pull
+          # Перезапускаем контейнеры
+          docker compose up -d --remove-orphans
+          # Очищаем неиспользуемые старые образы для экономии диска
+          docker image prune -f

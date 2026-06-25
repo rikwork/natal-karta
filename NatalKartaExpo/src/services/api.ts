@@ -14,6 +14,7 @@ class ApiService {
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'Accept-Language': languageCode || 'ru',
         ...options.headers,
       },
@@ -22,10 +23,20 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
+      const text = await response.text();
+      let data: any = {};
+
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (e) {
+        if (!response.ok) {
+          throw new Error(`Ошибка сервера (статус ${response.status})`);
+        }
+        throw new Error('Некорректный формат ответа от сервера');
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || data.message || 'Ошибка сервера');
+        throw new Error(data.error || data.message || `Ошибка сервера (статус ${response.status})`);
       }
 
       // Normalize response: if the backend didn't wrap the payload in { data: ... }, we do it here.
