@@ -113,7 +113,17 @@ export const useAppInitialization = () => {
     await AsyncStorage.setItem('isVideoEnabled', JSON.stringify(enabled));
   }, []);
 
-  const initializeApp = async () => {
+  const resetToOnboarding = useCallback(async () => {
+    setUser(null);
+    setOnboardingData(null);
+    setChartResult(null);
+    setSelectedChart(null);
+    await AsyncStorage.removeItem('user');
+    await AsyncStorage.removeItem('onboarding_completed');
+    setCurrentScreen('Onboarding');
+  }, []);
+
+  const initializeApp = useCallback(async () => {
     try {
       const savedUser = await AsyncStorage.getItem('user');
       const hasCompletedOnboarding = await AsyncStorage.getItem('onboarding_completed');
@@ -129,12 +139,24 @@ export const useAppInitialization = () => {
         // Remove ghost users
         if (parsedUser && parsedUser.id && parsedUser.id > 10000000) {
           console.log('Ghost user detected. Clearing storage to force new onboarding.');
-          await AsyncStorage.removeItem('user');
-          await AsyncStorage.removeItem('onboarding_completed');
-          setCurrentScreen('Onboarding');
+          await resetToOnboarding();
         } else {
-          setUser(parsedUser);
-          setCurrentScreen('Home');
+          // Check if user exists on backend
+          try {
+            const checkResponse = await ApiService.getUser(parsedUser.id);
+            if (checkResponse.status === 404) {
+              console.log('User not found in DB (404). Clearing storage to redirect to onboarding.');
+              await resetToOnboarding();
+            } else {
+              setUser(parsedUser);
+              setCurrentScreen('Home');
+            }
+          } catch (error) {
+            console.error('Error checking user in DB:', error);
+            // On other errors (e.g. network timeout), let user use the cached profile offline
+            setUser(parsedUser);
+            setCurrentScreen('Home');
+          }
         }
       } else {
         setCurrentScreen('Onboarding');
@@ -144,13 +166,13 @@ export const useAppInitialization = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [resetToOnboarding]);
 
   useEffect(() => {
     startWheelAnimation();
     AdService.initialize();
     initializeApp();
-  }, [startWheelAnimation]);
+  }, [startWheelAnimation, initializeApp]);
 
   const wheelTranslateY = useRef(new Animated.Value(0)).current;
 
@@ -207,5 +229,6 @@ export const useAppInitialization = () => {
     createNewUser,
     isVideoEnabled,
     toggleVideoBackground,
+    resetToOnboarding,
   };
 };

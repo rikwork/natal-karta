@@ -6,6 +6,12 @@ import * as Localization from 'expo-localization';
 const API_BASE_URL = ENV.API_BASE_URL;
 
 class ApiService {
+  private onUserNotFound?: () => void;
+
+  setOnUserNotFound(callback: () => void) {
+    this.onUserNotFound = callback;
+  }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const url = `${API_BASE_URL}${endpoint}`;
     const locales = Localization.getLocales();
@@ -21,8 +27,11 @@ class ApiService {
       ...options,
     };
 
+    let status: number | undefined;
+
     try {
       const response = await fetch(url, config);
+      status = response.status;
       const text = await response.text();
       let data: any = {};
 
@@ -36,7 +45,16 @@ class ApiService {
       }
 
       if (!response.ok) {
-        throw new Error(data.error || data.message || `Ошибка сервера (статус ${response.status})`);
+        if (response.status === 404 && endpoint.startsWith('/users')) {
+          if (this.onUserNotFound) {
+            this.onUserNotFound();
+          }
+        }
+        return {
+          data: null as any,
+          error: data.error || data.message || `Ошибка сервера (статус ${response.status})`,
+          status: response.status,
+        };
       }
 
       // Normalize response: if the backend didn't wrap the payload in { data: ... }, we do it here.
@@ -49,10 +67,10 @@ class ApiService {
         ('data' in data || 'message' in data || 'error' in data) &&
         Object.keys(data).length <= 3
       ) {
-        return data;
+        return { ...data, status: response.status };
       }
 
-      return { data };
+      return { data, status: response.status };
     } catch (error) {
       // Отправляем ошибку на сервер
       if (error instanceof Error) {
@@ -62,7 +80,8 @@ class ApiService {
       // Возвращаем пустой ответ вместо выброса ошибки
       return {
         data: null as any,
-        error: 'Ошибка сети',
+        error: error instanceof Error ? error.message : 'Ошибка сети',
+        status,
       };
     }
   }

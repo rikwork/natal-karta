@@ -67,7 +67,12 @@ const App: React.FC = () => {
     createNewUser,
     isVideoEnabled,
     toggleVideoBackground,
+    resetToOnboarding,
   } = useAppInitialization();
+
+  React.useEffect(() => {
+    ApiService.setOnUserNotFound(resetToOnboarding);
+  }, [resetToOnboarding]);
 
   const [screenHistory, setScreenHistory] = React.useState<string[]>(['Onboarding']);
   const canGoBack = screenHistory.length > 1;
@@ -160,14 +165,8 @@ const App: React.FC = () => {
   );
 
   const handleDeleteProfile = useCallback(async () => {
-    setUser(null);
-    setOnboardingData(null);
-    setChartResult(null);
-    setSelectedChart(null);
-    await AsyncStorage.removeItem('user');
-    await AsyncStorage.removeItem('onboarding_completed');
-    setCurrentScreen('Onboarding');
-  }, [setUser, setCurrentScreen, setOnboardingData, setChartResult, setSelectedChart]);
+    await resetToOnboarding();
+  }, [resetToOnboarding]);
 
   const handleOnboardingComplete = useCallback(
     async (data: any) => {
