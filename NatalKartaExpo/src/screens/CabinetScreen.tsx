@@ -69,7 +69,6 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
             </LinearGradient>
 
             <Text style={styles.userName}>{user?.name || 'Исследователь'}</Text>
-            <Text style={styles.userEmail}>{user?.email}</Text>
 
             <TouchableOpacity
               style={styles.editButton}
@@ -78,24 +77,6 @@ const CabinetScreen: React.FC<CabinetScreenProps> = ({
             >
               <Text style={styles.editButtonText}>Изменить данные</Text>
             </TouchableOpacity>
-
-            <View style={styles.badgeContainer}>
-              {user?.subscription_type === 'premium' ? (
-                <LinearGradient
-                  colors={['#FFD700', '#FFA500'] as const}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.premiumBadge}
-                >
-                  <Ionicons name="star" size={10} color="#0F0E17" style={{ marginRight: 4 }} />
-                  <Text style={styles.premiumBadgeText}>PREMIUM</Text>
-                </LinearGradient>
-              ) : (
-                <View style={styles.freeBadge}>
-                  <Text style={styles.freeBadgeText}>FREE ACCESS</Text>
-                </View>
-              )}
-            </View>
           </View>
 
           <View style={styles.dataSection}>

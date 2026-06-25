@@ -15,6 +15,8 @@ export interface NatalChartData {
   short_summary?: string;
   identity: string;
   emotions?: string;
+  emotions_preview?: string;
+  emotions_locked?: string | null;
   love_preview: string;
   love_locked: string | null;
   career_preview: string;

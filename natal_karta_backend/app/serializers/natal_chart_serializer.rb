@@ -15,6 +15,8 @@ class NatalChartSerializer
           short_summary: data['short_summary'],
           identity: data['identity'],
           emotions: data['emotions'],
+          emotions_preview: get_first_paragraph(data['emotions']),
+          emotions_locked: get_remaining_paragraphs(data['emotions']),
           love_preview: get_first_paragraph(data['love']),
           love_locked: get_remaining_paragraphs(data['love']),
           career_preview: get_first_paragraph(data['career']),

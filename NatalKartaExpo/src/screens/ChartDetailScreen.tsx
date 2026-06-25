@@ -9,8 +9,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NatalChart, NatalChartData } from '../types';
 import ApiService from '../services/api';
+import AdService from '../services/AdService';
 import { formatBirthTime } from '../utils/dateFormatter';
 import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
@@ -24,14 +26,53 @@ const getWebSocketUrl = () => {
   return rootUrl.replace(/^http/, 'ws');
 };
 
-// Removed unused width Dimensions
+interface LockedSectionProps {
+  title: string;
+  previewText: string;
+  lockedText: string | null;
+  isUnlocked: boolean;
+  onUnlock: () => void;
+  gradientColors: readonly [string, string];
+}
+
+const LockedSection: React.FC<LockedSectionProps> = ({
+  title,
+  previewText,
+  lockedText,
+  isUnlocked,
+  onUnlock,
+  gradientColors,
+}) => {
+  if (!previewText) return null;
+
+  return (
+    <AstralGlassCard>
+      <LinearGradient colors={gradientColors} style={styles.cardGradient}>
+        <Text style={styles.cardTitle}>{title}</Text>
+        <Text style={styles.cardBody}>{previewText}</Text>
+
+        {isUnlocked && lockedText ? (
+          <Text style={[styles.cardBody, { marginTop: 10 }]}>{lockedText}</Text>
+        ) : !isUnlocked && lockedText ? (
+          <View style={styles.lockedContainer}>
+            <BlurView intensity={60} tint="dark" style={styles.lockOverlay}>
+              <Text style={styles.lockedText}>Полный прогноз скрыт</Text>
+              <TouchableOpacity style={styles.unlockAdButton} onPress={onUnlock}>
+                <Text style={styles.unlockAdButtonText}>🔓 Открыть (Смотреть рекламу)</Text>
+              </TouchableOpacity>
+            </BlurView>
+          </View>
+        ) : null}
+      </LinearGradient>
+    </AstralGlassCard>
+  );
+};
 
 interface ChartDetailScreenProps {
   chart: NatalChart;
   userId: number;
   onBack: () => void;
   onWatchAd: () => void;
-  hasSubscription: boolean;
 }
 
 const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
@@ -39,7 +80,6 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
   userId,
   onBack,
   onWatchAd,
-  hasSubscription,
 }) => {
   const [chartData, setChartData] = useState<NatalChartData | null>(() => {
     if (!chart.chart_data) return null;
@@ -51,6 +91,8 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
           short_summary: '',
           identity: chart.chart_data,
           emotions: '',
+          emotions_preview: '',
+          emotions_locked: null,
           love_preview: '',
           love_locked: null,
           career_preview: '',
@@ -62,14 +104,37 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
   });
   const [loading, setLoading] = useState(false);
 
-  // Locked states simulating ad watch required
-  const [isLoveUnlocked, setIsLoveUnlocked] = useState(hasSubscription);
-  const [isCareerUnlocked, setIsCareerUnlocked] = useState(hasSubscription);
+  // Track unlocked sections locally per chart
+  const [unlockedSections, setUnlockedSections] = useState<{
+    emotions: boolean;
+    love: boolean;
+    career: boolean;
+  }>({
+    emotions: false,
+    love: false,
+    career: false,
+  });
 
   useEffect(() => {
-    setIsLoveUnlocked(hasSubscription);
-    setIsCareerUnlocked(hasSubscription);
-  }, [hasSubscription]);
+    const loadUnlockedStates = async () => {
+      try {
+        const key = `@unlocked_sections:${chart.id}`;
+        const stored = await AsyncStorage.getItem(key);
+        if (stored) {
+          setUnlockedSections(JSON.parse(stored));
+        } else {
+          setUnlockedSections({
+            emotions: false,
+            love: false,
+            career: false,
+          });
+        }
+      } catch (e) {
+        console.error('Failed to load unlocked sections', e);
+      }
+    };
+    loadUnlockedStates();
+  }, [chart.id]);
 
   useEffect(() => {
     if (chartData) return;
@@ -151,12 +216,28 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
     };
   }, [chartData, userId, chart.id]);
 
-  const handleUnlockLove = () => {
-    onWatchAd();
-  };
-
-  const handleUnlockCareer = () => {
-    onWatchAd();
+  const handleUnlockSection = (section: 'emotions' | 'love' | 'career') => {
+    AdService.showRewardedAd(
+      async () => {
+        try {
+          const key = `@unlocked_sections:${chart.id}`;
+          const updated = {
+            ...unlockedSections,
+            [section]: true,
+          };
+          setUnlockedSections(updated);
+          await AsyncStorage.setItem(key, JSON.stringify(updated));
+        } catch (e) {
+          console.error('Failed to save unlocked section status', e);
+        }
+      },
+      () => {
+        Alert.alert(
+          'Остановка',
+          'Показ прерван. Чтобы открыть прогноз полностью, посмотрите видео до конца.',
+        );
+      }
+    );
   };
 
   const formatDate = (dateString: string) => {
@@ -218,77 +299,48 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
                 </LinearGradient>
               </AstralGlassCard>
 
-              {/* Emotions Card (Free) */}
-              {chartData.emotions && (
-                <AstralGlassCard>
-                  <LinearGradient
-                    colors={['rgba(135,206,235,0.15)', 'rgba(255,255,255,0.0)']}
-                    style={styles.cardGradient}
-                  >
-                    <Text style={styles.cardTitle}>🌊 Эмоции и Внутренний мир</Text>
-                    <Text style={styles.cardBody}>{chartData.emotions}</Text>
-                  </LinearGradient>
-                </AstralGlassCard>
-              )}
+              {/* Emotions Card (Ad Locked) */}
+              {(() => {
+                const emotionsData = chartData.emotions_preview
+                  ? { preview: chartData.emotions_preview, locked: chartData.emotions_locked || null }
+                  : chartData.emotions
+                  ? (() => {
+                      const paragraphs = chartData.emotions.split('\n\n');
+                      return { preview: paragraphs[0], locked: paragraphs.slice(1).join('\n\n') || null };
+                    })()
+                  : { preview: '', locked: null };
+
+                return (
+                  <LockedSection
+                    title="🌊 Эмоции и Внутренний мир"
+                    previewText={emotionsData.preview}
+                    lockedText={emotionsData.locked}
+                    isUnlocked={unlockedSections.emotions}
+                    onUnlock={() => handleUnlockSection('emotions')}
+                    gradientColors={['rgba(135,206,235,0.15)', 'rgba(255,255,255,0.0)'] as const}
+                  />
+                );
+              })()}
 
               {/* Love Card (Ad Locked) */}
-              <AstralGlassCard>
-                <LinearGradient
-                  colors={['rgba(255,105,180,0.15)', 'rgba(255,255,255,0.0)']}
-                  style={styles.cardGradient}
-                >
-                  <Text style={styles.cardTitle}>❤️ Любовь и Отношения</Text>
-                  <Text style={styles.cardBody}>{chartData.love_preview}</Text>
-
-                  {isLoveUnlocked && chartData.love_locked ? (
-                    <Text style={[styles.cardBody, { marginTop: 10 }]}>
-                      {chartData.love_locked}
-                    </Text>
-                  ) : (
-                    <View style={styles.lockedContainer}>
-                      <BlurView intensity={60} tint="dark" style={styles.lockOverlay}>
-                        <Text style={styles.lockedText}>Полный прогноз скрыт</Text>
-                        <TouchableOpacity style={styles.unlockAdButton} onPress={handleUnlockLove}>
-                          <Text style={styles.unlockAdButtonText}>
-                            🔓 Открыть (Смотреть рекламу)
-                          </Text>
-                        </TouchableOpacity>
-                      </BlurView>
-                    </View>
-                  )}
-                </LinearGradient>
-              </AstralGlassCard>
+              <LockedSection
+                title="❤️ Любовь и Отношения"
+                previewText={chartData.love_preview}
+                lockedText={chartData.love_locked}
+                isUnlocked={unlockedSections.love}
+                onUnlock={() => handleUnlockSection('love')}
+                gradientColors={['rgba(255,105,180,0.15)', 'rgba(255,255,255,0.0)'] as const}
+              />
 
               {/* Career Card (Ad Locked) */}
-              <AstralGlassCard>
-                <LinearGradient
-                  colors={['rgba(0,255,255,0.15)', 'rgba(255,255,255,0.0)']}
-                  style={styles.cardGradient}
-                >
-                  <Text style={styles.cardTitle}>💼 Карьера и Деньги</Text>
-                  <Text style={styles.cardBody}>{chartData.career_preview}</Text>
-
-                  {isCareerUnlocked && chartData.career_locked ? (
-                    <Text style={[styles.cardBody, { marginTop: 10 }]}>
-                      {chartData.career_locked}
-                    </Text>
-                  ) : (
-                    <View style={styles.lockedContainer}>
-                      <BlurView intensity={60} tint="dark" style={styles.lockOverlay}>
-                        <Text style={styles.lockedText}>Полный прогноз скрыт</Text>
-                        <TouchableOpacity
-                          style={styles.unlockAdButton}
-                          onPress={handleUnlockCareer}
-                        >
-                          <Text style={styles.unlockAdButtonText}>
-                            🔓 Открыть (Смотреть рекламу)
-                          </Text>
-                        </TouchableOpacity>
-                      </BlurView>
-                    </View>
-                  )}
-                </LinearGradient>
-              </AstralGlassCard>
+              <LockedSection
+                title="💼 Карьера и Деньги"
+                previewText={chartData.career_preview}
+                lockedText={chartData.career_locked}
+                isUnlocked={unlockedSections.career}
+                onUnlock={() => handleUnlockSection('career')}
+                gradientColors={['rgba(0,255,255,0.15)', 'rgba(255,255,255,0.0)'] as const}
+              />
             </View>
           )}
         </ScrollView>

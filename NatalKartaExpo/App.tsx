@@ -310,7 +310,6 @@ const App: React.FC = () => {
                 userId={user.id}
                 onBack={navigateBack}
                 onWatchAd={handleWatchAd}
-                hasSubscription={user.subscription_type === 'premium'}
               />
             </AstralSwipeBack>
           )}
