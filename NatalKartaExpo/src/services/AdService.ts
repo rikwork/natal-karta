@@ -4,8 +4,8 @@ class AdService {
   private loader: RewardedAdLoader | null = null;
   private currentAd: RewardedAd | null = null;
 
-  // Use demo ID for testing. You can replace this with your actual Yandex Ad Unit ID later.
-  private readonly adUnitId = 'demo-rewarded-yandex';
+  // Use the production Yandex Ad Unit ID.
+  private readonly adUnitId = 'R-M-19500558-1';
 
   async initialize() {
     try {
