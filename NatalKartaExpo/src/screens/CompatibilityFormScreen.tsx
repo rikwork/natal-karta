@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import { PartnerCompatibility, City } from '../types';
@@ -16,6 +15,7 @@ import AstralButton from '../components/AstralButton';
 import AstralHeader from '../components/AstralHeader';
 import AstralSafeAreaView from '../components/AstralSafeAreaView';
 import AstralGlassCard from '../components/AstralGlassCard';
+import AstralCitySelector from '../components/AstralCitySelector';
 
 const debounce = (func: Function, delay: number) => {
   let timeoutId: NodeJS.Timeout;
@@ -46,6 +46,13 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const isFormValid =
+    partnerName.trim() !== '' &&
+    birthDate !== '' &&
+    birthPlace !== '' &&
+    latitude !== null &&
+    longitude !== null;
 
   const [citySearch, setCitySearch] = useState('');
   const [filteredCities, setFilteredCities] = useState<City[]>([]);
@@ -147,7 +154,9 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <AstralGlassCard style={styles.formCard}>
           <Text style={styles.titleText}>Данные партнера</Text>
-          <Text style={styles.subtitleText}>Введите данные второй половинки для расчета звездной совместимости</Text>
+          <Text style={styles.subtitleText}>
+            Введите данные второй половинки для расчета звездной совместимости
+          </Text>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Имя партнера *</Text>
@@ -180,45 +189,27 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Место рождения *</Text>
-            <TextInput
-              style={styles.input}
-              value={citySearch}
-              onChangeText={(text) => {
+            <AstralCitySelector
+              citySearch={citySearch}
+              onCitySearchChange={(text) => {
                 setCitySearch(text);
                 searchCities(text);
               }}
-              placeholder="Город рождения"
-              placeholderTextColor="#9CA3AF"
+              isSearchingCities={isSearchingCities}
+              showCityList={showCityList}
+              filteredCities={filteredCities}
+              onSelectCity={handleSelectCity}
               onFocus={() => {
                 if (citySearch.length >= 2) setShowCityList(true);
               }}
+              placeholder="Город рождения"
             />
-            {isSearchingCities && (
-              <ActivityIndicator size="small" color="#FFD700" style={styles.cityLoader} />
-            )}
-            
-            {showCityList && filteredCities.length > 0 && (
-              <View style={styles.cityDropdown}>
-                {filteredCities.map((city, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    style={styles.cityItem}
-                    onPress={() => handleSelectCity(city)}
-                  >
-                    <Text style={styles.cityText}>
-                      {city.name}
-                      {city.admin_name1 ? `, ${city.admin_name1}` : ''} ({city.country})
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
           </View>
 
           <AstralButton
             title={loading ? 'Рассчитываем...' : 'Рассчитать совместимость'}
             onPress={handleSubmit}
-            disabled={loading}
+            disabled={loading || !isFormValid}
             style={styles.submitButton}
           />
         </AstralGlassCard>
@@ -304,30 +295,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     height: 60,
     borderRadius: 20,
-  },
-  cityLoader: {
-    position: 'absolute',
-    right: 16,
-    bottom: 18,
-  },
-  cityDropdown: {
-    backgroundColor: '#1C1B2B',
-    borderRadius: 16,
-    marginTop: 5,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.2)',
-    maxHeight: 200,
-    overflow: 'hidden',
-    zIndex: 999,
-  },
-  cityItem: {
-    padding: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  cityText: {
-    color: '#F0E6D2',
-    fontSize: 14,
   },
 });
 

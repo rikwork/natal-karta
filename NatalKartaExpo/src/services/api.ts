@@ -1,4 +1,13 @@
-import { User, NatalChart, DailyPrediction, BirthData, PartnerBirthData, City, ApiResponse, PartnerCompatibility } from '../types';
+import {
+  User,
+  NatalChart,
+  DailyPrediction,
+  BirthData,
+  PartnerBirthData,
+  City,
+  ApiResponse,
+  PartnerCompatibility,
+} from '../types';
 import errorReporter from './errorReporter';
 import { ENV } from '../config/api';
 import * as Localization from 'expo-localization';
@@ -20,7 +29,7 @@ class ApiService {
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Accept-Language': languageCode || 'ru',
         ...options.headers,
       },
@@ -54,7 +63,10 @@ class ApiService {
         }
         return {
           data: null as any,
-          error: data.error || data.message || 'Не удалось связаться с сервером. Пожалуйста, попробуйте позже.',
+          error:
+            data.error ||
+            data.message ||
+            'Не удалось связаться с сервером. Пожалуйста, попробуйте позже.',
           status: response.status,
         };
       }
@@ -164,24 +176,41 @@ class ApiService {
     return this.request<PartnerCompatibility[]>(`/users/${userId}/partner_compatibilities`);
   }
 
-  async getPartnerCompatibility(userId: number, compatibilityId: number): Promise<ApiResponse<PartnerCompatibility>> {
-    return this.request<PartnerCompatibility>(`/users/${userId}/partner_compatibilities/${compatibilityId}`);
+  async getPartnerCompatibility(
+    userId: number,
+    compatibilityId: number,
+  ): Promise<ApiResponse<PartnerCompatibility>> {
+    return this.request<PartnerCompatibility>(
+      `/users/${userId}/partner_compatibilities/${compatibilityId}`,
+    );
   }
 
-  async createPartnerCompatibility(userId: number, partnerData: PartnerBirthData): Promise<ApiResponse<PartnerCompatibility>> {
+  async createPartnerCompatibility(
+    userId: number,
+    partnerData: PartnerBirthData,
+  ): Promise<ApiResponse<PartnerCompatibility>> {
     return this.request<PartnerCompatibility>(`/users/${userId}/partner_compatibilities`, {
       method: 'POST',
       body: JSON.stringify({ partner_compatibility: partnerData }),
     });
   }
 
-  async generatePartnerCompatibility(userId: number, compatibilityId: number): Promise<ApiResponse<any>> {
-    return this.request<any>(`/users/${userId}/partner_compatibilities/${compatibilityId}/generate`, {
-      method: 'POST',
-    });
+  async generatePartnerCompatibility(
+    userId: number,
+    compatibilityId: number,
+  ): Promise<ApiResponse<any>> {
+    return this.request<any>(
+      `/users/${userId}/partner_compatibilities/${compatibilityId}/generate`,
+      {
+        method: 'POST',
+      },
+    );
   }
 
-  async deletePartnerCompatibility(userId: number, compatibilityId: number): Promise<ApiResponse<any>> {
+  async deletePartnerCompatibility(
+    userId: number,
+    compatibilityId: number,
+  ): Promise<ApiResponse<any>> {
     return this.request<any>(`/users/${userId}/partner_compatibilities/${compatibilityId}`, {
       method: 'DELETE',
     });

@@ -181,9 +181,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               title={
                 userChart
                   ? userChart.chart_data
-                    ? "ОТКРЫТЬ НАТАЛЬНУЮ КАРТУ"
-                    : "КАРТА РАССЧИТЫВАЕТСЯ..."
-                  : "СОЗДАТЬ НАТАЛЬНУЮ КАРТУ"
+                    ? 'ОТКРЫТЬ НАТАЛЬНУЮ КАРТУ'
+                    : 'КАРТА РАССЧИТЫВАЕТСЯ...'
+                  : 'СОЗДАТЬ НАТАЛЬНУЮ КАРТУ'
               }
               loadingWithText={!!(userChart && !userChart.chart_data)}
               onPress={() => onNavigateToCharts(userChart || undefined)}

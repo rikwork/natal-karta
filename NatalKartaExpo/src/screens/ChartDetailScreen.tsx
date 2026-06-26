@@ -18,7 +18,7 @@ import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
 import { BlurView } from 'expo-blur';
 import AstralSafeAreaView from '../components/AstralSafeAreaView';
-import { getWebSocketUrl } from '../utils/websocket';
+import { useSubscriptionWithPolling } from '../hooks/useSubscriptionWithPolling';
 
 interface LockedSectionProps {
   title: string;
@@ -77,7 +77,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
   onBack,
   onWatchAd,
 }) => {
-  const [chartData, setChartData] = useState<NatalChartData | null>(() => {
+  const initialChartData = React.useMemo<NatalChartData | null>(() => {
     if (!chart.chart_data) return null;
     if (typeof chart.chart_data === 'string') {
       try {
@@ -97,6 +97,20 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
       }
     }
     return chart.chart_data as NatalChartData;
+  }, [chart.chart_data]);
+
+  const { data: chartData } = useSubscriptionWithPolling<
+    NatalChartData,
+    any
+  >({
+    userId,
+    firebaseUid,
+    itemId: chart.id,
+    channel: 'NatalChartChannel',
+    messageIdKey: 'chart_id',
+    messageDataKey: 'chart_data',
+    fetchData: React.useCallback(() => ApiService.getNatalChart(userId, chart.id), [userId, chart.id]),
+    initialData: initialChartData,
   });
 
   // Track unlocked sections locally per chart
@@ -131,128 +145,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
     loadUnlockedStates();
   }, [chart.id]);
 
-  useEffect(() => {
-    if (chartData) return;
-
-    let ws: WebSocket | null = null;
-    let isSubscribed = true;
-    let pollInterval: NodeJS.Timeout | null = null;
-
-    const startPolling = () => {
-      if (pollInterval) return;
-      console.log('Falling back to polling chart status...');
-      pollInterval = setInterval(async () => {
-        try {
-          const response = await ApiService.getNatalChart(userId, chart.id);
-          if (response.data && response.data.chart_data && isSubscribed) {
-            const rawData = response.data.chart_data;
-            const parsedData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-            setChartData(parsedData);
-            if (pollInterval) {
-              clearInterval(pollInterval);
-              pollInterval = null;
-            }
-          }
-        } catch (err) {
-          console.error('Error polling chart status:', err);
-        }
-      }, 5000);
-    };
-
-    const connectWebSocket = () => {
-      try {
-        const wsUrl = getWebSocketUrl(userId);
-        ws = new WebSocket(wsUrl);
-
-        ws.onopen = () => {
-          if (!isSubscribed) return;
-          const msg = {
-            command: 'subscribe',
-            identifier: JSON.stringify({
-              channel: 'NatalChartChannel',
-              user_id: userId,
-              firebase_uid: firebaseUid,
-            }),
-          };
-          ws?.send(JSON.stringify(msg));
-        };
-
-        ws.onmessage = (event) => {
-          if (!isSubscribed) return;
-          try {
-            const data = JSON.parse(event.data);
-            if (data.type === 'ping') return;
-
-            if (data.message && data.message.chart_id === chart.id) {
-              if (data.message.status === 'completed') {
-                const rawData = data.message.chart_data;
-                const parsedData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-                setChartData(parsedData);
-                if (pollInterval) {
-                  clearInterval(pollInterval);
-                  pollInterval = null;
-                }
-                ws?.close();
-              } else if (data.message.status === 'failed') {
-                Alert.alert('Ошибка', data.message.error || 'Не удалось рассчитать карту');
-                if (pollInterval) {
-                  clearInterval(pollInterval);
-                  pollInterval = null;
-                }
-                ws?.close();
-              }
-            }
-          } catch (e) {
-            console.error('Error parsing WS message:', e);
-          }
-        };
-
-        ws.onerror = (e) => {
-          console.error('WebSocket error, falling back to polling:', e);
-          startPolling();
-        };
-
-        ws.onclose = () => {
-          console.log('WebSocket closed, starting polling fallback if loading');
-          if (isSubscribed) {
-            startPolling();
-          }
-        };
-      } catch (err) {
-        console.error('WebSocket connection failed, falling back to polling:', err);
-        startPolling();
-      }
-    };
-
-    connectWebSocket();
-
-    // Check status via API to prevent race conditions
-    const checkChartStatus = async () => {
-      try {
-        const response = await ApiService.getNatalChart(userId, chart.id);
-        if (response.data && response.data.chart_data && isSubscribed) {
-          const rawData = response.data.chart_data;
-          const parsedData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-          setChartData(parsedData);
-          ws?.close();
-        }
-      } catch (e) {
-        console.error('Error checking chart status:', e);
-      }
-    };
-
-    checkChartStatus();
-
-    return () => {
-      isSubscribed = false;
-      if (ws) {
-        ws.close();
-      }
-      if (pollInterval) {
-        clearInterval(pollInterval);
-      }
-    };
-  }, [chartData, userId, chart.id, firebaseUid]);
+  // WS and Polling fallback are handled by useSubscriptionWithPolling hook
 
   const handleUnlockSection = (section: 'emotions' | 'love' | 'career') => {
     AdService.showRewardedAd(
@@ -274,7 +167,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
           'Остановка',
           'Показ прерван. Чтобы открыть прогноз полностью, посмотрите видео до конца.',
         );
-      }
+      },
     );
   };
 
@@ -340,13 +233,19 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
               {/* Emotions Card (Ad Locked) */}
               {(() => {
                 const emotionsData = chartData.emotions_preview
-                  ? { preview: chartData.emotions_preview, locked: chartData.emotions_locked || null }
+                  ? {
+                      preview: chartData.emotions_preview,
+                      locked: chartData.emotions_locked || null,
+                    }
                   : chartData.emotions
-                  ? (() => {
-                      const paragraphs = chartData.emotions.split('\n\n');
-                      return { preview: paragraphs[0], locked: paragraphs.slice(1).join('\n\n') || null };
-                    })()
-                  : { preview: '', locked: null };
+                    ? (() => {
+                        const paragraphs = chartData.emotions.split('\n\n');
+                        return {
+                          preview: paragraphs[0],
+                          locked: paragraphs.slice(1).join('\n\n') || null,
+                        };
+                      })()
+                    : { preview: '', locked: null };
 
                 return (
                   <LockedSection

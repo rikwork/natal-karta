@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,7 +13,7 @@ import ApiService from '../services/api';
 import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
 import AstralSafeAreaView from '../components/AstralSafeAreaView';
-import { getWebSocketUrl } from '../utils/websocket';
+import { useSubscriptionWithPolling } from '../hooks/useSubscriptionWithPolling';
 import { Ionicons } from '@expo/vector-icons';
 
 interface CompatibilityResultScreenProps {
@@ -30,8 +29,7 @@ export const CompatibilityResultScreen: React.FC<CompatibilityResultScreenProps>
   firebaseUid,
   onBack,
 }) => {
-  const [, setLocalCompatibility] = useState<PartnerCompatibility>(compatibility);
-  const [compatibilityData, setCompatibilityData] = useState<PartnerCompatibilityData | null>(() => {
+  const initialCompatibilityData = React.useMemo<PartnerCompatibilityData | null>(() => {
     if (!compatibility.compatibility_data) return null;
     if (typeof compatibility.compatibility_data === 'string') {
       try {
@@ -41,144 +39,31 @@ export const CompatibilityResultScreen: React.FC<CompatibilityResultScreenProps>
       }
     }
     return compatibility.compatibility_data as PartnerCompatibilityData;
+  }, [compatibility.compatibility_data]);
+
+  const { data: compatibilityData, loading } = useSubscriptionWithPolling<
+    PartnerCompatibilityData,
+    any
+  >({
+    userId,
+    firebaseUid,
+    itemId: compatibility.id,
+    channel: 'PartnerCompatibilityChannel',
+    messageIdKey: 'compatibility_id',
+    messageDataKey: 'compatibility_data',
+    fetchData: React.useCallback(
+      () => ApiService.getPartnerCompatibility(userId, compatibility.id),
+      [userId, compatibility.id]
+    ),
+    initialData: initialCompatibilityData,
   });
 
-  const [loading, setLoading] = useState(!compatibilityData);
-
-  useEffect(() => {
-    if (compatibilityData) {
-      setLoading(false);
-      return;
-    }
-
-    let ws: WebSocket | null = null;
-    let isSubscribed = true;
-    let pollInterval: NodeJS.Timeout | null = null;
-
-    const startPolling = () => {
-      if (pollInterval) return;
-      console.log('Falling back to polling compatibility status...');
-      pollInterval = setInterval(async () => {
-        try {
-          const response = await ApiService.getPartnerCompatibility(userId, compatibility.id);
-          if (response.data && response.data.compatibility_data && isSubscribed) {
-            const rawData = response.data.compatibility_data;
-            const parsedData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-            setCompatibilityData(parsedData);
-            setLocalCompatibility(response.data);
-            setLoading(false);
-            if (pollInterval) {
-              clearInterval(pollInterval);
-              pollInterval = null;
-            }
-          }
-        } catch (err) {
-          console.error('Error polling compatibility status:', err);
-        }
-      }, 5000);
-    };
-
-    const connectWebSocket = () => {
-      try {
-        const wsUrl = getWebSocketUrl(userId);
-        ws = new WebSocket(wsUrl);
-
-        ws.onopen = () => {
-          if (!isSubscribed) return;
-          const msg = {
-            command: 'subscribe',
-            identifier: JSON.stringify({
-              channel: 'PartnerCompatibilityChannel',
-              user_id: userId,
-              firebase_uid: firebaseUid,
-            }),
-          };
-          ws?.send(JSON.stringify(msg));
-        };
-
-        ws.onmessage = (event) => {
-          if (!isSubscribed) return;
-          try {
-            const data = JSON.parse(event.data);
-            if (data.type === 'ping') return;
-
-            if (data.message && data.message.compatibility_id === compatibility.id) {
-              if (data.message.status === 'completed') {
-                const rawData = data.message.compatibility_data;
-                const parsedData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-                setCompatibilityData(parsedData);
-                setLocalCompatibility((prev) => ({ ...prev, compatibility_data: rawData }));
-                setLoading(false);
-                if (pollInterval) {
-                  clearInterval(pollInterval);
-                  pollInterval = null;
-                }
-                ws?.close();
-              } else if (data.message.status === 'failed') {
-                Alert.alert('Ошибка', data.message.error || 'Не удалось рассчитать совместимость');
-                setLoading(false);
-                if (pollInterval) {
-                  clearInterval(pollInterval);
-                  pollInterval = null;
-                }
-                ws?.close();
-              }
-            }
-          } catch (e) {
-            console.error('Error parsing WS message:', e);
-          }
-        };
-
-        ws.onerror = (e) => {
-          console.error('WebSocket error, falling back to polling:', e);
-          startPolling();
-        };
-
-        ws.onclose = () => {
-          console.log('WebSocket closed, starting polling fallback if loading');
-          if (isSubscribed) {
-            startPolling();
-          }
-        };
-      } catch (err) {
-        console.error('WebSocket connection failed, falling back to polling:', err);
-        startPolling();
-      }
-    };
-
-    const checkCompatibilityStatus = async () => {
-      try {
-        const response = await ApiService.getPartnerCompatibility(userId, compatibility.id);
-        if (response.data && response.data.compatibility_data && isSubscribed) {
-          const rawData = response.data.compatibility_data;
-          const parsedData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-          setCompatibilityData(parsedData);
-          setLocalCompatibility(response.data);
-          setLoading(false);
-        } else {
-          // If still processing, connect to WebSocket
-          connectWebSocket();
-        }
-      } catch (err) {
-        console.error('Error checking compatibility status:', err);
-        connectWebSocket();
-      }
-    };
-
-    checkCompatibilityStatus();
-
-    return () => {
-      isSubscribed = false;
-      if (ws) {
-        ws.close();
-      }
-      if (pollInterval) {
-        clearInterval(pollInterval);
-      }
-    };
-  }, [compatibility.id, userId, compatibilityData, firebaseUid]);
-
-  const renderMeter = (title: string, value: number, colors: readonly [string, string], icon: React.ComponentProps<typeof Ionicons>['name']) => {
+  const renderMeter = (
+    title: string,
+    value: number,
+    colors: readonly [string, string],
+    icon: React.ComponentProps<typeof Ionicons>['name'],
+  ) => {
     return (
       <View style={styles.meterContainer}>
         <View style={styles.meterRow}>
@@ -206,7 +91,8 @@ export const CompatibilityResultScreen: React.FC<CompatibilityResultScreenProps>
           <ActivityIndicator size="large" color="#FFD700" />
           <Text style={styles.loadingText}>Звезды сходятся...</Text>
           <Text style={styles.loadingSubtext}>
-            Рассчитываем совместимость с {compatibility.partner_name}. Это может занять около минуты.
+            Рассчитываем совместимость с {compatibility.partner_name}. Это может занять около
+            минуты.
           </Text>
         </View>
       </AstralSafeAreaView>
@@ -232,7 +118,6 @@ export const CompatibilityResultScreen: React.FC<CompatibilityResultScreenProps>
     <AstralSafeAreaView style={styles.container}>
       <AstralHeader title={`Союз с ${compatibility.partner_name}`} onBack={onBack} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        
         {/* Top summary card */}
         <AstralGlassCard style={styles.summaryCard}>
           <LinearGradient
@@ -250,15 +135,37 @@ export const CompatibilityResultScreen: React.FC<CompatibilityResultScreenProps>
         {/* Compatibility Meters */}
         <AstralGlassCard style={styles.metersCard}>
           <Text style={styles.sectionTitle}>Показатели совместимости</Text>
-          
-          {renderMeter('Общая совместимость', compatibilityData.overall_score, ['#8E2DE2', '#4A00E0'] as const, 'star')}
-          {renderMeter('Любовь и Брак', compatibilityData.love_score, ['#FF5E62', '#FF9966'] as const, 'heart')}
-          {renderMeter('Дружба и Жизнь', compatibilityData.friendship_score, ['#11998e', '#38ef7d'] as const, 'people')}
-          {renderMeter('Общение и Ментальный контакт', compatibilityData.communication_score, ['#00c6ff', '#0072ff'] as const, 'chatbubbles')}
+
+          {renderMeter(
+            'Общая совместимость',
+            compatibilityData.overall_score,
+            ['#8E2DE2', '#4A00E0'] as const,
+            'star',
+          )}
+          {renderMeter(
+            'Любовь и Брак',
+            compatibilityData.love_score,
+            ['#FF5E62', '#FF9966'] as const,
+            'heart',
+          )}
+          {renderMeter(
+            'Дружба и Жизнь',
+            compatibilityData.friendship_score,
+            ['#11998e', '#38ef7d'] as const,
+            'people',
+          )}
+          {renderMeter(
+            'Общение и Ментальный контакт',
+            compatibilityData.communication_score,
+            ['#00c6ff', '#0072ff'] as const,
+            'chatbubbles',
+          )}
         </AstralGlassCard>
 
         {/* Partner astrological placements */}
-        {(compatibilityData.partner_sun || compatibilityData.partner_moon || compatibilityData.partner_ascendant) && (
+        {(compatibilityData.partner_sun ||
+          compatibilityData.partner_moon ||
+          compatibilityData.partner_ascendant) && (
           <AstralGlassCard style={styles.placementsCard}>
             <Text style={styles.sectionTitle}>Космос партнера</Text>
             <View style={styles.placementsRow}>
@@ -304,7 +211,6 @@ export const CompatibilityResultScreen: React.FC<CompatibilityResultScreenProps>
           <Text style={styles.reportTitle}>⚠️ Вызовы и конфликты</Text>
           <Text style={styles.reportText}>{compatibilityData.challenges}</Text>
         </AstralGlassCard>
-
       </ScrollView>
     </AstralSafeAreaView>
   );

@@ -1,8 +1,15 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ViewStyle,
+  TextStyle,
+  ActivityIndicator,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../theme';
- 
+
 interface AstralButtonProps {
   title: string;
   onPress: () => void;
@@ -14,7 +21,7 @@ interface AstralButtonProps {
   innerStyle?: ViewStyle;
   textStyle?: TextStyle;
 }
- 
+
 const AstralButton: React.FC<AstralButtonProps> = ({
   title,
   onPress,
@@ -30,7 +37,7 @@ const AstralButton: React.FC<AstralButtonProps> = ({
   const borderRadius =
     (style as any)?.borderRadius ?? (typeof height === 'number' ? height / 2 : 28);
   const innerBorderRadius = borderRadius - 1.5;
- 
+
   return (
     <TouchableOpacity
       style={[
@@ -72,7 +79,7 @@ const AstralButton: React.FC<AstralButtonProps> = ({
     </TouchableOpacity>
   );
 };
- 
+
 const styles = StyleSheet.create({
   buttonWrapper: {
     shadowColor: '#FFD700',
@@ -111,5 +118,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
   },
 });
- 
+
 export default AstralButton;

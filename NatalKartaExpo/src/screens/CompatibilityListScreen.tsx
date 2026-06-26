@@ -73,7 +73,7 @@ export const CompatibilityListScreen: React.FC<CompatibilityListScreenProps> = (
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -112,16 +112,13 @@ export const CompatibilityListScreen: React.FC<CompatibilityListScreenProps> = (
 
           <View style={styles.scoreContainer}>
             {score !== undefined ? (
-              <LinearGradient
-                colors={['#FF5E62', '#FF9966'] as const}
-                style={styles.scoreBadge}
-              >
+              <LinearGradient colors={['#FF5E62', '#FF9966'] as const} style={styles.scoreBadge}>
                 <Text style={styles.scoreText}>{score}%</Text>
               </LinearGradient>
             ) : (
               <Text style={styles.statusText}>Расчет...</Text>
             )}
-            
+
             <TouchableOpacity
               style={styles.deleteButton}
               onPress={() => handleDelete(item.id, item.partner_name)}
@@ -137,7 +134,7 @@ export const CompatibilityListScreen: React.FC<CompatibilityListScreenProps> = (
   return (
     <AstralSafeAreaView style={styles.container}>
       <AstralHeader title="Совместимость" onBack={onBack} />
-      
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFD700" />
@@ -146,7 +143,9 @@ export const CompatibilityListScreen: React.FC<CompatibilityListScreenProps> = (
         <View style={styles.emptyContainer}>
           <Ionicons name="heart-dislike-outline" size={64} color="rgba(255,255,255,0.15)" />
           <Text style={styles.emptyTitle}>Пока нет расчетов</Text>
-          <Text style={styles.emptyText}>Узнайте совместимость со своей второй половинкой в любви, дружбе и жизни.</Text>
+          <Text style={styles.emptyText}>
+            Узнайте совместимость со своей второй половинкой в любви, дружбе и жизни.
+          </Text>
           <AstralButton
             title="Рассчитать совместимость"
             onPress={onNavigateToForm}

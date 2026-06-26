@@ -145,7 +145,9 @@ export const useAppInitialization = () => {
           try {
             const checkResponse = await ApiService.getUser(parsedUser.id);
             if (checkResponse.status === 404) {
-              console.log('User not found in DB (404). Clearing storage to redirect to onboarding.');
+              console.log(
+                'User not found in DB (404). Clearing storage to redirect to onboarding.',
+              );
               await resetToOnboarding();
             } else {
               setUser(parsedUser);

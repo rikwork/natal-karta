@@ -73,7 +73,8 @@ const App: React.FC = () => {
     resetToOnboarding,
   } = useAppInitialization();
 
-  const [selectedCompatibility, setSelectedCompatibility] = React.useState<PartnerCompatibility | null>(null);
+  const [selectedCompatibility, setSelectedCompatibility] =
+    React.useState<PartnerCompatibility | null>(null);
 
   React.useEffect(() => {
     ApiService.setOnUserNotFound(resetToOnboarding);
@@ -304,8 +305,6 @@ const App: React.FC = () => {
           )}
         </FadeScreen>
 
-
-
         <FadeScreen active={!loading && fontsLoaded && currentScreen === 'ChartDetail'}>
           {selectedChart && user && (
             <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
@@ -405,7 +404,7 @@ const App: React.FC = () => {
                 onCompatibilityCreated={(newComp) => {
                   setSelectedCompatibility(newComp);
                   setScreenHistory((prev) => {
-                    const filtered = prev.filter(s => s !== 'CompatibilityForm');
+                    const filtered = prev.filter((s) => s !== 'CompatibilityForm');
                     if (!filtered.includes('CompatibilityList')) {
                       filtered.push('CompatibilityList');
                     }

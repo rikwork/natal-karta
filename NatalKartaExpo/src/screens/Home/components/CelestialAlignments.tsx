@@ -1,5 +1,14 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, Animated, NativeSyntheticEvent, NativeScrollEvent, Dimensions, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Animated,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  Dimensions,
+  ScrollView,
+} from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../../theme';
@@ -82,13 +91,13 @@ const CelestialAlignments: React.FC = () => {
 
   const startAutoPlay = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
-    
+
     timerRef.current = setInterval(() => {
       if (!isMeasured || snapOffsets.length === 0) return;
 
       const nextIndex = activeIndexRef.current + 1;
       activeIndexRef.current = nextIndex;
-      
+
       scrollViewRef.current?.scrollTo({
         x: snapOffsets[nextIndex],
         animated: true,
@@ -131,7 +140,7 @@ const CelestialAlignments: React.FC = () => {
     if (!isMeasured || snapOffsets.length === 0) return;
 
     const contentOffset = event.nativeEvent.contentOffset.x;
-    
+
     // Find the closest snap offset
     let closestIndex = 3;
     let minDiff = Infinity;
@@ -174,7 +183,7 @@ const CelestialAlignments: React.FC = () => {
   return (
     <View style={styles.alignmentsSection}>
       <Text style={styles.sectionTitle}>НЕБЕСНЫЕ СОБЫТИЯ</Text>
-      
+
       <View style={styles.scrollWrapper}>
         <Animated.ScrollView
           ref={scrollViewRef}
@@ -185,10 +194,9 @@ const CelestialAlignments: React.FC = () => {
           snapToAlignment="center"
           decelerationRate="fast"
           scrollEventThrottle={16}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-            { useNativeDriver: true }
-          )}
+          onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], {
+            useNativeDriver: true,
+          })}
           onScrollBeginDrag={handleScrollBeginDrag}
           onScrollEndDrag={handleScrollEndDrag}
           onMomentumScrollEnd={handleMomentumScrollEnd}
@@ -202,11 +210,7 @@ const CelestialAlignments: React.FC = () => {
             let scale: any = 1;
 
             if (isMeasured && snapOffsets.length > 0) {
-              const inputRange = [
-                snapOffsets[idx] - 80,
-                snapOffsets[idx],
-                snapOffsets[idx] + 80,
-              ];
+              const inputRange = [snapOffsets[idx] - 80, snapOffsets[idx], snapOffsets[idx] + 80];
 
               opacity = scrollX.interpolate({
                 inputRange,
@@ -221,7 +225,7 @@ const CelestialAlignments: React.FC = () => {
               });
             }
 
-             return (
+            return (
               <Animated.View
                 key={`${item.id}-${idx}`}
                 style={[
