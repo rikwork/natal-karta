@@ -29,6 +29,11 @@ Rails.application.routes.draw do
             post :reveal
           end
         end
+        resources :partner_compatibilities, only: [:index, :show, :create, :destroy] do
+          member do
+            post :generate
+          end
+        end
       end
 
       resources :error_logs do

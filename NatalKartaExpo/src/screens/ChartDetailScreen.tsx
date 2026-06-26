@@ -18,13 +18,7 @@ import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
 import { BlurView } from 'expo-blur';
 import AstralSafeAreaView from '../components/AstralSafeAreaView';
-import { ENV } from '../config/api';
-
-const getWebSocketUrl = () => {
-  const baseUrl = ENV.API_BASE_URL; // e.g. http://localhost:3000/api/v1
-  const rootUrl = baseUrl.replace('/api/v1', '/cable');
-  return rootUrl.replace(/^http/, 'ws');
-};
+import { getWebSocketUrl } from '../utils/websocket';
 
 interface LockedSectionProps {
   title: string;
@@ -71,6 +65,7 @@ const LockedSection: React.FC<LockedSectionProps> = ({
 interface ChartDetailScreenProps {
   chart: NatalChart;
   userId: number;
+  firebaseUid?: string;
   onBack: () => void;
   onWatchAd: () => void;
 }
@@ -78,6 +73,7 @@ interface ChartDetailScreenProps {
 const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
   chart,
   userId,
+  firebaseUid,
   onBack,
   onWatchAd,
 }) => {
@@ -86,7 +82,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
     if (typeof chart.chart_data === 'string') {
       try {
         return JSON.parse(chart.chart_data) as NatalChartData;
-      } catch (_e) {
+      } catch {
         return {
           short_summary: '',
           identity: chart.chart_data,
@@ -102,7 +98,6 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
     }
     return chart.chart_data as NatalChartData;
   });
-  const [loading, setLoading] = useState(false);
 
   // Track unlocked sections locally per chart
   const [unlockedSections, setUnlockedSections] = useState<{
@@ -144,7 +139,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
 
     const connectWebSocket = () => {
       try {
-        const wsUrl = getWebSocketUrl();
+        const wsUrl = getWebSocketUrl(userId);
         ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
@@ -154,6 +149,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
             identifier: JSON.stringify({
               channel: 'NatalChartChannel',
               user_id: userId,
+              firebase_uid: firebaseUid,
             }),
           };
           ws?.send(JSON.stringify(msg));
@@ -214,7 +210,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
         ws.close();
       }
     };
-  }, [chartData, userId, chart.id]);
+  }, [chartData, userId, chart.id, firebaseUid]);
 
   const handleUnlockSection = (section: 'emotions' | 'love' | 'career') => {
     AdService.showRewardedAd(
@@ -268,7 +264,7 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
               <ActivityIndicator size="large" color="#FFD700" style={{ marginBottom: 20 }} />
               <Text style={styles.noDataTitle}>Звезды строят вашу карту...</Text>
               <Text style={styles.noDataSubtitle}>
-                Астрологический расчет и генерация интерпретации занимают до 1 минуты. Пожалуйста, подождите.
+                Анализируем положение звезд и готовим вашу расшифровку. Это займет до 1 минуты.
               </Text>
             </View>
           ) : (

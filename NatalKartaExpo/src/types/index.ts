@@ -6,6 +6,7 @@ export interface User {
   subscription_expires_at?: string;
   birth_data_updated_at?: string;
   zodiac_sign?: string;
+  firebase_uid?: string;
   gender?: 'male' | 'female' | 'other';
   created_at: string;
   updated_at: string;
@@ -66,6 +67,15 @@ export interface BirthData {
   longitude: number;
 }
 
+export interface PartnerBirthData {
+  partner_name: string;
+  partner_birth_date: string;
+  partner_birth_time: string;
+  partner_birth_place: string;
+  partner_latitude: number;
+  partner_longitude: number;
+}
+
 export interface City {
   name: string;
   country: string;
@@ -82,4 +92,33 @@ export interface ApiResponse<T> {
   message?: string;
   error?: string;
   status?: number;
+}
+
+export interface PartnerCompatibilityData {
+  overall_score: number;
+  love_score: number;
+  friendship_score: number;
+  communication_score: number;
+  summary: string;
+  love_details: string;
+  friendship_details: string;
+  communication_details: string;
+  challenges: string;
+  partner_sun?: string;
+  partner_moon?: string;
+  partner_ascendant?: string;
+}
+
+export interface PartnerCompatibility {
+  id: number;
+  user_id: number;
+  partner_name: string;
+  partner_birth_date: string;
+  partner_birth_time: string;
+  partner_birth_place: string;
+  partner_latitude: number;
+  partner_longitude: number;
+  compatibility_data?: PartnerCompatibilityData | string;
+  created_at: string;
+  updated_at: string;
 }

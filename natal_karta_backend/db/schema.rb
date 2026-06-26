@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_06_21_042751) do
+ActiveRecord::Schema[8.0].define(version: 2026_06_25_133659) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -50,6 +50,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_21_042751) do
     t.index ["user_id"], name: "index_natal_charts_on_user_id"
   end
 
+  create_table "partner_compatibilities", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "partner_name", null: false
+    t.date "partner_birth_date", null: false
+    t.time "partner_birth_time"
+    t.string "partner_birth_place", null: false
+    t.decimal "partner_latitude", precision: 10, scale: 6
+    t.decimal "partner_longitude", precision: 10, scale: 6
+    t.text "compatibility_data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_partner_compatibilities_on_user_id"
+  end
+
   create_table "user_daily_cards", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.integer "tarot_card_id"
@@ -85,5 +99,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_21_042751) do
 
   add_foreign_key "daily_predictions", "users"
   add_foreign_key "natal_charts", "users"
+  add_foreign_key "partner_compatibilities", "users"
   add_foreign_key "user_daily_cards", "users"
 end

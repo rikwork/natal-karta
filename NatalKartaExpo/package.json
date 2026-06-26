@@ -42,7 +42,10 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
+    "@types/cacheable-request": "^6.0.3",
+    "@types/http-cache-semantics": "^4.2.0",
     "@types/react": "~19.1.0",
+    "@types/responselike": "^1.0.3",
     "babel-preset-expo": "^54.0.10",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~10.0.0",

@@ -130,7 +130,7 @@ export const useOnboarding = ({ onComplete, onStepChange }: UseOnboardingProps) 
         try {
           const primaryLang = /[A-Za-z]/.test(query) ? 'en' : 'ru';
           const response = await ApiService.searchCities(query, primaryLang);
-          const cities = (response as any).data || [];
+          const cities = response.data || [];
 
           if (cities && cities.length) {
             setFilteredCities(cities);

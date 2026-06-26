@@ -29,6 +29,10 @@ import ChartDetailScreen from './src/screens/ChartDetailScreen';
 import CabinetScreen from './src/screens/CabinetScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
 import HoroscopeDetailScreen from './src/screens/HoroscopeDetailScreen';
+import { CompatibilityFormScreen } from './src/screens/CompatibilityFormScreen';
+import { CompatibilityListScreen } from './src/screens/CompatibilityListScreen';
+import { CompatibilityResultScreen } from './src/screens/CompatibilityResultScreen';
+import { PartnerCompatibility, User, BirthData } from './src/types';
 import AppBackground from './src/components/App/AppBackground';
 import FadeScreen from './src/components/App/FadeScreen';
 import { getZodiacIcon } from './src/utils/zodiacIcons';
@@ -55,7 +59,6 @@ const App: React.FC = () => {
     setCurrentScreen,
     selectedChart,
     setSelectedChart,
-    onboardingData,
     setOnboardingData,
     chartResult,
     setChartResult,
@@ -69,6 +72,8 @@ const App: React.FC = () => {
     toggleVideoBackground,
     resetToOnboarding,
   } = useAppInitialization();
+
+  const [selectedCompatibility, setSelectedCompatibility] = React.useState<PartnerCompatibility | null>(null);
 
   React.useEffect(() => {
     ApiService.setOnUserNotFound(resetToOnboarding);
@@ -157,7 +162,7 @@ const App: React.FC = () => {
   );
 
   const handleUpdateUser = useCallback(
-    async (updatedUser: any) => {
+    async (updatedUser: User) => {
       setUser(updatedUser);
       await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
     },
@@ -169,7 +174,7 @@ const App: React.FC = () => {
   }, [resetToOnboarding]);
 
   const handleOnboardingComplete = useCallback(
-    async (data: any) => {
+    async (data: Record<string, unknown>) => {
       setOnboardingData(data);
       let newUserObj = user;
       try {
@@ -213,13 +218,13 @@ const App: React.FC = () => {
             }
           } else {
             // Create a new chart for a truly new user
-            const chartData = {
+            const chartData: BirthData = {
               name: `${newUserObj.name} - Натальная карта`,
-              birth_date: data.birthDate,
-              birth_time: data.birthTime,
-              birth_place: data.birthPlace,
-              latitude: data.latitude,
-              longitude: data.longitude,
+              birth_date: data.birthDate as string,
+              birth_time: data.birthTime as string,
+              birth_place: data.birthPlace as string,
+              latitude: data.latitude as number,
+              longitude: data.longitude as number,
             };
 
             const response = await ApiService.createNatalChart(newUserObj.id, chartData);
@@ -256,8 +261,8 @@ const App: React.FC = () => {
       <>
         <FadeScreen active={loading || !fontsLoaded}>
           <LoadingScreen
-            text="Загрузка"
-            subText="Инициализация приложения..."
+            text="Настраиваем связь со звездами..."
+            subText="Готовим вашу карту неба"
             fontsLoaded={fontsLoaded}
           />
         </FadeScreen>
@@ -307,6 +312,7 @@ const App: React.FC = () => {
               <ChartDetailScreen
                 chart={selectedChart}
                 userId={user.id}
+                firebaseUid={user.firebase_uid}
                 onBack={navigateBack}
                 onWatchAd={handleWatchAd}
               />
@@ -369,8 +375,60 @@ const App: React.FC = () => {
               onNavigateToCreateChart={() => navigateTo('CreateChart')}
               onNavigateToCabinet={() => navigateTo('Cabinet')}
               onNavigateToHoroscope={() => navigateTo('HoroscopeDetail')}
+              onNavigateToCompatibility={() => navigateTo('CompatibilityList')}
               onWatchAd={handleWatchAd}
             />
+          )}
+        </FadeScreen>
+
+        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'CompatibilityList'}>
+          {user && (
+            <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
+              <CompatibilityListScreen
+                userId={user.id}
+                onSelectCompatibility={(comp) => {
+                  setSelectedCompatibility(comp);
+                  navigateTo('CompatibilityResult');
+                }}
+                onNavigateToForm={() => navigateTo('CompatibilityForm')}
+                onBack={navigateBack}
+              />
+            </AstralSwipeBack>
+          )}
+        </FadeScreen>
+
+        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'CompatibilityForm'}>
+          {user && (
+            <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
+              <CompatibilityFormScreen
+                userId={user.id}
+                onCompatibilityCreated={(newComp) => {
+                  setSelectedCompatibility(newComp);
+                  setScreenHistory((prev) => {
+                    const filtered = prev.filter(s => s !== 'CompatibilityForm');
+                    if (!filtered.includes('CompatibilityList')) {
+                      filtered.push('CompatibilityList');
+                    }
+                    return filtered;
+                  });
+                  setCurrentScreen('CompatibilityResult');
+                }}
+                onBack={navigateBack}
+              />
+            </AstralSwipeBack>
+          )}
+        </FadeScreen>
+
+        <FadeScreen active={!loading && fontsLoaded && currentScreen === 'CompatibilityResult'}>
+          {selectedCompatibility && user && (
+            <AstralSwipeBack onSwipeBack={navigateBack} enabled={canGoBack}>
+              <CompatibilityResultScreen
+                compatibility={selectedCompatibility}
+                userId={user.id}
+                firebaseUid={user.firebase_uid}
+                onBack={navigateBack}
+              />
+            </AstralSwipeBack>
           )}
         </FadeScreen>
       </>

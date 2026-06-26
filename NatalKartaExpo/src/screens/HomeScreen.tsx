@@ -15,10 +15,12 @@ import { useHomeScreen } from '../hooks/useHomeScreen';
 import HoroscopeCard from './Home/components/HoroscopeCard';
 import CelestialAlignments from './Home/components/CelestialAlignments';
 import AstralButton from '../components/AstralButton';
+import AstralGlassCard from '../components/AstralGlassCard';
 import DailyCardWidget from './Home/components/DailyCardWidget';
 import DailyCardScreen from './DailyCardScreen';
 import { useDailyCard } from '../hooks/useDailyCard';
 import { theme } from '../theme';
+import { Ionicons } from '@expo/vector-icons';
 
 interface HomeScreenProps {
   user: User | null;
@@ -26,6 +28,7 @@ interface HomeScreenProps {
   onNavigateToCreateChart: () => void;
   onNavigateToCabinet: () => void;
   onNavigateToHoroscope: () => void;
+  onNavigateToCompatibility: () => void;
   onWatchAd: () => void;
 }
 
@@ -34,6 +37,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigateToCharts,
   onNavigateToCabinet,
   onNavigateToHoroscope,
+  onNavigateToCompatibility,
 }) => {
   const { parsedContent, spin, pulseAnim, period, setPeriod, userChart } = useHomeScreen(user);
 
@@ -112,11 +116,40 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               sign={user?.zodiac_sign}
             />
             <DailyCardWidget
-              dailyCard={dailyCard}
+              dailyCard={dailyCard || null}
               loading={isDailyCardLoading}
               onPress={openDailyCard}
             />
           </View>
+
+          {/* Compatibility Card */}
+          <TouchableOpacity
+            onPress={onNavigateToCompatibility}
+            activeOpacity={0.8}
+            style={{ marginBottom: 25 }}
+          >
+            <AstralGlassCard style={styles.compatibilityCard}>
+              <LinearGradient
+                colors={['rgba(255, 107, 107, 0.12)', 'rgba(157, 101, 255, 0.12)'] as const}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.compatibilityGradient}
+              >
+                <View style={styles.compatibilityHeader}>
+                  <View style={styles.compatibilityIconCircle}>
+                    <Ionicons name="heart-outline" size={24} color="#FF6B6B" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.compatibilityTitle}>Совместимость партнеров</Text>
+                    <Text style={styles.compatibilitySubtitle}>
+                      Узнайте вашу совместимость в любви, дружбе и жизни
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.4)" />
+                </View>
+              </LinearGradient>
+            </AstralGlassCard>
+          </TouchableOpacity>
 
           <CelestialAlignments />
 
@@ -149,7 +182,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 userChart
                   ? userChart.chart_data
                     ? "ОТКРЫТЬ НАТАЛЬНУЮ КАРТУ"
-                    : "РАСЧЕТ НАТАЛЬНОЙ КАРТЫ"
+                    : "КАРТА РАССЧИТЫВАЕТСЯ..."
                   : "СОЗДАТЬ НАТАЛЬНУЮ КАРТУ"
               }
               loadingWithText={!!(userChart && !userChart.chart_data)}
@@ -291,6 +324,41 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: theme.fonts.body,
     textAlign: 'center',
+  },
+  compatibilityCard: {
+    padding: 0,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 107, 107, 0.2)',
+  },
+  compatibilityGradient: {
+    padding: 16,
+  },
+  compatibilityHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  compatibilityIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 107, 107, 0.2)',
+  },
+  compatibilityTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#F0E6D2',
+    marginBottom: 4,
+  },
+  compatibilitySubtitle: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.5)',
+    lineHeight: 16,
   },
 });
 

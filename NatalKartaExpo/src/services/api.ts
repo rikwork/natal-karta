@@ -1,4 +1,4 @@
-import { User, NatalChart, DailyPrediction, BirthData, City, ApiResponse } from '../types';
+import { User, NatalChart, DailyPrediction, BirthData, PartnerBirthData, City, ApiResponse, PartnerCompatibility } from '../types';
 import errorReporter from './errorReporter';
 import { ENV } from '../config/api';
 import * as Localization from 'expo-localization';
@@ -37,22 +37,24 @@ class ApiService {
 
       try {
         data = text ? JSON.parse(text) : {};
-      } catch (e) {
+      } catch {
         if (!response.ok) {
-          throw new Error(`Ошибка сервера (статус ${response.status})`);
+          throw new Error('Не удалось связаться с сервером. Пожалуйста, попробуйте позже.');
         }
         throw new Error('Некорректный формат ответа от сервера');
       }
 
       if (!response.ok) {
-        if (response.status === 404 && endpoint.startsWith('/users')) {
+        // Only redirect to onboarding if the USER RECORD itself is not found:
+        // matches /users/123 but NOT /users/123/partner_compatibilities etc.
+        if (response.status === 404 && /^\/users\/\d+$/.test(endpoint)) {
           if (this.onUserNotFound) {
             this.onUserNotFound();
           }
         }
         return {
           data: null as any,
-          error: data.error || data.message || `Ошибка сервера (статус ${response.status})`,
+          error: data.error || data.message || 'Не удалось связаться с сервером. Пожалуйста, попробуйте позже.',
           status: response.status,
         };
       }
@@ -155,6 +157,34 @@ class ApiService {
   async getZodiacPredictions(sign: string): Promise<ApiResponse<any>> {
     const params = new URLSearchParams({ sign });
     return this.request<any>(`/zodiac_predictions?${params}`);
+  }
+
+  // Partner Compatibility methods
+  async getPartnerCompatibilities(userId: number): Promise<ApiResponse<PartnerCompatibility[]>> {
+    return this.request<PartnerCompatibility[]>(`/users/${userId}/partner_compatibilities`);
+  }
+
+  async getPartnerCompatibility(userId: number, compatibilityId: number): Promise<ApiResponse<PartnerCompatibility>> {
+    return this.request<PartnerCompatibility>(`/users/${userId}/partner_compatibilities/${compatibilityId}`);
+  }
+
+  async createPartnerCompatibility(userId: number, partnerData: PartnerBirthData): Promise<ApiResponse<PartnerCompatibility>> {
+    return this.request<PartnerCompatibility>(`/users/${userId}/partner_compatibilities`, {
+      method: 'POST',
+      body: JSON.stringify({ partner_compatibility: partnerData }),
+    });
+  }
+
+  async generatePartnerCompatibility(userId: number, compatibilityId: number): Promise<ApiResponse<any>> {
+    return this.request<any>(`/users/${userId}/partner_compatibilities/${compatibilityId}/generate`, {
+      method: 'POST',
+    });
+  }
+
+  async deletePartnerCompatibility(userId: number, compatibilityId: number): Promise<ApiResponse<any>> {
+    return this.request<any>(`/users/${userId}/partner_compatibilities/${compatibilityId}`, {
+      method: 'DELETE',
+    });
   }
 
   // Cities methods

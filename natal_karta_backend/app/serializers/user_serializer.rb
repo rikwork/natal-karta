@@ -14,6 +14,7 @@ class UserSerializer
       subscription_expires_at: @user.subscription_expires_at,
       birth_data_updated_at: @user.birth_data_updated_at,
       zodiac_sign: @user.zodiac_sign,
+      firebase_uid: @user.firebase_uid,
       created_at: @user.created_at,
       updated_at: @user.updated_at
     }

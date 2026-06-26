@@ -12,3 +12,6 @@ export const ENV = {
   // For production, change this to your deployed backend URL.
   API_BASE_URL: 'https://natal.braynix.ru/api/v1',
 };
+
+
+

@@ -114,6 +114,13 @@ natal_karta/
 - `GET /api/v1/users/:user_id/daily_predictions/show/:date` - Предсказание на дату
 - `POST /api/v1/users/:user_id/daily_predictions/generate_today` - Генерация на сегодня
 
+### Совместимость партнеров
+- `GET /api/v1/users/:user_id/partner_compatibilities` - Список совместимостей пользователя
+- `POST /api/v1/users/:user_id/partner_compatibilities` - Создание расчета совместимости
+- `GET /api/v1/users/:user_id/partner_compatibilities/:id` - Получение совместимости
+- `POST /api/v1/users/:user_id/partner_compatibilities/:id/generate` - Запуск генерации совместимости
+- `DELETE /api/v1/users/:user_id/partner_compatibilities/:id` - Удаление совместимости
+
 ## 🎨 Экраны приложения
 
 1. **Главная страница** - Предсказание дня, быстрые действия

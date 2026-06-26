@@ -60,8 +60,8 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({ userId, onChartPress, onBac
       Vibration.vibrate(50);
       if (response.data && (response.data as any).status === 'processing') {
         Alert.alert(
-          'Расчет запущен',
-          'Астрологический расчет и интерпретация запущены в фоновом режиме. Это займет около 1 минуты. Вы можете следить за ходом расчета, открыв карту.',
+          'Звезды начали работу!',
+          'Мы начали расчет и расшифровку вашей карты. Это займет около минуты. Вы можете открыть карту, чтобы узнать о ее готовности.',
         );
       } else {
         Alert.alert('Успех', 'Натальная карта сгенерирована!');
@@ -90,7 +90,7 @@ const ChartsScreen: React.FC<ChartsScreenProps> = ({ userId, onChartPress, onBac
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#6B46C1" />
-        <Text style={styles.loadingText}>Загрузка натальных карт...</Text>
+        <Text style={styles.loadingText}>Считываем ваши звездные карты...</Text>
       </View>
     );
   }

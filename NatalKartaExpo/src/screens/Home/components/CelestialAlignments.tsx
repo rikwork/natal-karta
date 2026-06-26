@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, Animated, NativeSyntheticEvent, NativeScrollEvent, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Animated, NativeSyntheticEvent, NativeScrollEvent, Dimensions, ScrollView } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../../theme';
@@ -35,7 +35,7 @@ const DATA = [...ALIGNMENTS_DATA, ...ALIGNMENTS_DATA, ...ALIGNMENTS_DATA];
 const GAP = 15;
 
 const CelestialAlignments: React.FC = () => {
-  const scrollViewRef = useRef<Animated.ScrollView>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -237,7 +237,7 @@ const CelestialAlignments: React.FC = () => {
                 <View onLayout={(e) => handleLayout(idx, e.nativeEvent.layout.width)}>
                   <BlurView intensity={25} tint="dark" style={styles.alignmentMiniCard}>
                     <LinearGradient
-                      colors={item.gradientColors}
+                      colors={item.gradientColors as [string, string]}
                       style={StyleSheet.absoluteFill}
                     />
                     <View style={[styles.iconCircle, { borderColor: item.iconBorderColor }]}>

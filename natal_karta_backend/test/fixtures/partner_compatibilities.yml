@@ -1,0 +1,19 @@
+one:
+  user: one
+  partner_name: "Jane Doe"
+  partner_birth_date: "1996-05-15"
+  partner_birth_time: "2025-10-17 12:00:00"
+  partner_birth_place: "Moscow"
+  partner_latitude: 55.7558
+  partner_longitude: 37.6173
+  compatibility_data: null
+
+two:
+  user: two
+  partner_name: "John Smith"
+  partner_birth_date: "1994-08-20"
+  partner_birth_time: "2025-10-17 15:30:00"
+  partner_birth_place: "New York"
+  partner_latitude: 40.7128
+  partner_longitude: -74.0060
+  compatibility_data: '{"overall_score": 85, "love_score": 90, "friendship_score": 80, "communication_score": 85, "summary": "Great compatibility", "love_details": "Paragraph 1\n\nParagraph 2", "friendship_details": "Paragraph 1", "communication_details": "Paragraph 1", "challenges": "Paragraph 1", "partner_sun": "Leo", "partner_moon": "Aquarius", "partner_ascendant": "Scorpio"}'

@@ -4,6 +4,7 @@ class User < ApplicationRecord
   has_many :natal_charts, dependent: :destroy
   has_many :daily_predictions, dependent: :destroy
   has_many :user_daily_cards, dependent: :destroy
+  has_many :partner_compatibilities, dependent: :destroy
 
   validates :name, presence: true
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
