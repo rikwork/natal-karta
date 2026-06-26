@@ -136,6 +136,28 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
 
     let ws: WebSocket | null = null;
     let isSubscribed = true;
+    let pollInterval: NodeJS.Timeout | null = null;
+
+    const startPolling = () => {
+      if (pollInterval) return;
+      console.log('Falling back to polling chart status...');
+      pollInterval = setInterval(async () => {
+        try {
+          const response = await ApiService.getNatalChart(userId, chart.id);
+          if (response.data && response.data.chart_data && isSubscribed) {
+            const rawData = response.data.chart_data;
+            const parsedData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+            setChartData(parsedData);
+            if (pollInterval) {
+              clearInterval(pollInterval);
+              pollInterval = null;
+            }
+          }
+        } catch (err) {
+          console.error('Error polling chart status:', err);
+        }
+      }, 5000);
+    };
 
     const connectWebSocket = () => {
       try {
@@ -166,9 +188,17 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
                 const rawData = data.message.chart_data;
                 const parsedData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
                 setChartData(parsedData);
+                if (pollInterval) {
+                  clearInterval(pollInterval);
+                  pollInterval = null;
+                }
                 ws?.close();
               } else if (data.message.status === 'failed') {
                 Alert.alert('Ошибка', data.message.error || 'Не удалось рассчитать карту');
+                if (pollInterval) {
+                  clearInterval(pollInterval);
+                  pollInterval = null;
+                }
                 ws?.close();
               }
             }
@@ -178,10 +208,19 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
         };
 
         ws.onerror = (e) => {
-          console.error('WebSocket error:', e);
+          console.error('WebSocket error, falling back to polling:', e);
+          startPolling();
+        };
+
+        ws.onclose = () => {
+          console.log('WebSocket closed, starting polling fallback if loading');
+          if (isSubscribed) {
+            startPolling();
+          }
         };
       } catch (err) {
-        console.error('WebSocket connection failed:', err);
+        console.error('WebSocket connection failed, falling back to polling:', err);
+        startPolling();
       }
     };
 
@@ -208,6 +247,9 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
       isSubscribed = false;
       if (ws) {
         ws.close();
+      }
+      if (pollInterval) {
+        clearInterval(pollInterval);
       }
     };
   }, [chartData, userId, chart.id, firebaseUid]);

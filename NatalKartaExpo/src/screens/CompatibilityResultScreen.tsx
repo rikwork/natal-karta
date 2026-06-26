@@ -53,6 +53,30 @@ export const CompatibilityResultScreen: React.FC<CompatibilityResultScreenProps>
 
     let ws: WebSocket | null = null;
     let isSubscribed = true;
+    let pollInterval: NodeJS.Timeout | null = null;
+
+    const startPolling = () => {
+      if (pollInterval) return;
+      console.log('Falling back to polling compatibility status...');
+      pollInterval = setInterval(async () => {
+        try {
+          const response = await ApiService.getPartnerCompatibility(userId, compatibility.id);
+          if (response.data && response.data.compatibility_data && isSubscribed) {
+            const rawData = response.data.compatibility_data;
+            const parsedData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+            setCompatibilityData(parsedData);
+            setLocalCompatibility(response.data);
+            setLoading(false);
+            if (pollInterval) {
+              clearInterval(pollInterval);
+              pollInterval = null;
+            }
+          }
+        } catch (err) {
+          console.error('Error polling compatibility status:', err);
+        }
+      }, 5000);
+    };
 
     const connectWebSocket = () => {
       try {
@@ -85,10 +109,18 @@ export const CompatibilityResultScreen: React.FC<CompatibilityResultScreenProps>
                 setCompatibilityData(parsedData);
                 setLocalCompatibility((prev) => ({ ...prev, compatibility_data: rawData }));
                 setLoading(false);
+                if (pollInterval) {
+                  clearInterval(pollInterval);
+                  pollInterval = null;
+                }
                 ws?.close();
               } else if (data.message.status === 'failed') {
                 Alert.alert('Ошибка', data.message.error || 'Не удалось рассчитать совместимость');
                 setLoading(false);
+                if (pollInterval) {
+                  clearInterval(pollInterval);
+                  pollInterval = null;
+                }
                 ws?.close();
               }
             }
@@ -98,12 +130,19 @@ export const CompatibilityResultScreen: React.FC<CompatibilityResultScreenProps>
         };
 
         ws.onerror = (e) => {
-          console.error('WebSocket error:', e);
-          setLoading(false);
+          console.error('WebSocket error, falling back to polling:', e);
+          startPolling();
+        };
+
+        ws.onclose = () => {
+          console.log('WebSocket closed, starting polling fallback if loading');
+          if (isSubscribed) {
+            startPolling();
+          }
         };
       } catch (err) {
-        console.error('WebSocket connection failed:', err);
-        setLoading(false);
+        console.error('WebSocket connection failed, falling back to polling:', err);
+        startPolling();
       }
     };
 
@@ -132,6 +171,9 @@ export const CompatibilityResultScreen: React.FC<CompatibilityResultScreenProps>
       isSubscribed = false;
       if (ws) {
         ws.close();
+      }
+      if (pollInterval) {
+        clearInterval(pollInterval);
       }
     };
   }, [compatibility.id, userId, compatibilityData, firebaseUid]);
