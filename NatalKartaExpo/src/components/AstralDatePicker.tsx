@@ -11,10 +11,41 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../theme';
 
-interface PickerItem {
+export interface PickerItem {
   label: string;
   value: number;
 }
+
+const CURRENT_YEAR = new Date().getFullYear();
+
+const ASTRAL_DAYS = Array.from({ length: 31 }, (_, i) => ({
+  label: String(i + 1).padStart(2, '0'),
+  value: i + 1,
+}));
+
+const ASTRAL_MONTHS = [
+  { value: 1, label: 'Январь' },
+  { value: 2, label: 'Февраль' },
+  { value: 3, label: 'Март' },
+  { value: 4, label: 'Апрель' },
+  { value: 5, label: 'Май' },
+  { value: 6, label: 'Июнь' },
+  { value: 7, label: 'Июль' },
+  { value: 8, label: 'Август' },
+  { value: 9, label: 'Сентябрь' },
+  { value: 10, label: 'Октябрь' },
+  { value: 11, label: 'Ноябрь' },
+  { value: 12, label: 'Декабрь' },
+];
+
+const ASTRAL_YEARS = Array.from({ length: 125 }, (_, i) => ({
+  label: String(CURRENT_YEAR - i),
+  value: CURRENT_YEAR - i,
+}));
+
+export const getAstralDatePickerData = () => {
+  return { days: ASTRAL_DAYS, months: ASTRAL_MONTHS, years: ASTRAL_YEARS };
+};
 
 interface AstralDatePickerProps {
   days: PickerItem[];
@@ -37,7 +68,6 @@ const PickerList: React.FC<{
   onDateChange: (type: 'day' | 'month' | 'year', value: number) => void;
 }> = ({ data, selectedValue, type, onDateChange }) => {
   const initialIndex = data.findIndex((item) => item.value === selectedValue);
-  const [activeIndex, setActiveIndex] = React.useState(initialIndex >= 0 ? initialIndex : 0);
 
   const paddedData = [
     { label: '', value: -1 },
@@ -49,6 +79,48 @@ const PickerList: React.FC<{
 
   const flatListRef = useRef<FlatList>(null);
   const scrollY = useRef(new Animated.Value(initialIndex * ITEM_HEIGHT)).current;
+  const lastScrolledValue = useRef<number | null>(null);
+  const webScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isScrolling = useRef(false);
+  const currentActiveIndex = useRef(initialIndex >= 0 ? initialIndex : 0);
+  const ignorePropUpdates = useRef(false);
+
+  // Clear timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (webScrollTimeoutRef.current) {
+        clearTimeout(webScrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Synchronize scroll position when date changes from parent (e.g. initial render in modal)
+  React.useEffect(() => {
+    if (selectedValue === lastScrolledValue.current) {
+      ignorePropUpdates.current = false;
+      return;
+    }
+
+    if (ignorePropUpdates.current) {
+      return;
+    }
+
+    const scrollToValue = () => {
+      if (isScrolling.current) return; // Skip synchronizing if actively scrolling this wheel
+      const index = data.findIndex((item) => item.value === selectedValue);
+      if (index >= 0) {
+        flatListRef.current?.scrollToOffset({
+          offset: index * ITEM_HEIGHT,
+          animated: false,
+        });
+        lastScrolledValue.current = selectedValue;
+        currentActiveIndex.current = index;
+      }
+    };
+
+    const timer = setTimeout(scrollToValue, 50); // small delay is enough when animated is false
+    return () => clearTimeout(timer);
+  }, [selectedValue, data]);
 
   const snapToNearest = (event: any) => {
     if (Platform.OS === 'web') return;
@@ -56,22 +128,39 @@ const PickerList: React.FC<{
     const index = Math.round(y / ITEM_HEIGHT);
 
     if (index >= 0 && index < data.length) {
-      setActiveIndex(index);
+      lastScrolledValue.current = data[index].value;
+      currentActiveIndex.current = index;
+      ignorePropUpdates.current = true;
       onDateChange(type, data[index].value);
     }
 
-    flatListRef.current?.scrollToOffset({ offset: index * ITEM_HEIGHT, animated: true });
+    const difference = Math.abs(y - index * ITEM_HEIGHT);
+    if (difference > 1) {
+      flatListRef.current?.scrollToOffset({ offset: index * ITEM_HEIGHT, animated: true });
+    }
   };
 
   const handleScroll = Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-    useNativeDriver: false,
+    useNativeDriver: true,
     listener: (event: any) => {
       const y = event.nativeEvent.contentOffset.y;
       const index = Math.round(y / ITEM_HEIGHT);
 
-      if (index !== activeIndex && index >= 0 && index < data.length) {
-        setActiveIndex(index);
-        onDateChange(type, data[index].value);
+      if (index >= 0 && index < data.length) {
+        if (Platform.OS === 'web') {
+          isScrolling.current = true;
+          ignorePropUpdates.current = true;
+          currentActiveIndex.current = index;
+          if (webScrollTimeoutRef.current) {
+            clearTimeout(webScrollTimeoutRef.current);
+          }
+          webScrollTimeoutRef.current = setTimeout(() => {
+            const val = data[index].value;
+            lastScrolledValue.current = val;
+            isScrolling.current = false;
+            onDateChange(type, val);
+          }, 150);
+        }
       }
     },
   });
@@ -85,21 +174,27 @@ const PickerList: React.FC<{
       extrapolate: 'clamp',
     });
 
-    const opacity = scrollY.interpolate({
-      inputRange: [itemPosition - ITEM_HEIGHT, itemPosition, itemPosition + ITEM_HEIGHT],
-      outputRange: [0.3, 1, 0.3],
+    const whiteOpacity = scrollY.interpolate({
+      inputRange: [
+        itemPosition - ITEM_HEIGHT,
+        itemPosition - ITEM_HEIGHT * 0.5,
+        itemPosition,
+        itemPosition + ITEM_HEIGHT * 0.5,
+        itemPosition + ITEM_HEIGHT,
+      ],
+      outputRange: [0.3, 0.3, 0, 0.3, 0.3],
       extrapolate: 'clamp',
     });
 
-    const color = scrollY.interpolate({
-      inputRange: [itemPosition - ITEM_HEIGHT, itemPosition, itemPosition + ITEM_HEIGHT],
-      outputRange: ['rgba(255, 255, 255, 1)', 'rgba(255, 215, 0, 1)', 'rgba(255, 255, 255, 1)'],
-      extrapolate: 'clamp',
-    });
-
-    const textShadowRadius = scrollY.interpolate({
-      inputRange: [itemPosition - ITEM_HEIGHT, itemPosition, itemPosition + ITEM_HEIGHT],
-      outputRange: [0, 10, 0],
+    const goldOpacity = scrollY.interpolate({
+      inputRange: [
+        itemPosition - ITEM_HEIGHT,
+        itemPosition - ITEM_HEIGHT * 0.5,
+        itemPosition,
+        itemPosition + ITEM_HEIGHT * 0.5,
+        itemPosition + ITEM_HEIGHT,
+      ],
+      outputRange: [0, 0, 1, 0, 0],
       extrapolate: 'clamp',
     });
 
@@ -110,21 +205,40 @@ const PickerList: React.FC<{
           Platform.OS === 'web' ? ({ scrollSnapAlign: 'center' } as any) : {},
         ]}
       >
-        <Animated.Text
-          style={[
-            styles.itemText,
-            {
-              opacity,
-              transform: [{ scale }],
-              color,
-              textShadowColor: 'rgba(255, 215, 0, 1)',
-              textShadowRadius,
-              fontWeight: 'bold',
-            },
-          ]}
-        >
-          {item.label}
-        </Animated.Text>
+        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+          {/* White inactive layer */}
+          <Animated.Text
+            style={[
+              styles.itemText,
+              {
+                opacity: whiteOpacity,
+                transform: [{ scale }],
+                color: '#FFFFFF',
+                fontWeight: 'bold',
+              },
+            ]}
+          >
+            {item.label}
+          </Animated.Text>
+
+          {/* Gold active layer */}
+          <Animated.Text
+            style={[
+              styles.itemText,
+              {
+                position: 'absolute',
+                opacity: goldOpacity,
+                transform: [{ scale }],
+                color: '#FFD700',
+                textShadowColor: 'rgba(255, 215, 0, 0.8)',
+                textShadowRadius: 10,
+                fontWeight: 'bold',
+              },
+            ]}
+          >
+            {item.label}
+          </Animated.Text>
+        </View>
       </View>
     );
   };
@@ -145,15 +259,34 @@ const PickerList: React.FC<{
         snapToInterval={ITEM_HEIGHT}
         decelerationRate="fast"
         onScroll={handleScroll}
-        onMomentumScrollEnd={snapToNearest}
-        onScrollEndDrag={snapToNearest}
+        onScrollBeginDrag={() => {
+          isScrolling.current = true;
+          ignorePropUpdates.current = true;
+        }}
+        onMomentumScrollBegin={() => {
+          isScrolling.current = true;
+          ignorePropUpdates.current = true;
+        }}
+        onMomentumScrollEnd={(event) => {
+          isScrolling.current = false;
+          snapToNearest(event);
+        }}
+        onScrollEndDrag={(event) => {
+          if (Platform.OS === 'web') return;
+          const velocityY = event.nativeEvent.velocity?.y;
+          // If there is velocity, momentum scroll will start next, so we let onMomentumScrollEnd handle the snap.
+          if (velocityY && Math.abs(velocityY) > 0.01) {
+            return;
+          }
+          isScrolling.current = false;
+          snapToNearest(event);
+        }}
         scrollEventThrottle={16}
         getItemLayout={(_, index) => ({
           length: ITEM_HEIGHT,
           offset: ITEM_HEIGHT * index,
           index,
         })}
-        initialScrollIndex={initialIndex >= 0 ? initialIndex : 0}
       />
     </View>
   );

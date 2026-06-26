@@ -14,9 +14,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { User, City } from '../types';
 import ApiService from '../services/api';
-import BirthDateStep from '../screens/Onboarding/steps/BirthDateStep';
-import BirthTimeStep from '../screens/Onboarding/steps/BirthTimeStep';
-import BirthPlaceStep from '../screens/Onboarding/steps/BirthPlaceStep';
+import AstralDatePicker, { getAstralDatePickerData } from '../components/AstralDatePicker';
+import { AstralTimePicker } from '../components/AstralTimePicker';
+import AstralCitySelector from '../components/AstralCitySelector';
 import AstralSafeAreaView from '../components/AstralSafeAreaView';
 import AstralButton from '../components/AstralButton';
 import AstralHeader from '../components/AstralHeader';
@@ -36,6 +36,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
   onBack,
   onDeleteProfile,
 }) => {
+  const { days, months, years } = getAstralDatePickerData();
   const [name, setName] = useState(user.name);
   const [birthData, setBirthData] = useState({
     day: 1,
@@ -301,12 +302,13 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                     <View pointerEvents={isBirthDataLocked ? 'none' : 'auto'}>
                       <View style={styles.fieldGroup}>
                         <Text style={styles.inputLabel}>Дата рождения</Text>
-                        <BirthDateStep
-                          selectedDate={{
-                            day: birthData.day,
-                            month: birthData.month,
-                            year: birthData.year,
-                          }}
+                        <AstralDatePicker
+                          days={days}
+                          months={months}
+                          years={years}
+                          selectedDay={birthData.day}
+                          selectedMonth={birthData.month}
+                          selectedYear={birthData.year}
                           onDateChange={(type, value) =>
                             setBirthData({ ...birthData, [type]: value })
                           }
@@ -315,7 +317,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
 
                       <View style={styles.fieldGroup}>
                         <Text style={styles.inputLabel}>Время рождения</Text>
-                        <BirthTimeStep
+                        <AstralTimePicker
                           selectedTime={{ hour: birthData.hour, minute: birthData.minute }}
                           onTimeChange={(time) => setBirthData({ ...birthData, ...time })}
                         />
@@ -323,7 +325,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
 
                       <View style={styles.fieldGroup}>
                         <Text style={styles.inputLabel}>Место рождения</Text>
-                        <BirthPlaceStep
+                        <AstralCitySelector
                           citySearch={citySearch}
                           onCitySearchChange={handleCitySearch}
                           isSearchingCities={isSearchingCities}
@@ -332,6 +334,9 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                           onSelectCity={handleSelectCity}
                           onFocus={() => setShowCityList(citySearch.length >= 2)}
                         />
+                        <Text style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: 12, marginTop: 8, textAlign: 'center' }}>
+                          Выберите город из списка
+                        </Text>
                       </View>
                     </View>
                   </AstralGlassCard>

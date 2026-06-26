@@ -7,8 +7,11 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
-import DatePicker from 'react-native-date-picker';
+import { Ionicons } from '@expo/vector-icons';
+import { theme } from '../theme';
 import { PartnerCompatibility, City } from '../types';
 import ApiService from '../services/api';
 import AstralButton from '../components/AstralButton';
@@ -16,6 +19,8 @@ import AstralHeader from '../components/AstralHeader';
 import AstralSafeAreaView from '../components/AstralSafeAreaView';
 import AstralGlassCard from '../components/AstralGlassCard';
 import AstralCitySelector from '../components/AstralCitySelector';
+import AstralDatePicker, { getAstralDatePickerData } from '../components/AstralDatePicker';
+import { AstralTimePicker } from '../components/AstralTimePicker';
 
 const debounce = (func: Function, delay: number) => {
   let timeoutId: NodeJS.Timeout;
@@ -46,6 +51,8 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [tempDate, setTempDate] = useState({ day: 1, month: 1, year: 1995 });
+  const [tempTime, setTempTime] = useState({ hour: 12, minute: 0 });
 
   const isFormValid =
     partnerName.trim() !== '' &&
@@ -59,14 +66,33 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
   const [showCityList, setShowCityList] = useState(false);
   const [isSearchingCities, setIsSearchingCities] = useState(false);
 
-  const handleDateChange = (date: Date) => {
-    setBirthDate(date.toISOString().split('T')[0]);
-    setShowDatePicker(false);
+  const { days, months, years } = getAstralDatePickerData();
+
+  const dateObj = useMemo(() => {
+    if (!birthDate) {
+      return { day: 1, month: 1, year: 1995 };
+    }
+    const [y, m, d] = birthDate.split('-').map(Number);
+    return { day: d || 1, month: m || 1, year: y || 1995 };
+  }, [birthDate]);
+
+  const timeObj = useMemo(() => {
+    if (!birthTime) {
+      return { hour: 12, minute: 0 };
+    }
+    const [h, m] = birthTime.split(':').map(Number);
+    return { hour: h || 0, minute: m || 0 };
+  }, [birthTime]);
+
+  const handleDateChange = (type: 'day' | 'month' | 'year', value: number) => {
+    const updated = { ...dateObj, [type]: value };
+    const dateStr = `${updated.year}-${String(updated.month).padStart(2, '0')}-${String(updated.day).padStart(2, '0')}`;
+    setBirthDate(dateStr);
   };
 
-  const handleTimeChange = (date: Date) => {
-    setBirthTime(date.toTimeString().split(' ')[0]);
-    setShowTimePicker(false);
+  const handleTimeChange = (time: { hour: number; minute: number }) => {
+    const timeStr = `${String(time.hour).padStart(2, '0')}:${String(time.minute).padStart(2, '0')}:00`;
+    setBirthTime(timeStr);
   };
 
   const searchCities = useMemo(
@@ -171,7 +197,13 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Дата рождения *</Text>
-            <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
+            <TouchableOpacity 
+              style={styles.input} 
+              onPress={() => {
+                setTempDate(dateObj);
+                setShowDatePicker(true);
+              }}
+            >
               <Text style={[styles.inputText, !birthDate && styles.placeholder]}>
                 {birthDate || 'Выберите дату'}
               </Text>
@@ -180,7 +212,13 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Время рождения (опционально)</Text>
-            <TouchableOpacity style={styles.input} onPress={() => setShowTimePicker(true)}>
+            <TouchableOpacity 
+              style={styles.input} 
+              onPress={() => {
+                setTempTime(timeObj);
+                setShowTimePicker(true);
+              }}
+            >
               <Text style={[styles.inputText, !birthTime && styles.placeholder]}>
                 {birthTime ? birthTime.substring(0, 5) : '12:00'}
               </Text>
@@ -215,24 +253,92 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
         </AstralGlassCard>
       </ScrollView>
 
-      <DatePicker
-        modal
-        open={showDatePicker}
-        date={birthDate ? new Date(birthDate) : new Date(1995, 0, 1)}
-        mode="date"
-        onConfirm={handleDateChange}
-        onCancel={() => setShowDatePicker(false)}
-        maximumDate={new Date()}
-      />
+      {/* Date Picker Modal */}
+      <Modal
+        visible={showDatePicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity 
+            style={StyleSheet.absoluteFillObject} 
+            activeOpacity={1}
+            onPress={() => setShowDatePicker(false)}
+          />
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Дата рождения партнера</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                <Ionicons name="close" size={24} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.modalBody}>
+              <AstralDatePicker
+                days={days}
+                months={months}
+                years={years}
+                selectedDay={tempDate.day}
+                selectedMonth={tempDate.month}
+                selectedYear={tempDate.year}
+                onDateChange={(type, val) => setTempDate(prev => ({ ...prev, [type]: val }))}
+              />
+            </View>
+            
+            <AstralButton
+              title="Готово"
+              onPress={() => {
+                const dateStr = `${tempDate.year}-${String(tempDate.month).padStart(2, '0')}-${String(tempDate.day).padStart(2, '0')}`;
+                setBirthDate(dateStr);
+                setShowDatePicker(false);
+              }}
+              style={styles.modalButton}
+            />
+          </View>
+        </View>
+      </Modal>
 
-      <DatePicker
-        modal
-        open={showTimePicker}
-        date={birthTime ? new Date(`2000-01-01T${birthTime}`) : new Date()}
-        mode="time"
-        onConfirm={handleTimeChange}
-        onCancel={() => setShowTimePicker(false)}
-      />
+      {/* Time Picker Modal */}
+      <Modal
+        visible={showTimePicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowTimePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity 
+            style={StyleSheet.absoluteFillObject} 
+            activeOpacity={1}
+            onPress={() => setShowTimePicker(false)}
+          />
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Время рождения партнера</Text>
+              <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                <Ionicons name="close" size={24} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.modalBody}>
+              <AstralTimePicker
+                selectedTime={tempTime}
+                onTimeChange={(time) => setTempTime(time)}
+              />
+            </View>
+            
+            <AstralButton
+              title="Готово"
+              onPress={() => {
+                const timeStr = `${String(tempTime.hour).padStart(2, '0')}:${String(tempTime.minute).padStart(2, '0')}:00`;
+                setBirthTime(timeStr);
+                setShowTimePicker(false);
+              }}
+              style={styles.modalButton}
+            />
+          </View>
+        </View>
+      </Modal>
     </AstralSafeAreaView>
   );
 };
@@ -295,6 +401,46 @@ const styles = StyleSheet.create({
     marginTop: 20,
     height: 60,
     borderRadius: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 9, 26, 0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#14142B',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 24,
+    borderTopWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.15)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    color: '#FFD700',
+    fontFamily: theme.fonts.heading,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  modalBody: {
+    marginBottom: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButton: {
+    height: 56,
+    borderRadius: 18,
   },
 });
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import AstralDatePicker from '../../../components/AstralDatePicker';
+import AstralDatePicker, { getAstralDatePickerData } from '../../../components/AstralDatePicker';
 
 interface BirthDateStepProps {
   selectedDate: {
@@ -12,31 +12,7 @@ interface BirthDateStepProps {
 }
 
 const BirthDateStep: React.FC<BirthDateStepProps> = ({ selectedDate, onDateChange }) => {
-  // Generate data matching the AstralDatePicker expectations
-  const days = Array.from({ length: 31 }, (_, i) => ({
-    label: String(i + 1).padStart(2, '0'),
-    value: i + 1,
-  }));
-
-  const months = [
-    { value: 1, label: 'Январь' },
-    { value: 2, label: 'Февраль' },
-    { value: 3, label: 'Март' },
-    { value: 4, label: 'Апрель' },
-    { value: 5, label: 'Май' },
-    { value: 6, label: 'Июнь' },
-    { value: 7, label: 'Июль' },
-    { value: 8, label: 'Август' },
-    { value: 9, label: 'Сентябрь' },
-    { value: 10, label: 'Октябрь' },
-    { value: 11, label: 'Ноябрь' },
-    { value: 12, label: 'Декабрь' },
-  ];
-
-  const years = Array.from({ length: 125 }, (_, i) => ({
-    label: String(new Date().getFullYear() - i),
-    value: new Date().getFullYear() - i,
-  }));
+  const { days, months, years } = getAstralDatePickerData();
 
   return (
     <View style={styles.stepContainer}>
