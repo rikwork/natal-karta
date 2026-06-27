@@ -10,9 +10,7 @@ interface BirthTimeStepProps {
 }
 
 const BirthTimeStep: React.FC<BirthTimeStepProps> = ({ selectedTime, onTimeChange }) => {
-  return (
-    <AstralTimePicker selectedTime={selectedTime} onTimeChange={onTimeChange} />
-  );
+  return <AstralTimePicker selectedTime={selectedTime} onTimeChange={onTimeChange} />;
 };
 
 export default BirthTimeStep;

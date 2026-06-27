@@ -26,7 +26,7 @@ const BackgroundVideoComponent: React.FC<BackgroundVideoProps> = ({ isEnabled })
 
 const BackgroundVideo = React.memo(
   BackgroundVideoComponent,
-  (prevProps, nextProps) => prevProps.isEnabled === nextProps.isEnabled
+  (prevProps, nextProps) => prevProps.isEnabled === nextProps.isEnabled,
 );
 
 interface AppBackgroundProps {

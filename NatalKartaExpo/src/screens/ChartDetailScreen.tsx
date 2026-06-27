@@ -99,17 +99,17 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
     return chart.chart_data as NatalChartData;
   }, [chart.chart_data]);
 
-  const { data: chartData } = useSubscriptionWithPolling<
-    NatalChartData,
-    any
-  >({
+  const { data: chartData } = useSubscriptionWithPolling<NatalChartData, any>({
     userId,
     firebaseUid,
     itemId: chart.id,
     channel: 'NatalChartChannel',
     messageIdKey: 'chart_id',
     messageDataKey: 'chart_data',
-    fetchData: React.useCallback(() => ApiService.getNatalChart(userId, chart.id), [userId, chart.id]),
+    fetchData: React.useCallback(
+      () => ApiService.getNatalChart(userId, chart.id),
+      [userId, chart.id],
+    ),
     initialData: initialChartData,
   });
 

@@ -53,7 +53,7 @@ export const CompatibilityResultScreen: React.FC<CompatibilityResultScreenProps>
     messageDataKey: 'compatibility_data',
     fetchData: React.useCallback(
       () => ApiService.getPartnerCompatibility(userId, compatibility.id),
-      [userId, compatibility.id]
+      [userId, compatibility.id],
     ),
     initialData: initialCompatibilityData,
   });

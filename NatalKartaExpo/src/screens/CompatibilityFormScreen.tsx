@@ -197,8 +197,8 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Дата рождения *</Text>
-            <TouchableOpacity 
-              style={styles.input} 
+            <TouchableOpacity
+              style={styles.input}
               onPress={() => {
                 setTempDate(dateObj);
                 setShowDatePicker(true);
@@ -212,8 +212,8 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Время рождения (опционально)</Text>
-            <TouchableOpacity 
-              style={styles.input} 
+            <TouchableOpacity
+              style={styles.input}
               onPress={() => {
                 setTempTime(timeObj);
                 setShowTimePicker(true);
@@ -261,8 +261,8 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
         onRequestClose={() => setShowDatePicker(false)}
       >
         <View style={styles.modalOverlay}>
-          <TouchableOpacity 
-            style={StyleSheet.absoluteFillObject} 
+          <TouchableOpacity
+            style={StyleSheet.absoluteFillObject}
             activeOpacity={1}
             onPress={() => setShowDatePicker(false)}
           />
@@ -273,7 +273,7 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
                 <Ionicons name="close" size={24} color="#FFF" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.modalBody}>
               <AstralDatePicker
                 days={days}
@@ -282,10 +282,10 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
                 selectedDay={tempDate.day}
                 selectedMonth={tempDate.month}
                 selectedYear={tempDate.year}
-                onDateChange={(type, val) => setTempDate(prev => ({ ...prev, [type]: val }))}
+                onDateChange={(type, val) => setTempDate((prev) => ({ ...prev, [type]: val }))}
               />
             </View>
-            
+
             <AstralButton
               title="Готово"
               onPress={() => {
@@ -307,8 +307,8 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
         onRequestClose={() => setShowTimePicker(false)}
       >
         <View style={styles.modalOverlay}>
-          <TouchableOpacity 
-            style={StyleSheet.absoluteFillObject} 
+          <TouchableOpacity
+            style={StyleSheet.absoluteFillObject}
             activeOpacity={1}
             onPress={() => setShowTimePicker(false)}
           />
@@ -319,14 +319,14 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
                 <Ionicons name="close" size={24} color="#FFF" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.modalBody}>
               <AstralTimePicker
                 selectedTime={tempTime}
                 onTimeChange={(time) => setTempTime(time)}
               />
             </View>
-            
+
             <AstralButton
               title="Готово"
               onPress={() => {

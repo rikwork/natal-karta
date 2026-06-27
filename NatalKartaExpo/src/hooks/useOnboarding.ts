@@ -57,28 +57,38 @@ export const useOnboarding = ({ onComplete, onStepChange }: UseOnboardingProps) 
         useNativeDriver: true,
       }).start(() => {
         if (callback) callback();
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }).start();
       });
     },
     [fadeAnim],
   );
+
+  // Hook to fade in the screen when currentStep changes (after React completes rendering)
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [currentStep, fadeAnim]);
 
   const handleNext = useCallback(() => {
     if (currentStep < 4) {
       // steps.length - 1 = 4
       if (currentStep === 2) {
         const dateString = `${selectedDate.day.toString().padStart(2, '0')}.${selectedDate.month.toString().padStart(2, '0')}.${selectedDate.year}`;
-        setFormData((prev) => ({ ...prev, birthDate: dateString }));
-      }
-      if (currentStep === 3) {
+        animateFade(() => {
+          setFormData((prev) => ({ ...prev, birthDate: dateString }));
+          setCurrentStep((prev) => prev + 1);
+        });
+      } else if (currentStep === 3) {
         const timeString = `${selectedTime.hour.toString().padStart(2, '0')}: ${selectedTime.minute.toString().padStart(2, '0')}`;
-        setFormData((prev) => ({ ...prev, birthTime: timeString }));
+        animateFade(() => {
+          setFormData((prev) => ({ ...prev, birthTime: timeString }));
+          setCurrentStep((prev) => prev + 1);
+        });
+      } else {
+        animateFade(() => setCurrentStep((prev) => prev + 1));
       }
-      animateFade(() => setCurrentStep((prev) => prev + 1));
     } else {
       onComplete(formData);
     }

@@ -334,7 +334,14 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                           onSelectCity={handleSelectCity}
                           onFocus={() => setShowCityList(citySearch.length >= 2)}
                         />
-                        <Text style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: 12, marginTop: 8, textAlign: 'center' }}>
+                        <Text
+                          style={{
+                            color: 'rgba(255, 255, 255, 0.5)',
+                            fontSize: 12,
+                            marginTop: 8,
+                            textAlign: 'center',
+                          }}
+                        >
                           Выберите город из списка
                         </Text>
                       </View>

@@ -185,7 +185,16 @@ export function useSubscriptionWithPolling<TData, TResponse>({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itemId, userId, firebaseUid, channel, messageIdKey, messageDataKey, errorTitle, errorMessageDefault]);
+  }, [
+    itemId,
+    userId,
+    firebaseUid,
+    channel,
+    messageIdKey,
+    messageDataKey,
+    errorTitle,
+    errorMessageDefault,
+  ]);
 
   return { data, loading, setData };
 }

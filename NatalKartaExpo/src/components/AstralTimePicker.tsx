@@ -24,7 +24,12 @@ interface TimePickerItemProps {
 }
 
 // Мемоизированный элемент выбора времени, предотвращающий пересоздание интерполяций
-const TimePickerItemComponent: React.FC<TimePickerItemProps> = ({ val, index, itemHeight, scrollY }) => {
+const TimePickerItemComponent: React.FC<TimePickerItemProps> = ({
+  val,
+  index,
+  itemHeight,
+  scrollY,
+}) => {
   const itemPosition = index * itemHeight;
   const scale = scrollY.interpolate({
     inputRange: [itemPosition - itemHeight, itemPosition, itemPosition + itemHeight],
@@ -106,7 +111,7 @@ const TimePickerItem = React.memo(
     prevProps.val === nextProps.val &&
     prevProps.index === nextProps.index &&
     prevProps.itemHeight === nextProps.itemHeight &&
-    prevProps.scrollY === nextProps.scrollY
+    prevProps.scrollY === nextProps.scrollY,
 );
 
 export const AstralTimePicker: React.FC<AstralTimePickerProps> = ({
@@ -253,7 +258,8 @@ export const AstralTimePicker: React.FC<AstralTimePickerProps> = ({
                   if (Platform.OS === 'web') {
                     isScrollingRef.current = true;
                     ignorePropUpdatesRef.current = true;
-                    const timeoutRef = label === 'Час' ? hourScrollTimeoutRef : minuteScrollTimeoutRef;
+                    const timeoutRef =
+                      label === 'Час' ? hourScrollTimeoutRef : minuteScrollTimeoutRef;
                     if (timeoutRef.current) {
                       clearTimeout(timeoutRef.current);
                     }

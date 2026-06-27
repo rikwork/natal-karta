@@ -1,13 +1,5 @@
 import React, { useRef, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-  FlatList,
-  Platform,
-  Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, Animated, FlatList, Platform, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../theme';
 
@@ -147,7 +139,7 @@ const DatePickerItem = React.memo(
   (prevProps, nextProps) =>
     prevProps.item.value === nextProps.item.value &&
     prevProps.index === nextProps.index &&
-    prevProps.scrollY === nextProps.scrollY
+    prevProps.scrollY === nextProps.scrollY,
 );
 
 const PickerList: React.FC<{
@@ -258,7 +250,7 @@ const PickerList: React.FC<{
     ({ item, index }: { item: PickerItem; index: number }) => (
       <DatePickerItem item={item} index={index} scrollY={scrollY} />
     ),
-    [scrollY]
+    [scrollY],
   );
 
   return (
