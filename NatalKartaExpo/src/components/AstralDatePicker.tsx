@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   Animated,
   FlatList,
   Platform,
-  useWindowDimensions,
+  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../theme';
@@ -47,19 +47,108 @@ export const getAstralDatePickerData = () => {
   return { days: ASTRAL_DAYS, months: ASTRAL_MONTHS, years: ASTRAL_YEARS };
 };
 
-interface AstralDatePickerProps {
-  days: PickerItem[];
-  months: PickerItem[];
-  years: PickerItem[];
-  selectedDay: number;
-  selectedMonth: number;
-  selectedYear: number;
-  onDateChange: (type: 'day' | 'month' | 'year', value: number) => void;
-}
-
 const ITEM_HEIGHT = 40;
 const VISIBLE_ITEMS = 5;
 const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+interface DatePickerItemProps {
+  item: PickerItem;
+  index: number;
+  scrollY: Animated.Value;
+}
+
+// Мемоизированная строка списка выбора даты, предотвращающая перевычисление интерполяций
+const DatePickerItemComponent: React.FC<DatePickerItemProps> = ({ item, index, scrollY }) => {
+  if (item.value === -1) {
+    return <View style={styles.itemContainer} />;
+  }
+
+  const itemPosition = (index - 2) * ITEM_HEIGHT;
+
+  const scale = scrollY.interpolate({
+    inputRange: [itemPosition - ITEM_HEIGHT, itemPosition, itemPosition + ITEM_HEIGHT],
+    outputRange: [0.7, 1.2, 0.7],
+    extrapolate: 'clamp',
+  });
+
+  const whiteOpacity = scrollY.interpolate({
+    inputRange: [
+      itemPosition - ITEM_HEIGHT,
+      itemPosition - ITEM_HEIGHT * 0.5,
+      itemPosition,
+      itemPosition + ITEM_HEIGHT * 0.5,
+      itemPosition + ITEM_HEIGHT,
+    ],
+    outputRange: [0.3, 0.3, 0, 0.3, 0.3],
+    extrapolate: 'clamp',
+  });
+
+  const goldOpacity = scrollY.interpolate({
+    inputRange: [
+      itemPosition - ITEM_HEIGHT,
+      itemPosition - ITEM_HEIGHT * 0.5,
+      itemPosition,
+      itemPosition + ITEM_HEIGHT * 0.5,
+      itemPosition + ITEM_HEIGHT,
+    ],
+    outputRange: [0, 0, 1, 0, 0],
+    extrapolate: 'clamp',
+  });
+
+  return (
+    <View
+      style={[
+        styles.itemContainer,
+        Platform.OS === 'web' ? ({ scrollSnapAlign: 'center' } as any) : {},
+      ]}
+    >
+      <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+        {/* White inactive layer */}
+        <Animated.Text
+          style={[
+            styles.itemText,
+            {
+              opacity: whiteOpacity,
+              transform: [{ scale }],
+              color: '#FFFFFF',
+              fontWeight: 'bold',
+            },
+          ]}
+        >
+          {item.label}
+        </Animated.Text>
+
+        {/* Gold active layer */}
+        <Animated.Text
+          style={[
+            styles.itemText,
+            {
+              position: 'absolute',
+              opacity: goldOpacity,
+              transform: [{ scale }],
+              color: '#FFD700',
+              textShadowColor: 'rgba(255, 215, 0, 0.8)',
+              textShadowRadius: 10,
+              fontWeight: 'bold',
+            },
+          ]}
+        >
+          {item.label}
+        </Animated.Text>
+      </View>
+    </View>
+  );
+};
+
+const DatePickerItem = React.memo(
+  DatePickerItemComponent,
+  (prevProps, nextProps) =>
+    prevProps.item.value === nextProps.item.value &&
+    prevProps.index === nextProps.index &&
+    prevProps.scrollY === nextProps.scrollY
+);
 
 const PickerList: React.FC<{
   data: PickerItem[];
@@ -165,83 +254,12 @@ const PickerList: React.FC<{
     },
   });
 
-  const renderItem = ({ item, index }: { item: PickerItem; index: number }) => {
-    const itemPosition = (index - 2) * ITEM_HEIGHT;
-
-    const scale = scrollY.interpolate({
-      inputRange: [itemPosition - ITEM_HEIGHT, itemPosition, itemPosition + ITEM_HEIGHT],
-      outputRange: [0.7, 1.2, 0.7],
-      extrapolate: 'clamp',
-    });
-
-    const whiteOpacity = scrollY.interpolate({
-      inputRange: [
-        itemPosition - ITEM_HEIGHT,
-        itemPosition - ITEM_HEIGHT * 0.5,
-        itemPosition,
-        itemPosition + ITEM_HEIGHT * 0.5,
-        itemPosition + ITEM_HEIGHT,
-      ],
-      outputRange: [0.3, 0.3, 0, 0.3, 0.3],
-      extrapolate: 'clamp',
-    });
-
-    const goldOpacity = scrollY.interpolate({
-      inputRange: [
-        itemPosition - ITEM_HEIGHT,
-        itemPosition - ITEM_HEIGHT * 0.5,
-        itemPosition,
-        itemPosition + ITEM_HEIGHT * 0.5,
-        itemPosition + ITEM_HEIGHT,
-      ],
-      outputRange: [0, 0, 1, 0, 0],
-      extrapolate: 'clamp',
-    });
-
-    return (
-      <View
-        style={[
-          styles.itemContainer,
-          Platform.OS === 'web' ? ({ scrollSnapAlign: 'center' } as any) : {},
-        ]}
-      >
-        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-          {/* White inactive layer */}
-          <Animated.Text
-            style={[
-              styles.itemText,
-              {
-                opacity: whiteOpacity,
-                transform: [{ scale }],
-                color: '#FFFFFF',
-                fontWeight: 'bold',
-              },
-            ]}
-          >
-            {item.label}
-          </Animated.Text>
-
-          {/* Gold active layer */}
-          <Animated.Text
-            style={[
-              styles.itemText,
-              {
-                position: 'absolute',
-                opacity: goldOpacity,
-                transform: [{ scale }],
-                color: '#FFD700',
-                textShadowColor: 'rgba(255, 215, 0, 0.8)',
-                textShadowRadius: 10,
-                fontWeight: 'bold',
-              },
-            ]}
-          >
-            {item.label}
-          </Animated.Text>
-        </View>
-      </View>
-    );
-  };
+  const renderItem = useCallback(
+    ({ item, index }: { item: PickerItem; index: number }) => (
+      <DatePickerItem item={item} index={index} scrollY={scrollY} />
+    ),
+    [scrollY]
+  );
 
   return (
     <View style={styles.listWrapper}>
@@ -254,7 +272,7 @@ const PickerList: React.FC<{
             : {}
         }
         data={paddedData}
-        keyExtractor={(_, index) => `${type} -${index} `}
+        keyExtractor={(_, index) => `${type}-${index}`}
         renderItem={renderItem}
         snapToInterval={ITEM_HEIGHT}
         decelerationRate="fast"
@@ -287,10 +305,24 @@ const PickerList: React.FC<{
           offset: ITEM_HEIGHT * index,
           index,
         })}
+        windowSize={5}
+        initialNumToRender={10}
+        maxToRenderPerBatch={5}
+        removeClippedSubviews={Platform.OS !== 'web'}
       />
     </View>
   );
 };
+
+interface AstralDatePickerProps {
+  days: PickerItem[];
+  months: PickerItem[];
+  years: PickerItem[];
+  selectedDay: number;
+  selectedMonth: number;
+  selectedYear: number;
+  onDateChange: (type: 'day' | 'month' | 'year', value: number) => void;
+}
 
 const AstralDatePicker: React.FC<AstralDatePickerProps> = ({
   days,
@@ -301,10 +333,8 @@ const AstralDatePicker: React.FC<AstralDatePickerProps> = ({
   selectedYear,
   onDateChange,
 }) => {
-  const { width } = useWindowDimensions();
-
   return (
-    <View style={[styles.container, { width: width * 0.95 }]}>
+    <View style={[styles.container, { width: SCREEN_WIDTH * 0.95 }]}>
       <View style={styles.headerContainer}>
         <Text style={styles.headerText}>День</Text>
         <Text style={styles.headerText}>Месяц</Text>

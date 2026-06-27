@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Animated, Platform, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, Animated, Platform, Dimensions, FlatList } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../theme';
 
@@ -14,19 +14,113 @@ interface AstralTimePickerProps {
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+interface TimePickerItemProps {
+  val: number;
+  index: number;
+  itemHeight: number;
+  scrollY: Animated.Value;
+}
+
+// Мемоизированный элемент выбора времени, предотвращающий пересоздание интерполяций
+const TimePickerItemComponent: React.FC<TimePickerItemProps> = ({ val, index, itemHeight, scrollY }) => {
+  const itemPosition = index * itemHeight;
+  const scale = scrollY.interpolate({
+    inputRange: [itemPosition - itemHeight, itemPosition, itemPosition + itemHeight],
+    outputRange: [0.7, 1.2, 0.7],
+    extrapolate: 'clamp',
+  });
+  const whiteOpacity = scrollY.interpolate({
+    inputRange: [
+      itemPosition - itemHeight,
+      itemPosition - itemHeight * 0.5,
+      itemPosition,
+      itemPosition + itemHeight * 0.5,
+      itemPosition + itemHeight,
+    ],
+    outputRange: [0.4, 0.4, 0, 0.4, 0.4],
+    extrapolate: 'clamp',
+  });
+  const goldOpacity = scrollY.interpolate({
+    inputRange: [
+      itemPosition - itemHeight,
+      itemPosition - itemHeight * 0.5,
+      itemPosition,
+      itemPosition + itemHeight * 0.5,
+      itemPosition + itemHeight,
+    ],
+    outputRange: [0, 0, 1, 0, 0],
+    extrapolate: 'clamp',
+  });
+
+  return (
+    <View
+      style={[
+        styles.timeOption,
+        { height: itemHeight },
+        Platform.OS === 'web' ? ({ scrollSnapAlign: 'center' } as any) : {},
+      ]}
+    >
+      <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+        {/* White inactive layer */}
+        <Animated.Text
+          style={[
+            styles.timeOptionText,
+            {
+              opacity: whiteOpacity,
+              transform: [{ scale }],
+              color: '#FFFFFF',
+              fontWeight: 'bold',
+            },
+          ]}
+        >
+          {val.toString().padStart(2, '0')}
+        </Animated.Text>
+
+        {/* Gold active layer */}
+        <Animated.Text
+          style={[
+            styles.timeOptionText,
+            {
+              position: 'absolute',
+              opacity: goldOpacity,
+              transform: [{ scale }],
+              color: '#FFD700',
+              textShadowColor: 'rgba(255, 215, 0, 0.8)',
+              textShadowRadius: 10,
+              fontWeight: 'bold',
+            },
+          ]}
+        >
+          {val.toString().padStart(2, '0')}
+        </Animated.Text>
+      </View>
+    </View>
+  );
+};
+
+const TimePickerItem = React.memo(
+  TimePickerItemComponent,
+  (prevProps, nextProps) =>
+    prevProps.val === nextProps.val &&
+    prevProps.index === nextProps.index &&
+    prevProps.itemHeight === nextProps.itemHeight &&
+    prevProps.scrollY === nextProps.scrollY
+);
+
 export const AstralTimePicker: React.FC<AstralTimePickerProps> = ({
   selectedTime,
   onTimeChange,
 }) => {
-  const { width } = useWindowDimensions();
   const itemHeight = 50;
   const containerHeight = 200;
 
   const hourScrollY = useRef(new Animated.Value(selectedTime.hour * itemHeight)).current;
   const minuteScrollY = useRef(new Animated.Value(selectedTime.minute * itemHeight)).current;
 
-  const hourScrollRef = useRef<any>(null);
-  const minuteScrollRef = useRef<any>(null);
+  const hourScrollRef = useRef<FlatList>(null);
+  const minuteScrollRef = useRef<FlatList>(null);
 
   const lastScrolledHour = useRef<number | null>(null);
   const lastScrolledMinute = useRef<number | null>(null);
@@ -64,8 +158,8 @@ export const AstralTimePicker: React.FC<AstralTimePickerProps> = ({
         !isHourScrolling.current &&
         !ignoreHourPropUpdates.current
       ) {
-        hourScrollRef.current.scrollTo({
-          y: selectedTime.hour * itemHeight,
+        hourScrollRef.current.scrollToOffset({
+          offset: selectedTime.hour * itemHeight,
           animated: false,
         });
         lastScrolledHour.current = selectedTime.hour;
@@ -76,8 +170,8 @@ export const AstralTimePicker: React.FC<AstralTimePickerProps> = ({
         !isMinuteScrolling.current &&
         !ignoreMinutePropUpdates.current
       ) {
-        minuteScrollRef.current.scrollTo({
-          y: selectedTime.minute * itemHeight,
+        minuteScrollRef.current.scrollToOffset({
+          offset: selectedTime.minute * itemHeight,
           animated: false,
         });
         lastScrolledMinute.current = selectedTime.minute;
@@ -120,8 +214,13 @@ export const AstralTimePicker: React.FC<AstralTimePickerProps> = ({
             <View style={styles.selectionLineBottom} />
           </View>
 
-          <Animated.ScrollView
+          <Animated.FlatList
             ref={ref}
+            data={data}
+            keyExtractor={(item) => String(item)}
+            renderItem={({ item, index }) => (
+              <TimePickerItem val={item} index={index} itemHeight={itemHeight} scrollY={scrollY} />
+            )}
             style={[
               styles.timeScrollView,
               Platform.OS === 'web'
@@ -189,7 +288,7 @@ export const AstralTimePicker: React.FC<AstralTimePickerProps> = ({
               }
               const difference = Math.abs(y - index * itemHeight);
               if (difference > 1) {
-                ref.current?.scrollTo({ y: index * itemHeight, animated: true });
+                ref.current?.scrollToOffset({ offset: index * itemHeight, animated: true });
               }
             }}
             onScrollEndDrag={(event: any) => {
@@ -214,87 +313,19 @@ export const AstralTimePicker: React.FC<AstralTimePickerProps> = ({
               }
               const difference = Math.abs(y - index * itemHeight);
               if (difference > 1) {
-                ref.current?.scrollTo({ y: index * itemHeight, animated: true });
+                ref.current?.scrollToOffset({ offset: index * itemHeight, animated: true });
               }
             }}
-          >
-            {data.map((val, index) => {
-              const itemPosition = index * itemHeight;
-              const scale = scrollY.interpolate({
-                inputRange: [itemPosition - itemHeight, itemPosition, itemPosition + itemHeight],
-                outputRange: [0.7, 1.2, 0.7],
-                extrapolate: 'clamp',
-              });
-              const whiteOpacity = scrollY.interpolate({
-                inputRange: [
-                  itemPosition - itemHeight,
-                  itemPosition - itemHeight * 0.5,
-                  itemPosition,
-                  itemPosition + itemHeight * 0.5,
-                  itemPosition + itemHeight,
-                ],
-                outputRange: [0.4, 0.4, 0, 0.4, 0.4],
-                extrapolate: 'clamp',
-              });
-              const goldOpacity = scrollY.interpolate({
-                inputRange: [
-                  itemPosition - itemHeight,
-                  itemPosition - itemHeight * 0.5,
-                  itemPosition,
-                  itemPosition + itemHeight * 0.5,
-                  itemPosition + itemHeight,
-                ],
-                outputRange: [0, 0, 1, 0, 0],
-                extrapolate: 'clamp',
-              });
-
-              return (
-                <View
-                  key={val}
-                  style={[
-                    styles.timeOption,
-                    { height: itemHeight },
-                    Platform.OS === 'web' ? ({ scrollSnapAlign: 'center' } as any) : {},
-                  ]}
-                >
-                  <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                    {/* White inactive layer */}
-                    <Animated.Text
-                      style={[
-                        styles.timeOptionText,
-                        {
-                          opacity: whiteOpacity,
-                          transform: [{ scale }],
-                          color: '#FFFFFF',
-                          fontWeight: 'bold',
-                        },
-                      ]}
-                    >
-                      {val.toString().padStart(2, '0')}
-                    </Animated.Text>
-
-                    {/* Gold active layer */}
-                    <Animated.Text
-                      style={[
-                        styles.timeOptionText,
-                        {
-                          position: 'absolute',
-                          opacity: goldOpacity,
-                          transform: [{ scale }],
-                          color: '#FFD700',
-                          textShadowColor: 'rgba(255, 215, 0, 0.8)',
-                          textShadowRadius: 10,
-                          fontWeight: 'bold',
-                        },
-                      ]}
-                    >
-                      {val.toString().padStart(2, '0')}
-                    </Animated.Text>
-                  </View>
-                </View>
-              );
+            getItemLayout={(_, index) => ({
+              length: itemHeight,
+              offset: itemHeight * index,
+              index,
             })}
-          </Animated.ScrollView>
+            windowSize={5}
+            initialNumToRender={8}
+            maxToRenderPerBatch={5}
+            removeClippedSubviews={Platform.OS !== 'web'}
+          />
 
           <LinearGradient
             colors={['rgba(5,5,10,0)', 'rgba(5,5,10,0.8)']}
@@ -307,7 +338,7 @@ export const AstralTimePicker: React.FC<AstralTimePickerProps> = ({
   };
 
   return (
-    <View style={[styles.stepContainer, { width: width * 0.9, alignSelf: 'center' }]}>
+    <View style={[styles.stepContainer, { width: SCREEN_WIDTH * 0.9, alignSelf: 'center' }]}>
       <View style={styles.dateSelectorsContainerWrapper}>
         <View style={styles.timeSelectorsContainer}>
           {renderTimePicker(HOURS, hourScrollY, hourScrollRef, 'Час', selectedTime.hour, (hour) =>

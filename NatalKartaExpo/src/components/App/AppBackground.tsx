@@ -1,6 +1,33 @@
-import { View, StyleSheet, Animated, Image, useWindowDimensions } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, Animated, Image } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import ZodiacWheel from '../ZodiacWheel';
+
+interface BackgroundVideoProps {
+  isEnabled: boolean;
+}
+
+// Отдельный мемоизированный компонент для видео, чтобы избежать его пересоздания
+const BackgroundVideoComponent: React.FC<BackgroundVideoProps> = ({ isEnabled }) => {
+  if (!isEnabled) return null;
+
+  return (
+    <Video
+      source={require('../../../assets/videos/background_video.mp4')}
+      style={StyleSheet.absoluteFill}
+      resizeMode={ResizeMode.COVER}
+      isLooping
+      shouldPlay
+      isMuted
+      progressUpdateIntervalMillis={60000} // Отключаем частые сообщения через Bridge
+    />
+  );
+};
+
+const BackgroundVideo = React.memo(
+  BackgroundVideoComponent,
+  (prevProps, nextProps) => prevProps.isEnabled === nextProps.isEnabled
+);
 
 interface AppBackgroundProps {
   currentScreen: string;
@@ -12,14 +39,12 @@ interface AppBackgroundProps {
 }
 
 const AppBackground: React.FC<AppBackgroundProps> = ({
-  currentScreen,
   wheelOpacity,
   wheelTranslateY,
   spin,
   pulseAnim,
   isVideoEnabled,
 }) => {
-  useWindowDimensions();
   const showBackground = true;
 
   if (!showBackground) return null;
@@ -34,16 +59,8 @@ const AppBackground: React.FC<AppBackgroundProps> = ({
       />
 
       {/* Видео-фон, воспроизводимый поверх картинки после загрузки */}
-      {isVideoEnabled && (
-        <Video
-          source={require('../../../assets/videos/background_video.mp4')}
-          style={StyleSheet.absoluteFill}
-          resizeMode={ResizeMode.COVER}
-          isLooping
-          shouldPlay
-          isMuted
-        />
-      )}
+      <BackgroundVideo isEnabled={isVideoEnabled} />
+
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(5, 5, 20, 0.75)' }]} />
 
       <View
@@ -68,4 +85,4 @@ const AppBackground: React.FC<AppBackgroundProps> = ({
   );
 };
 
-export default AppBackground;
+export default React.memo(AppBackground);

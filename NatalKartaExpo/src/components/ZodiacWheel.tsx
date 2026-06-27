@@ -1,7 +1,10 @@
 import React from 'react';
-import { StyleSheet, Animated, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, Animated, Dimensions, View } from 'react-native';
 
 const ZODIAC_RING = require('../../assets/images/zodiac_transparent.png');
+
+const { width } = Dimensions.get('window');
+const WHEEL_SIZE = width * 1.2;
 
 interface ZodiacWheelProps {
   spin: Animated.AnimatedInterpolation<string | number>;
@@ -10,9 +13,6 @@ interface ZodiacWheelProps {
 }
 
 const ZodiacWheel: React.FC<ZodiacWheelProps> = ({ spin, opacity = 0.6, pulseAnim }) => {
-  const { width } = useWindowDimensions();
-  const wheelSize = width * 1.2;
-
   // Анимации для "Звездного импульса"
   const pulseScale = pulseAnim
     ? pulseAnim.interpolate({
@@ -37,8 +37,8 @@ const ZodiacWheel: React.FC<ZodiacWheelProps> = ({ spin, opacity = 0.6, pulseAni
           style={[
             styles.wheelImage,
             {
-              width: wheelSize,
-              height: wheelSize,
+              width: WHEEL_SIZE,
+              height: WHEEL_SIZE,
               opacity: pulseOpacity,
               transform: [{ rotate: spin }, { scale: pulseScale }],
               tintColor: '#FFD700', // Золотистое свечение
@@ -53,8 +53,8 @@ const ZodiacWheel: React.FC<ZodiacWheelProps> = ({ spin, opacity = 0.6, pulseAni
         style={[
           styles.wheelImage,
           {
-            width: wheelSize,
-            height: wheelSize,
+            width: WHEEL_SIZE,
+            height: WHEEL_SIZE,
             opacity: opacity,
             transform: [{ rotate: spin }],
           },
@@ -76,4 +76,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ZodiacWheel;
+export default React.memo(ZodiacWheel);

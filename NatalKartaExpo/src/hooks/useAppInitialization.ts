@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Animated, Easing, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { signInAnonymously } from '../config/firebase';
@@ -32,10 +32,14 @@ export const useAppInitialization = () => {
     });
   }, [spinValue]);
 
-  const spin = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+  const spin = useMemo(
+    () =>
+      spinValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg'],
+      }),
+    [spinValue],
+  );
 
   const setWheelVisible = useCallback(
     (visible: boolean, duration: number = 800) => {
