@@ -278,9 +278,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 20,
-    backgroundColor: 'rgba(15, 14, 23, 0.85)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
   },
   footerButton: {
     width: '100%',
