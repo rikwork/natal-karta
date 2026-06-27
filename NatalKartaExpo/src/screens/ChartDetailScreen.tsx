@@ -4,8 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,51 +14,10 @@ import AdService from '../services/AdService';
 import { formatBirthTime } from '../utils/dateFormatter';
 import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
-import { BlurView } from 'expo-blur';
 import AstralSafeAreaView from '../components/AstralSafeAreaView';
 import { useSubscriptionWithPolling } from '../hooks/useSubscriptionWithPolling';
 
-interface LockedSectionProps {
-  title: string;
-  previewText: string;
-  lockedText: string | null;
-  isUnlocked: boolean;
-  onUnlock: () => void;
-  gradientColors: readonly [string, string];
-}
-
-const LockedSection: React.FC<LockedSectionProps> = ({
-  title,
-  previewText,
-  lockedText,
-  isUnlocked,
-  onUnlock,
-  gradientColors,
-}) => {
-  if (!previewText) return null;
-
-  return (
-    <AstralGlassCard>
-      <LinearGradient colors={gradientColors} style={styles.cardGradient}>
-        <Text style={styles.cardTitle}>{title}</Text>
-        <Text style={styles.cardBody}>{previewText}</Text>
-
-        {isUnlocked && lockedText ? (
-          <Text style={[styles.cardBody, { marginTop: 10 }]}>{lockedText}</Text>
-        ) : !isUnlocked && lockedText ? (
-          <View style={styles.lockedContainer}>
-            <BlurView intensity={60} tint="dark" style={styles.lockOverlay}>
-              <Text style={styles.lockedText}>Полный прогноз скрыт</Text>
-              <TouchableOpacity style={styles.unlockAdButton} onPress={onUnlock}>
-                <Text style={styles.unlockAdButtonText}>🔓 Открыть (Смотреть рекламу)</Text>
-              </TouchableOpacity>
-            </BlurView>
-          </View>
-        ) : null}
-      </LinearGradient>
-    </AstralGlassCard>
-  );
-};
+import { AstralAdLockedSection } from '../components/AstralAdLockedSection';
 
 interface ChartDetailScreenProps {
   chart: NatalChart;
@@ -232,52 +189,57 @@ const ChartDetailScreen: React.FC<ChartDetailScreenProps> = ({
 
               {/* Emotions Card (Ad Locked) */}
               {(() => {
-                const emotionsData = chartData.emotions_preview
-                  ? {
-                      preview: chartData.emotions_preview,
-                      locked: chartData.emotions_locked || null,
-                    }
-                  : chartData.emotions
-                    ? (() => {
-                        const paragraphs = chartData.emotions.split('\n\n');
-                        return {
-                          preview: paragraphs[0],
-                          locked: paragraphs.slice(1).join('\n\n') || null,
-                        };
-                      })()
-                    : { preview: '', locked: null };
-
+                const fullEmotions = chartData.emotions || 
+                  (chartData.emotions_preview 
+                    ? chartData.emotions_preview + (chartData.emotions_locked ? '\n\n' + chartData.emotions_locked : '')
+                    : '');
                 return (
-                  <LockedSection
+                  <AstralAdLockedSection
                     title="🌊 Эмоции и Внутренний мир"
-                    previewText={emotionsData.preview}
-                    lockedText={emotionsData.locked}
+                    text={fullEmotions}
                     isUnlocked={unlockedSections.emotions}
                     onUnlock={() => handleUnlockSection('emotions')}
+                    previewLines={3}
                     gradientColors={['rgba(135,206,235,0.15)', 'rgba(255,255,255,0.0)'] as const}
                   />
                 );
               })()}
 
               {/* Love Card (Ad Locked) */}
-              <LockedSection
-                title="❤️ Любовь и Отношения"
-                previewText={chartData.love_preview}
-                lockedText={chartData.love_locked}
-                isUnlocked={unlockedSections.love}
-                onUnlock={() => handleUnlockSection('love')}
-                gradientColors={['rgba(255,105,180,0.15)', 'rgba(255,255,255,0.0)'] as const}
-              />
+              {(() => {
+                const fullLove = chartData.love || 
+                  (chartData.love_preview 
+                    ? chartData.love_preview + (chartData.love_locked ? '\n\n' + chartData.love_locked : '')
+                    : '');
+                return (
+                  <AstralAdLockedSection
+                    title="❤️ Любовь и Отношения"
+                    text={fullLove}
+                    isUnlocked={unlockedSections.love}
+                    onUnlock={() => handleUnlockSection('love')}
+                    previewLines={3}
+                    gradientColors={['rgba(255,105,180,0.15)', 'rgba(255,255,255,0.0)'] as const}
+                  />
+                );
+              })()}
 
               {/* Career Card (Ad Locked) */}
-              <LockedSection
-                title="💼 Карьера и Деньги"
-                previewText={chartData.career_preview}
-                lockedText={chartData.career_locked}
-                isUnlocked={unlockedSections.career}
-                onUnlock={() => handleUnlockSection('career')}
-                gradientColors={['rgba(0,255,255,0.15)', 'rgba(255,255,255,0.0)'] as const}
-              />
+              {(() => {
+                const fullCareer = chartData.career || 
+                  (chartData.career_preview 
+                    ? chartData.career_preview + (chartData.career_locked ? '\n\n' + chartData.career_locked : '')
+                    : '');
+                return (
+                  <AstralAdLockedSection
+                    title="💼 Карьера и Деньги"
+                    text={fullCareer}
+                    isUnlocked={unlockedSections.career}
+                    onUnlock={() => handleUnlockSection('career')}
+                    previewLines={3}
+                    gradientColors={['rgba(0,255,255,0.15)', 'rgba(255,255,255,0.0)'] as const}
+                  />
+                );
+              })()}
             </View>
           )}
         </ScrollView>

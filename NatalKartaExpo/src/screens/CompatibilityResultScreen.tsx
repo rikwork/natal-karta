@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,19 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PartnerCompatibility, PartnerCompatibilityData } from '../types';
 import ApiService from '../services/api';
+import AdService from '../services/AdService';
 import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
 import AstralSafeAreaView from '../components/AstralSafeAreaView';
 import { useSubscriptionWithPolling } from '../hooks/useSubscriptionWithPolling';
 import { Ionicons } from '@expo/vector-icons';
+import { AstralAdLockedSection } from '../components/AstralAdLockedSection';
 
 interface CompatibilityResultScreenProps {
   compatibility: PartnerCompatibility;
@@ -57,6 +61,64 @@ export const CompatibilityResultScreen: React.FC<CompatibilityResultScreenProps>
     ),
     initialData: initialCompatibilityData,
   });
+
+  const [unlockedSections, setUnlockedSections] = useState<{
+    love: boolean;
+    friendship: boolean;
+    communication: boolean;
+    challenges: boolean;
+  }>({
+    love: false,
+    friendship: false,
+    communication: false,
+    challenges: false,
+  });
+
+  useEffect(() => {
+    const loadUnlockedStates = async () => {
+      try {
+        const key = `@unlocked_compat_sections:${compatibility.id}`;
+        const stored = await AsyncStorage.getItem(key);
+        if (stored) {
+          setUnlockedSections(JSON.parse(stored));
+        } else {
+          setUnlockedSections({
+            love: false,
+            friendship: false,
+            communication: false,
+            challenges: false,
+          });
+        }
+      } catch (e) {
+        console.error('Failed to load unlocked compatibility sections', e);
+      }
+    };
+    loadUnlockedStates();
+  }, [compatibility.id]);
+
+  const handleUnlockSection = (section: 'love' | 'friendship' | 'communication' | 'challenges') => {
+    AdService.showRewardedAd(
+      async () => {
+        try {
+          const key = `@unlocked_compat_sections:${compatibility.id}`;
+          const updated = {
+            ...unlockedSections,
+            [section]: true,
+          };
+          setUnlockedSections(updated);
+          await AsyncStorage.setItem(key, JSON.stringify(updated));
+        } catch (e) {
+          console.error('Failed to save unlocked compatibility section status', e);
+        }
+      },
+      () => {
+        Alert.alert(
+          'Остановка',
+          'Показ прерван. Чтобы открыть прогноз полностью, посмотрите видео до конца.',
+        );
+      },
+    );
+  };
 
   const renderMeter = (
     title: string,
@@ -192,25 +254,49 @@ export const CompatibilityResultScreen: React.FC<CompatibilityResultScreenProps>
         )}
 
         {/* Detailed compatibility reports */}
-        <AstralGlassCard style={styles.detailsCard}>
-          <Text style={styles.reportTitle}>❤️ Любовные отношения</Text>
-          <Text style={styles.reportText}>{compatibilityData.love_details}</Text>
-        </AstralGlassCard>
+        <AstralAdLockedSection
+          title="❤️ Любовные отношения"
+          text={compatibilityData.love_details}
+          isUnlocked={unlockedSections.love}
+          onUnlock={() => handleUnlockSection('love')}
+          previewLines={3}
+          icon="heart"
+          gradientColors={['rgba(255,105,180,0.15)', 'rgba(255,255,255,0.0)'] as const}
+          style={{ marginBottom: 16 }}
+        />
 
-        <AstralGlassCard style={styles.detailsCard}>
-          <Text style={styles.reportTitle}>🤝 Дружеский союз</Text>
-          <Text style={styles.reportText}>{compatibilityData.friendship_details}</Text>
-        </AstralGlassCard>
+        <AstralAdLockedSection
+          title="🤝 Дружеский союз"
+          text={compatibilityData.friendship_details}
+          isUnlocked={unlockedSections.friendship}
+          onUnlock={() => handleUnlockSection('friendship')}
+          previewLines={0}
+          icon="people"
+          gradientColors={['rgba(17,153,142,0.15)', 'rgba(255,255,255,0.0)'] as const}
+          style={{ marginBottom: 16 }}
+        />
 
-        <AstralGlassCard style={styles.detailsCard}>
-          <Text style={styles.reportTitle}>💬 Общение и интеллект</Text>
-          <Text style={styles.reportText}>{compatibilityData.communication_details}</Text>
-        </AstralGlassCard>
+        <AstralAdLockedSection
+          title="💬 Общение и интеллект"
+          text={compatibilityData.communication_details}
+          isUnlocked={unlockedSections.communication}
+          onUnlock={() => handleUnlockSection('communication')}
+          previewLines={0}
+          icon="chatbubbles"
+          gradientColors={['rgba(0,198,255,0.15)', 'rgba(255,255,255,0.0)'] as const}
+          style={{ marginBottom: 16 }}
+        />
 
-        <AstralGlassCard style={styles.detailsCard}>
-          <Text style={styles.reportTitle}>⚠️ Вызовы и конфликты</Text>
-          <Text style={styles.reportText}>{compatibilityData.challenges}</Text>
-        </AstralGlassCard>
+        <AstralAdLockedSection
+          title="⚠️ Вызовы и конфликты"
+          text={compatibilityData.challenges}
+          isUnlocked={unlockedSections.challenges}
+          onUnlock={() => handleUnlockSection('challenges')}
+          previewLines={0}
+          icon="alert-circle"
+          gradientColors={['rgba(255,94,98,0.15)', 'rgba(255,255,255,0.0)'] as const}
+          style={{ marginBottom: 16 }}
+        />
       </ScrollView>
     </AstralSafeAreaView>
   );
@@ -347,21 +433,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFD700',
   },
-  detailsCard: {
-    padding: 20,
-    marginBottom: 16,
-  },
-  reportTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#F0E6D2',
-    marginBottom: 12,
-  },
-  reportText: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.7)',
-    lineHeight: 18,
-  },
+
   errorText: {
     fontSize: 14,
     color: '#FF6B6B',

@@ -18,8 +18,10 @@ export interface NatalChartData {
   emotions?: string;
   emotions_preview?: string;
   emotions_locked?: string | null;
+  love?: string;
   love_preview: string;
   love_locked: string | null;
+  career?: string;
   career_preview: string;
   career_locked: string | null;
 }
