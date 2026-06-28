@@ -122,3 +122,8 @@ expo-debug.log
 
 # Generated media artifacts
 generated_media/
+
+# Editor and LSP configs
+.ruby-lsp/
+.cursor/
+

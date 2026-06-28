@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
   FlatList,
   TouchableOpacity,
+  Keyboard,
+  ScrollView,
 } from 'react-native';
 import { City } from '../types';
 import { theme } from '../theme';
@@ -20,6 +22,8 @@ interface AstralCitySelectorProps {
   onSelectCity: (city: City) => void;
   onFocus?: () => void;
   placeholder?: string;
+  scrollViewRef?: React.RefObject<ScrollView>;
+  scrollBackToTopOnSelect?: boolean;
 }
 
 // Optimized list item component to avoid re-renders
@@ -48,11 +52,52 @@ const AstralCitySelector: React.FC<AstralCitySelectorProps> = ({
   onSelectCity,
   onFocus,
   placeholder = 'Начните вводить название города',
+  scrollViewRef,
+  scrollBackToTopOnSelect = false,
 }) => {
+  const containerRef = useRef<View>(null);
+
+  const scrollToInput = useCallback(() => {
+    if (scrollViewRef && scrollViewRef.current && containerRef.current) {
+      containerRef.current.measureLayout(
+        scrollViewRef.current as any,
+        (x, y, width, height) => {
+          scrollViewRef.current?.scrollTo({
+            y: Math.max(0, y - 15),
+            animated: true,
+          });
+        },
+        (error) => {
+          console.log('measureLayout error:', error);
+        }
+      );
+    }
+  }, [scrollViewRef]);
+
+  useEffect(() => {
+    if (showCityList && filteredCities.length > 0) {
+      const timer = setTimeout(scrollToInput, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showCityList, filteredCities.length, scrollToInput]);
+
   // Memoized renderItem to prevent re-creation on every render
   const renderItem = useCallback(
-    ({ item }: { item: City }) => <CityListItem item={item} onSelect={onSelectCity} />,
-    [onSelectCity],
+    ({ item }: { item: City }) => (
+      <CityListItem
+        item={item}
+        onSelect={(city) => {
+          Keyboard.dismiss();
+          onSelectCity(city);
+          if (scrollBackToTopOnSelect && scrollViewRef && scrollViewRef.current) {
+            setTimeout(() => {
+              scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+            }, 100);
+          }
+        }}
+      />
+    ),
+    [onSelectCity, scrollBackToTopOnSelect, scrollViewRef],
   );
 
   const keyExtractor = useCallback(
@@ -62,7 +107,7 @@ const AstralCitySelector: React.FC<AstralCitySelectorProps> = ({
   );
 
   return (
-    <View style={styles.container}>
+    <View ref={containerRef} style={styles.container}>
       <View style={styles.inputWrapper}>
         <TextInput
           style={styles.citySearchInput}
@@ -70,7 +115,10 @@ const AstralCitySelector: React.FC<AstralCitySelectorProps> = ({
           placeholderTextColor="rgba(255, 255, 255, 0.4)"
           value={citySearch}
           onChangeText={onCitySearchChange}
-          onFocus={onFocus}
+          onFocus={() => {
+            onFocus?.();
+            setTimeout(scrollToInput, 150);
+          }}
           autoComplete="off"
           autoCorrect={false}
           multiline={true}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { City } from '../../../types';
 import AstralCitySelector from '../../../components/AstralCitySelector';
 
@@ -11,6 +11,7 @@ interface BirthPlaceStepProps {
   filteredCities: City[];
   onSelectCity: (city: City) => void;
   onFocus: () => void;
+  scrollViewRef?: React.RefObject<ScrollView>;
 }
 
 const BirthPlaceStep: React.FC<BirthPlaceStepProps> = ({
@@ -21,6 +22,7 @@ const BirthPlaceStep: React.FC<BirthPlaceStepProps> = ({
   filteredCities,
   onSelectCity,
   onFocus,
+  scrollViewRef,
 }) => {
   return (
     <View style={styles.stepContainer}>
@@ -32,6 +34,8 @@ const BirthPlaceStep: React.FC<BirthPlaceStepProps> = ({
         filteredCities={filteredCities}
         onSelectCity={onSelectCity}
         onFocus={onFocus}
+        scrollViewRef={scrollViewRef}
+        scrollBackToTopOnSelect={true}
       />
       <Text style={styles.hintText}>Выберите город из списка</Text>
     </View>

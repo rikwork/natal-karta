@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   Animated,
   Platform,
   StatusBar,
+  KeyboardAvoidingView,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -46,6 +48,7 @@ const steps = [
 ];
 
 const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onStepChange }) => {
+  const scrollViewRef = useRef<ScrollView>(null);
   const {
     currentStep,
     formData,
@@ -118,6 +121,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onStepC
             onFocus={() => {
               if (citySearch.length >= 2) setShowCityList(true);
             }}
+            scrollViewRef={scrollViewRef}
           />
         );
       default:
@@ -154,25 +158,40 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onStepC
         </Text>
       </View>
 
-      <View style={styles.scrollContainer}>
-        <Animated.View style={[styles.stepWrapper, { opacity: fadeAnim }]}>
-          <Text style={styles.stepTitle}>{steps[currentStep].title}</Text>
-          <Text style={styles.stepSubtitle}>{steps[currentStep].subtitle}</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        enabled={Platform.OS === 'ios'}
+        style={{ flex: 1 }}
+      >
+        <View style={styles.scrollContainer}>
+          <ScrollView
+            ref={scrollViewRef}
+            style={{ flex: 1 }}
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={currentStep === 4}
+          >
+            <Animated.View style={[styles.stepWrapper, { opacity: fadeAnim }]}>
+              <Text style={styles.stepTitle}>{steps[currentStep].title}</Text>
+              <Text style={styles.stepSubtitle}>{steps[currentStep].subtitle}</Text>
 
-          <View style={{ flex: 1, width: '100%', position: 'relative' }}>
-            {renderStepContent()}
+              <View style={{ flex: 1, width: '100%', position: 'relative' }}>
+                {renderStepContent()}
+              </View>
+            </Animated.View>
+          </ScrollView>
+
+          <View style={styles.navigationContainer}>
+            <AstralButton
+              title={currentStep === steps.length - 1 ? 'Завершить' : 'Продолжить'}
+              onPress={handleNext}
+              disabled={!isStepValid}
+              style={styles.nextButton}
+            />
           </View>
-        </Animated.View>
-
-        <View style={styles.navigationContainer}>
-          <AstralButton
-            title={currentStep === steps.length - 1 ? 'Завершить' : 'Продолжить'}
-            onPress={handleNext}
-            disabled={!isStepValid}
-            style={styles.nextButton}
-          />
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </View>
   );
 };

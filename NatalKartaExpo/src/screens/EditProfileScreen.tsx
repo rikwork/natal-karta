@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import AstralButton from '../components/AstralButton';
 import AstralHeader from '../components/AstralHeader';
 import AstralGlassCard from '../components/AstralGlassCard';
 import { formatBirthTime } from '../utils/dateFormatter';
+import AstralPickerModal from '../components/AstralPickerModal';
 
 interface EditProfileScreenProps {
   user: User;
@@ -37,6 +38,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
   onDeleteProfile,
 }) => {
   const { days, months, years } = getAstralDatePickerData();
+  const scrollViewRef = useRef<ScrollView>(null);
   const [name, setName] = useState(user.name);
   const [birthData, setBirthData] = useState({
     day: 1,
@@ -48,6 +50,11 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
     latitude: 0,
     longitude: 0,
   });
+  // Modal state for date and time pickers (DRY UI)
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [tempDate, setTempDate] = useState({ day: birthData.day, month: birthData.month, year: birthData.year });
+  const [tempTime, setTempTime] = useState({ hour: birthData.hour, minute: birthData.minute });
   const [originalBirthData, setOriginalBirthData] = useState({
     day: 1,
     month: 1,
@@ -250,7 +257,8 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
     <View style={styles.mainContainer}>
       <AstralSafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          enabled={Platform.OS === 'ios'}
           style={{ flex: 1 }}
         >
           <AstralHeader title="Редактировать профиль" onBack={onBack} />
@@ -262,8 +270,10 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
           ) : (
             <>
               <ScrollView
+                ref={scrollViewRef}
                 contentContainerStyle={styles.formContent}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
               >
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Личные данные</Text>
@@ -302,25 +312,39 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                     <View pointerEvents={isBirthDataLocked ? 'none' : 'auto'}>
                       <View style={styles.fieldGroup}>
                         <Text style={styles.inputLabel}>Дата рождения</Text>
-                        <AstralDatePicker
-                          days={days}
-                          months={months}
-                          years={years}
-                          selectedDay={birthData.day}
-                          selectedMonth={birthData.month}
-                          selectedYear={birthData.year}
-                          onDateChange={(type, value) =>
-                            setBirthData({ ...birthData, [type]: value })
-                          }
-                        />
+                        <TouchableOpacity
+                          style={styles.textInput}
+                          onPress={() => {
+                            setTempDate({
+                              day: birthData.day,
+                              month: birthData.month,
+                              year: birthData.year,
+                            });
+                            setShowDatePicker(true);
+                          }}
+                        >
+                          <Text style={styles.inputText}>
+                            {`${String(birthData.day).padStart(2, '0')}.${String(birthData.month).padStart(2, '0')}.${birthData.year}`}
+                          </Text>
+                        </TouchableOpacity>
                       </View>
 
                       <View style={styles.fieldGroup}>
                         <Text style={styles.inputLabel}>Время рождения</Text>
-                        <AstralTimePicker
-                          selectedTime={{ hour: birthData.hour, minute: birthData.minute }}
-                          onTimeChange={(time) => setBirthData({ ...birthData, ...time })}
-                        />
+                        <TouchableOpacity
+                          style={styles.textInput}
+                          onPress={() => {
+                            setTempTime({
+                              hour: birthData.hour,
+                              minute: birthData.minute,
+                            });
+                            setShowTimePicker(true);
+                          }}
+                        >
+                          <Text style={styles.inputText}>
+                            {`${String(birthData.hour).padStart(2, '0')}:${String(birthData.minute).padStart(2, '0')}`}
+                          </Text>
+                        </TouchableOpacity>
                       </View>
 
                       <View style={styles.fieldGroup}>
@@ -333,6 +357,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                           filteredCities={filteredCities}
                           onSelectCity={handleSelectCity}
                           onFocus={() => setShowCityList(citySearch.length >= 2)}
+                          scrollViewRef={scrollViewRef}
                         />
                         <Text
                           style={{
@@ -383,6 +408,50 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                   style={styles.mainSaveButton}
                 />
               </View>
+
+              <AstralPickerModal
+                visible={showDatePicker}
+                title="Дата рождения"
+                onClose={() => setShowDatePicker(false)}
+                onConfirm={() => {
+                  setBirthData((prev) => ({
+                    ...prev,
+                    day: tempDate.day,
+                    month: tempDate.month,
+                    year: tempDate.year,
+                  }));
+                  setShowDatePicker(false);
+                }}
+              >
+                <AstralDatePicker
+                  days={days}
+                  months={months}
+                  years={years}
+                  selectedDay={tempDate.day}
+                  selectedMonth={tempDate.month}
+                  selectedYear={tempDate.year}
+                  onDateChange={(type, val) => setTempDate((prev) => ({ ...prev, [type]: val }))}
+                />
+              </AstralPickerModal>
+
+              <AstralPickerModal
+                visible={showTimePicker}
+                title="Время рождения"
+                onClose={() => setShowTimePicker(false)}
+                onConfirm={() => {
+                  setBirthData((prev) => ({
+                    ...prev,
+                    hour: tempTime.hour,
+                    minute: tempTime.minute,
+                  }));
+                  setShowTimePicker(false);
+                }}
+              >
+                <AstralTimePicker
+                  selectedTime={tempTime}
+                  onTimeChange={(time) => setTempTime(time)}
+                />
+              </AstralPickerModal>
             </>
           )}
         </KeyboardAvoidingView>
@@ -444,6 +513,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
+  },
+  inputText: {
+    color: '#FFF',
+    fontSize: 18,
   },
   lockedCard: {
     opacity: 0.5,

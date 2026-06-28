@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  Modal,
-  TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
@@ -21,6 +21,7 @@ import AstralGlassCard from '../components/AstralGlassCard';
 import AstralCitySelector from '../components/AstralCitySelector';
 import AstralDatePicker, { getAstralDatePickerData } from '../components/AstralDatePicker';
 import { AstralTimePicker } from '../components/AstralTimePicker';
+import AstralPickerModal from '../components/AstralPickerModal';
 
 const debounce = (func: Function, delay: number) => {
   let timeoutId: NodeJS.Timeout;
@@ -41,6 +42,7 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
   onCompatibilityCreated,
   onBack,
 }) => {
+  const scrollViewRef = useRef<ScrollView>(null);
   const [partnerName, setPartnerName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [birthTime, setBirthTime] = useState('12:00:00');
@@ -83,17 +85,6 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
     const [h, m] = birthTime.split(':').map(Number);
     return { hour: h || 0, minute: m || 0 };
   }, [birthTime]);
-
-  const handleDateChange = (type: 'day' | 'month' | 'year', value: number) => {
-    const updated = { ...dateObj, [type]: value };
-    const dateStr = `${updated.year}-${String(updated.month).padStart(2, '0')}-${String(updated.day).padStart(2, '0')}`;
-    setBirthDate(dateStr);
-  };
-
-  const handleTimeChange = (time: { hour: number; minute: number }) => {
-    const timeStr = `${String(time.hour).padStart(2, '0')}:${String(time.minute).padStart(2, '0')}:00`;
-    setBirthTime(timeStr);
-  };
 
   const searchCities = useMemo(
     () =>
@@ -177,168 +168,129 @@ export const CompatibilityFormScreen: React.FC<CompatibilityFormScreenProps> = (
   return (
     <AstralSafeAreaView style={styles.container}>
       <AstralHeader title="Совместимость" onBack={onBack} />
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <AstralGlassCard style={styles.formCard}>
-          <Text style={styles.titleText}>Данные партнера</Text>
-          <Text style={styles.subtitleText}>
-            Введите данные второй половинки для расчета звездной совместимости
-          </Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        enabled={Platform.OS === 'ios'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <AstralGlassCard style={styles.formCard}>
+            <Text style={styles.titleText}>Данные партнера</Text>
+            <Text style={styles.subtitleText}>
+              Введите данные второй половинки для расчета звездной совместимости
+            </Text>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Имя партнера *</Text>
-            <TextInput
-              style={styles.input}
-              value={partnerName}
-              onChangeText={setPartnerName}
-              placeholder="Как зовут вашу половинку?"
-              placeholderTextColor="#9CA3AF"
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Имя партнера *</Text>
+              <TextInput
+                style={styles.input}
+                value={partnerName}
+                onChangeText={setPartnerName}
+                placeholder="Как зовут вашу половинку?"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Дата рождения *</Text>
+              <TouchableOpacity
+                style={styles.input}
+                onPress={() => {
+                  setTempDate(dateObj);
+                  setShowDatePicker(true);
+                }}
+              >
+                <Text style={[styles.inputText, !birthDate && styles.placeholder]}>
+                  {birthDate || 'Выберите дату'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Время рождения (опционально)</Text>
+              <TouchableOpacity
+                style={styles.input}
+                onPress={() => {
+                  setTempTime(timeObj);
+                  setShowTimePicker(true);
+                }}
+              >
+                <Text style={[styles.inputText, !birthTime && styles.placeholder]}>
+                  {birthTime ? birthTime.substring(0, 5) : '12:00'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Место рождения *</Text>
+              <AstralCitySelector
+                citySearch={citySearch}
+                onCitySearchChange={(text) => {
+                  setCitySearch(text);
+                  searchCities(text);
+                }}
+                isSearchingCities={isSearchingCities}
+                showCityList={showCityList}
+                filteredCities={filteredCities}
+                onSelectCity={handleSelectCity}
+                onFocus={() => {
+                  if (citySearch.length >= 2) setShowCityList(true);
+                }}
+                placeholder="Город рождения"
+                scrollViewRef={scrollViewRef}
+              />
+            </View>
+
+            <AstralButton
+              title={loading ? 'Рассчитываем...' : 'Рассчитать совместимость'}
+              onPress={handleSubmit}
+              disabled={loading || !isFormValid}
+              style={styles.submitButton}
             />
-          </View>
+          </AstralGlassCard>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Дата рождения *</Text>
-            <TouchableOpacity
-              style={styles.input}
-              onPress={() => {
-                setTempDate(dateObj);
-                setShowDatePicker(true);
-              }}
-            >
-              <Text style={[styles.inputText, !birthDate && styles.placeholder]}>
-                {birthDate || 'Выберите дату'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Время рождения (опционально)</Text>
-            <TouchableOpacity
-              style={styles.input}
-              onPress={() => {
-                setTempTime(timeObj);
-                setShowTimePicker(true);
-              }}
-            >
-              <Text style={[styles.inputText, !birthTime && styles.placeholder]}>
-                {birthTime ? birthTime.substring(0, 5) : '12:00'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Место рождения *</Text>
-            <AstralCitySelector
-              citySearch={citySearch}
-              onCitySearchChange={(text) => {
-                setCitySearch(text);
-                searchCities(text);
-              }}
-              isSearchingCities={isSearchingCities}
-              showCityList={showCityList}
-              filteredCities={filteredCities}
-              onSelectCity={handleSelectCity}
-              onFocus={() => {
-                if (citySearch.length >= 2) setShowCityList(true);
-              }}
-              placeholder="Город рождения"
-            />
-          </View>
-
-          <AstralButton
-            title={loading ? 'Рассчитываем...' : 'Рассчитать совместимость'}
-            onPress={handleSubmit}
-            disabled={loading || !isFormValid}
-            style={styles.submitButton}
-          />
-        </AstralGlassCard>
-      </ScrollView>
-
-      {/* Date Picker Modal */}
-      <Modal
+      <AstralPickerModal
         visible={showDatePicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowDatePicker(false)}
+        title="Дата рождения партнера"
+        onClose={() => setShowDatePicker(false)}
+        onConfirm={() => {
+          const dateStr = `${tempDate.year}-${String(tempDate.month).padStart(2, '0')}-${String(tempDate.day).padStart(2, '0')}`;
+          setBirthDate(dateStr);
+          setShowDatePicker(false);
+        }}
       >
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity
-            style={StyleSheet.absoluteFillObject}
-            activeOpacity={1}
-            onPress={() => setShowDatePicker(false)}
-          />
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Дата рождения партнера</Text>
-              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                <Ionicons name="close" size={24} color="#FFF" />
-              </TouchableOpacity>
-            </View>
+        <AstralDatePicker
+          days={days}
+          months={months}
+          years={years}
+          selectedDay={tempDate.day}
+          selectedMonth={tempDate.month}
+          selectedYear={tempDate.year}
+          onDateChange={(type, val) => setTempDate((prev) => ({ ...prev, [type]: val }))}
+        />
+      </AstralPickerModal>
 
-            <View style={styles.modalBody}>
-              <AstralDatePicker
-                days={days}
-                months={months}
-                years={years}
-                selectedDay={tempDate.day}
-                selectedMonth={tempDate.month}
-                selectedYear={tempDate.year}
-                onDateChange={(type, val) => setTempDate((prev) => ({ ...prev, [type]: val }))}
-              />
-            </View>
-
-            <AstralButton
-              title="Готово"
-              onPress={() => {
-                const dateStr = `${tempDate.year}-${String(tempDate.month).padStart(2, '0')}-${String(tempDate.day).padStart(2, '0')}`;
-                setBirthDate(dateStr);
-                setShowDatePicker(false);
-              }}
-              style={styles.modalButton}
-            />
-          </View>
-        </View>
-      </Modal>
-
-      {/* Time Picker Modal */}
-      <Modal
+      <AstralPickerModal
         visible={showTimePicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowTimePicker(false)}
+        title="Время рождения партнера"
+        onClose={() => setShowTimePicker(false)}
+        onConfirm={() => {
+          const timeStr = `${String(tempTime.hour).padStart(2, '0')}:${String(tempTime.minute).padStart(2, '0')}:00`;
+          setBirthTime(timeStr);
+          setShowTimePicker(false);
+        }}
       >
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity
-            style={StyleSheet.absoluteFillObject}
-            activeOpacity={1}
-            onPress={() => setShowTimePicker(false)}
-          />
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Время рождения партнера</Text>
-              <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                <Ionicons name="close" size={24} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalBody}>
-              <AstralTimePicker
-                selectedTime={tempTime}
-                onTimeChange={(time) => setTempTime(time)}
-              />
-            </View>
-
-            <AstralButton
-              title="Готово"
-              onPress={() => {
-                const timeStr = `${String(tempTime.hour).padStart(2, '0')}:${String(tempTime.minute).padStart(2, '0')}:00`;
-                setBirthTime(timeStr);
-                setShowTimePicker(false);
-              }}
-              style={styles.modalButton}
-            />
-          </View>
-        </View>
-      </Modal>
+        <AstralTimePicker
+          selectedTime={tempTime}
+          onTimeChange={(time) => setTempTime(time)}
+        />
+      </AstralPickerModal>
     </AstralSafeAreaView>
   );
 };
@@ -401,46 +353,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     height: 60,
     borderRadius: 20,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 9, 26, 0.7)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#14142B',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    padding: 24,
-    borderTopWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.15)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    color: '#FFD700',
-    fontFamily: theme.fonts.heading,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
-  },
-  modalBody: {
-    marginBottom: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalButton: {
-    height: 56,
-    borderRadius: 18,
   },
 });
 
